@@ -1,0 +1,29 @@
+/* components.css */
+
+/* CARD */
+.card {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 120px;
+}
+
+/* MAP */
+.map-placeholder {
+    height: 400px;
+    border-radius: 12px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #666;
+}
+
+/* LOCATION WEATHER */
+.location-weather {
+    background: #f0fdf4;
+    border-radius: 16px;
+    padding: 16px 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}

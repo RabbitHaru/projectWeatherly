@@ -1,0 +1,184 @@
+@import url("base.css");
+@import url("layout.css");
+@import url("components.css");
+@import url("pages/home.css");
+@import url("pages/login.css");
+/* ===============================
+   TOP WEATHER + MAP
+================================ */
+.top-weather-map {
+    display: flex;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px;
+}
+
+/* ===============================
+   CURRENT WEATHER (LEFT)
+================================ */
+.current-weather-card {
+    flex: 3;
+    background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+/* 헤더 */
+.cw-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #475569;
+}
+
+/* 메인 */
+.cw-main {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.cw-icon {
+    width: 90px;
+    height: 90px;
+}
+
+.cw-temp .temp {
+    font-size: 56px;
+    font-weight: 700;
+}
+
+.cw-temp .desc {
+    display: block;
+    font-size: 16px;
+    color: #374151;
+}
+
+/* 서브 정보 */
+.cw-sub {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    background: white;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 14px;
+}
+
+/* 범위 */
+.cw-range {
+    margin-top: 14px;
+    font-size: 14px;
+    color: #374151;
+}
+
+/* ===============================
+   MAP (RIGHT)
+================================ */
+.weather-map-card {
+    flex: 2;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+.map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.map-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.map-header span {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.map-placeholder {
+    height: 360px;
+    border-radius: 16px;
+    background: #f1f5f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #64748b;
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 1024px) {
+    .top-weather-map {
+        flex-direction: column;
+    }
+}
+/* ===============================
+   HOURLY SLIDER
+================================ */
+.hourly-slider {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+}
+
+/* 스크롤바 숨김 (선택) */
+.hourly-slider::-webkit-scrollbar {
+    display: none;
+}
+
+.hour-card {
+    min-width: 140px;
+    align-items: center;            /* 좌우 중앙 */
+    justify-content: center;
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    scroll-snap-align: start;
+    gap: 8px;
+}
+
+/* ===============================
+   WEEKLY SLIDER (HOURLY STYLE)
+================================ */
+.weekly-slider {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+}
+
+.weekly-slider::-webkit-scrollbar {
+    display: none;
+}
+
+/* 주간 카드 = 시간별 카드와 동일 */
+.day-card {
+    min-width: 140px;
+    min-height: 180px;
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    scroll-snap-align: start;
+}
+

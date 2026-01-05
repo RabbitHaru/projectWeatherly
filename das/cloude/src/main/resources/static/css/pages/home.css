@@ -1,0 +1,23 @@
+/* pages/home.css */
+
+.top-weather-map {
+    display: flex;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.top-weather-map .current-weather {
+    flex: 3;
+}
+
+.top-weather-map .weather-map {
+    flex: 2;
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+    .top-weather-map {
+        flex-direction: column;
+    }
+}

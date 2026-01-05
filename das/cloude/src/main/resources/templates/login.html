@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 | Weather Service</title>
+    <link rel="stylesheet" href="/css/Style.css">
+</head>
+<body class="login-body">
+
+<!-- 헤더 -->
+<div th:replace="fragments/header :: header"></div>
+
+<!-- 로그인 박스 -->
+<div class="login-container">
+    <h2>로그인</h2>
+
+    <form th:action="@{/login}" method="post" class="login-form">
+        <div class="form-group">
+            <label for="username">아이디</label>
+            <input type="text" id="username" name="username" placeholder="아이디 입력" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
+        </div>
+
+        <!-- 에러 메시지 -->
+        <p class="error-msg" th:if="${error}" th:text="${error}"></p>
+
+        <button type="submit" class="login-btn">로그인</button>
+    </form>
+
+    <div class="login-links">
+        <a href="/join">회원가입</a>
+        <span>|</span>
+        <a href="#">아이디 / 비밀번호 찾기</a>
+    </div>
+    <div class="social-login">
+        <a href="/oauth2/authorization/google" class="google">
+            <img src="/image/social/Google_Favicon_2025.svg.png" alt="Google" style="height:40px; width:auto;">
+        </a>
+        <a href="/oauth2/authorization/naver" class="naver">
+            <img src="/image/social/naver-icon-file.png" alt="naver" style="height:40px; width:auto;">
+        </a>
+        <a href="/oauth2/authorization/kakao" class="social-btn kakao">
+            <img src="/image/social/kakao.png" alt="Kakao" style="height:40px; width:auto;">
+        </a>
+
+    </div>
+</div>
+
+<!-- 푸터 -->
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

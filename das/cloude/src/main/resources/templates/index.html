@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>날씨 기반 사용자 맞춤 서비스</title>
+    <link rel="stylesheet" href="/css/Style.css">
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<div th:replace="fragments/header :: header"></div>
+
+
+    <!-- ================= TOP WEATHER + MAP ================= -->
+    <div class="top-weather-map">
+
+        <!-- 왼쪽 : 현재 위치 날씨 -->
+        <section class="current-weather-card">
+            <div class="location-weather">
+                <p class="location-text">
+                    📍 <strong>현재 위치</strong> :
+                    <span id="location">위치 확인 중...</span>
+                </p>
+
+                <div class="weather-summary">
+                    <img src="/images/placeholder.png" class="weather-icon">
+                    <div class="weather-info">
+                        <span class="temperature">--℃</span>
+                        <span class="desc">날씨 정보 로딩 중</span>
+                    </div>
+                </div>
+
+                <p class="temp-range">
+                    최저 <span class="min-temp">--℃</span> /
+                    최고 <span class="max-temp">--℃</span>
+                </p>
+
+                <p class="update-time">
+                    마지막 업데이트 : --:--
+                </p>
+            </div>
+        </section>
+
+        <!-- 오른쪽 : 전국 날씨 지도 -->
+        <section class="section weather-map">
+            <h2>전국 날씨 지도</h2>
+            <div class="map-placeholder">
+                지도 API 연동 예정
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ================= HOURLY WEATHER ================= -->
+<section class="section hourly-weather">
+    <h2>시간별 날씨</h2>
+
+    <div class="hourly-slider">
+        <div class="hour-card">
+            <p class="hour">06:00</p>
+            <img src="/images/placeholder.png">
+            <p class="hour-temp">--℃</p>
+            <p class="rain">강수확률 --%</p>
+        </div>
+
+        <div class="hour-card">
+            <p class="hour">09:00</p>
+            <img src="/images/placeholder.png">
+            <p class="hour-temp">--℃</p>
+            <p class="rain">강수확률 --%</p>
+        </div>
+
+        <div class="hour-card">
+            <p class="hour">12:00</p>
+            <img src="/images/placeholder.png">
+            <p class="hour-temp">--℃</p>
+            <p class="rain">강수확률 --%</p>
+        </div>
+
+        <div class="hour-card">
+            <p class="hour">15:00</p>
+            <img src="/images/placeholder.png">
+            <p class="hour-temp">--℃</p>
+            <p class="rain">강수확률 --%</p>
+        </div>
+
+        <div class="hour-card">
+            <p class="hour">18:00</p>
+            <img src="/images/placeholder.png">
+            <p class="hour-temp">--℃</p>
+            <p class="rain">강수확률 --%</p>
+        </div>
+
+        <div class="hour-card">
+            <p class="hour">21:00</p>
+            <img src="/images/placeholder.png">
+            <p class="hour-temp">--℃</p>
+            <p class="rain">강수확률 --%</p>
+        </div>
+    </div>
+</section>
+
+<!-- ================= WEEKLY WEATHER ================= -->
+<section class="section weekly-weather">
+    <h2>주간 날씨</h2>
+
+    <div class="weekly-grid">
+        <div class="day-card">
+            <p class="day">월요일</p>
+            <img src="/images/placeholder.png">
+            <p class="day-temp">--℃ / --℃</p>
+            <p class="day-desc">날씨 정보</p>
+        </div>
+
+        <div class="day-card">
+            <p class="day">화요일</p>
+            <img src="/images/placeholder.png">
+            <p class="day-temp">--℃ / --℃</p>
+            <p class="day-desc">날씨 정보</p>
+        </div>
+
+        <div class="day-card">
+            <p class="day">수요일</p>
+            <img src="/images/placeholder.png">
+            <p class="day-temp">--℃ / --℃</p>
+            <p class="day-desc">날씨 정보</p>
+        </div>
+
+        <div class="day-card">
+            <p class="day">목요일</p>
+            <img src="/images/placeholder.png">
+            <p class="day-temp">--℃ / --℃</p>
+            <p class="day-desc">날씨 정보</p>
+        </div>
+
+        <div class="day-card">
+            <p class="day">금요일</p>
+            <img src="/images/placeholder.png">
+            <p class="day-temp">--℃ / --℃</p>
+            <p class="day-desc">날씨 정보</p>
+        </div>
+    </div>
+</section>
+
+<!-- ================= REGIONAL WEATHER ================= -->
+<section class="section regional-weather">
+    <h2>지역별 날씨</h2>
+
+    <div class="grid">
+        <div class="card">
+            <h3>서울</h3>
+            <p>온도: --℃</p>
+            <p>날씨: --</p>
+        </div>
+
+        <div class="card">
+            <h3>부산</h3>
+            <p>온도: --℃</p>
+            <p>날씨: --</p>
+        </div>
+
+        <div class="card">
+            <h3>대전</h3>
+            <p>온도: --℃</p>
+            <p>날씨: --</p>
+        </div>
+
+        <div class="card">
+            <h3>광주</h3>
+            <p>온도: --℃</p>
+            <p>날씨: --</p>
+        </div>
+    </div>
+</section>
+
+<!-- ================= AIR QUALITY ================= -->
+<section class="section air-quality">
+    <h2>미세먼지 & 생활지수</h2>
+
+    <div class="grid">
+        <div class="card">
+            <h3>🌫 미세먼지</h3>
+            <p>PM10: --</p>
+            <p>PM2.5: --</p>
+            <p>등급: --</p>
+        </div>
+
+        <div class="card">
+            <h3>🌞 자외선 지수</h3>
+            <p>지수: --</p>
+            <p>단계: --</p>
+        </div>
+
+        <div class="card">
+            <h3>❄️ 체감온도</h3>
+            <p>체감: --℃</p>
+            <p>습도: --%</p>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- ================= USER CUSTOM ================= -->
+<section class="section">
+    <h2>사용자 맞춤 추천</h2>
+
+    <div class="grid">
+        <div class="card">
+            <h3>👕 옷차림 추천</h3>
+            <p>현재 온도 기준 추천</p>
+            <p>외투 / 반팔 / 우산 여부</p>
+        </div>
+
+        <div class="card">
+            <h3>☂️ 외출 정보</h3>
+            <p>강수 여부</p>
+            <p>미세먼지 주의</p>
+        </div>
+
+        <div class="card">
+            <h3>⚠️ 주의 알림</h3>
+            <p>폭염 / 한파 / 태풍</p>
+            <p>기상특보 알림</p>
+        </div>
+    </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

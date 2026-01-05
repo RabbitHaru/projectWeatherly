@@ -1,0 +1,106 @@
+config.properties
+
+# Compiled class file
+*.class
+.metadata/
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+replay_pid*
+
+
+# ======================================
+# OS 별 임시 파일
+# ======================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ======================================
+# Eclipse 관련
+# ======================================
+.classpath
+.project
+.settings/
+.metadata/
+bin/
+tmp/
+target/
+build/
+.recommenders/
+
+# ======================================
+# Java 관련
+# ======================================
+*.class
+*.log
+*.ctxt
+hs_err_pid*
+replay_pid*
+
+# ======================================
+# Tomcat 관련
+# ======================================
+# 서버 실행 중 생성되는 캐시/로그
+Servers/
+logs/
+temp/
+work/
+
+# WAR, EAR, JAR 등의 배포 산출물 제외
+*.war
+*.ear
+*.jar
+
+# ======================================
+# 환경 설정 파일
+# ======================================
+# 개인 개발 환경별 설정은 제외
+.env
+*.properties.local
+*.yml.local
+
+# ======================================
+# 업로드 / 임시 데이터
+# ======================================
+#upload/
+#uploads/
+#resources/upload/
+#WebContent/upload/
+#WebContent/resources/upload/
+
+# ======================================
+# OS별 / 기타
+# ======================================
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+ehthumbs_vista.db
+
+# ======================================
+# 사용자 정의 (원하면 커스터마이즈 가능)
+# ======================================
+# 예: 데이터베이스 연결 설정 등
+#WebContent/WEB-INF/lib/
+#WebContent/WEB-INF/classes/
+

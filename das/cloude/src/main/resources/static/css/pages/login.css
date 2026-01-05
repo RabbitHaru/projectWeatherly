@@ -1,0 +1,96 @@
+/* ======================
+   LOGIN PAGE
+====================== */
+.login-body {
+    background: #f1f5f9;
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 80px auto;
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.login-container h2 {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.login-form .form-group {
+    margin-bottom: 16px;
+}
+
+.login-form label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #374151;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+}
+
+.login-form input:focus {
+    outline: none;
+    border-color: #03c75a;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background: #03c75a;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.login-btn:hover {
+    background: #02b351;
+}
+
+.login-links {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+}
+
+.login-links a {
+    color: #03c75a;
+    text-decoration: none;
+}
+
+.login-links span {
+    margin: 0 6px;
+    color: #94a3b8;
+}
+
+.error-msg {
+    color: #dc2626;
+    font-size: 13px;
+    margin: 8px 0;
+    text-align: center;
+}
+.login-links {
+    text-align: center;
+    margin-top: 16px;
+}
+
+/* 여기 핵심 */
+.social-login {
+    margin-top: 32px;   /* ← 이 값으로 간격 조절 */
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
