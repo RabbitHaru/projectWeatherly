@@ -10,27 +10,20 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-
 public class RegionService {
 
     private final RegionRepository regionRepository;
 
-    public List<Region> findAll(){
-        return regionRepository.findAll();
+    public Region findByCode(String regionCode) {
+        return regionRepository.findById(regionCode)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 지역 코드입니다: " + regionCode)
+                );
+
+    }
+    public List<Region> findActiveRegions() {
+        return regionRepository.findByIsActiveTrue();
     }
 
-    public List<Region> findActiveRegions(){
-        return regionRepository.findAll()
-                .stream()
-                .filter(Region::isActive)
-                .toList();
-    }
-
-    public Optional<Region> findByCode(String regionCode){
-        return regionRepository.findById(regionCode);
-    }
-
-    public Region save(Region region){
-        return regionRepository.save(region);
-    }
 }
+
