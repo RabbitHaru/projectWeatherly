@@ -1,3 +1,52 @@
+# 설정 파일
+config/secret.properties
+config/*secret*
+config/*key*
+config/*credential*
+config/*password*
+
+# IDE 설정
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+
+# 빌드 결과물
+build/
+.gradle/
+out/
+target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar
+*.tar.gz
+
+# 운영체제 파일
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+logs/
+*.log
+
+# 데이터베이스 파일
+*.db
+*.sqlite
+*.h2.db
+
+# 테스트 결과
+test-output/
+
+# 임시 파일
+tmp/
+temp/
+
 HELP.md
 .gradle
 build/

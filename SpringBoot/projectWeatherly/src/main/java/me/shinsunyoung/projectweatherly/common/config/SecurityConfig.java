@@ -1,4 +1,4 @@
-package me.shinsunyoung.projectweatherly.config;
+package me.shinsunyoung.projectweatherly.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
