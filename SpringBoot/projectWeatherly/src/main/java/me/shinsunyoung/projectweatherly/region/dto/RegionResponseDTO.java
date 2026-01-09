@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 
-public class dto {
-    private String 
+public class RegionResponseDTO {
+    private String regionCode;
+    private String fullName;
 }
