@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE - Weatherly">Weatherly</title>
+    <link rel="stylesheet" href="/static/css/header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- 헤더 -->
+<header class="main-header">
+    <div class="header-container">
+        <!-- 왼쪽: 로고 -->
+        <div class="header-left">
+            <a href="/" class="logo">
+                <i class="fas fa-cloud-sun"></i>
+                <span>Weatherly</span>
+            </a>
+        </div>
+
+        <!-- 가운데: 메인 메뉴 -->
+        <nav class="header-center">
+            <ul class="main-menu">
+                <li><a href="/" class="menu-item active"><i class="fas fa-home"></i> 홈</a></li>
+                <li><a href="/fine-dust" class="menu-item"><i class="fas fa-wind"></i> 미세먼지</a></li>
+                <li><a href="/outfit" class="menu-item"><i class="fas fa-tshirt"></i> 옷차림</a></li>
+                <li><a href="/community" class="menu-item"><i class="fas fa-comments"></i> 커뮤니티</a></li>
+            </ul>
+        </nav>
+
+        <!-- 오른쪽: 사용자 메뉴 -->
+        <div class="header-right">
+            <div class="user-info">
+                <span class="greeting">안녕하세요, <strong>홍길동</strong>님!</span>
+            </div>
+
+            <div class="user-controls">
+                <button class="control-btn" id="notification-btn" title="알림">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </button>
+
+                <button class="control-btn" id="favorites-btn" title="즐겨찾기">
+                    <i class="fas fa-star"></i>
+                </button>
+
+                <button class="control-btn" id="darkmode-toggle" title="다크모드">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+                <div class="dropdown">
+                    <button class="user-menu-btn">
+                        <i class="fas fa-user-circle"></i>
+                        <span>마이페이지</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="/mypage"><i class="fas fa-user"></i> 프로필</a>
+                        <a href="/settings"><i class="fas fa-cog"></i> 설정</a>
+                        <a href="/favorites"><i class="fas fa-star"></i> 즐겨찾기</a>
+                        <div class="divider"></div>
+                        <a href="/logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 메인 콘텐츠 -->
+<main class="main-content" layout:fragment="content">
+    <!-- 각 페이지의 콘텐츠가 여기에 삽입됨 -->
+</main>
+
+<!-- 푸터 -->
+<footer class="main-footer">
+    <div class="footer-container">
+        <p>&copy; 2023 Weatherly. All rights reserved.</p>
+        <p>기상청 API를 활용한 날씨 정보 서비스 | 프로젝트 by me.shinsunyoung</p>
+    </div>
+</footer>
+
+<script src="/static/js/header.js"></script>
+<script>
+    // 다크모드 토글
+    document.getElementById('darkmode-toggle').addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        const icon = this.querySelector('i');
+        if (document.body.classList.contains('dark-mode')) {
+            icon.className = 'fas fa-sun';
+            this.title = '라이트모드';
+        } else {
+            icon.className = 'fas fa-moon';
+            this.title = '다크모드';
+        }
+    });
+</script>
+</body>
+</html>

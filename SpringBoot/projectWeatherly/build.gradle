@@ -1,0 +1,76 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.9'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'me.shinsunyoung'
+version = '0.0.1-SNAPSHOT'
+description = 'projectWeatherly'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    // 타임리프 레이아웃
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'
+
+    // API 통신
+    implementation 'org.springframework:spring-webflux'
+
+    // JSON 처리
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // HTTP 클라이언트
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+
+    // 캐시
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.1'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // 개발 도구
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // 테스트
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+def queryDir = "$buildDir/generated/querydsl"
+sourceSets {
+    main.java.srcDirs += [queryDir]
+}
+tasks.withType(JavaCompiler){
+    options.getGeneratedSourceOutputDirectory().set(file(queryDir))
+}
+clean{
+    delete file(queryDir)
+}

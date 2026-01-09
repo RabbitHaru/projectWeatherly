@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Weatherly 메인 와이어프레임</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f2f2f2;
+        }
+
+        /* Header */
+        header {
+            background: #ddd;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            background: #8faaff;
+            padding: 6px 12px;
+            font-weight: bold;
+        }
+
+        nav button {
+            background: #8faaff;
+            border: none;
+            padding: 6px 12px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Main Layout */
+        .container {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .left {
+            flex: 3;
+            background: #e0e0e0;
+            padding: 15px;
+        }
+
+        .right {
+            flex: 1.5;
+            background: #e0e0e0;
+            padding: 15px;
+        }
+
+        /* Search */
+        .search-bar {
+            background: #8faaff;
+            padding: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* Weather Panels */
+        .weather-top {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .box {
+            background: #9db5ff;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .small-box {
+            background: #9db5ff;
+            padding: 15px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .weekly {
+            background: #9db5ff;
+            padding: 30px;
+            text-align: center;
+        }
+
+        /* Right Panel */
+        .right .box {
+            margin-bottom: 15px;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">Weatherly</div>
+
+    <nav>
+        <button>홈</button>
+        <button>미세먼지</button>
+        <button>옷차림</button>
+        <button>커뮤니티</button>
+    </nav>
+
+    <div class="header-right">
+        <button>로그아웃</button>
+        <button>마이페이지</button>
+        🔔
+    </div>
+</header>
+
+<div class="container">
+    <!-- LEFT -->
+    <div class="left">
+        <div class="search-bar">위치 검색창</div>
+
+        <div class="weather-top">
+            <div class="box">오늘의 날씨</div>
+            <div class="box">내일의 날씨</div>
+        </div>
+
+        <div class="small-box">시간별 온도</div>
+        <div class="small-box">시간별 옷차림</div>
+
+        <div class="weekly">주간 예보</div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+        <div class="box">기상 특보</div>
+        <div class="box">날씨 지도</div>
+        <div class="box">미세 먼지 현황 레이더</div>
+    </div>
+</div>
+
+</body>
+</html>
