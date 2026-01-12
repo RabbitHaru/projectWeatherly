@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weatherly - 회원가입</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="signup.css">
+</head>
+<body>
+<!-- 헤더 -->
+<header class="main-header">
+    <div class="header-container">
+        <div class="header-left">
+            <a href="index.html" class="logo">
+                <i class="fas fa-cloud-sun logo-icon"></i>
+                <span class="logo-text">Weatherly</span>
+            </a>
+        </div>
+
+        <div class="header-right">
+            <div class="control-buttons">
+                <button class="control-btn" id="darkModeToggle" title="다크모드 전환">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 메인 컨텐츠 -->
+<main class="signup-container">
+    <div class="signup-card">
+        <div class="signup-header">
+            <h1><i class="fas fa-user-plus"></i> 회원가입</h1>
+            <p class="subtitle">Weatherly 회원이 되어 정확한 날씨 정보와 커뮤니티를 즐기세요</p>
+        </div>
+
+        <form id="signupForm" class="signup-form" novalidate>
+            <!-- 소셜 로그인 섹션 -->
+            <div class="social-signup">
+                <p class="social-title">소셜 계정으로 간편 가입</p>
+                <div class="social-buttons">
+                    <button type="button" class="social-btn kakao">
+                        <i class="fab fa-kaggle"></i> 카카오로 시작하기
+                    </button>
+                    <button type="button" class="social-btn naver">
+                        <i class="fas fa-n"></i> 네이버로 시작하기
+                    </button>
+                    <button type="button" class="social-btn google">
+                        <i class="fab fa-google"></i> Google로 시작하기
+                    </button>
+                </div>
+                <div class="divider">
+                    <span>또는</span>
+                </div>
+            </div>
+
+            <!-- 기본 정보 입력 -->
+            <div class="form-section">
+                <h2><i class="fas fa-id-card"></i> 기본 정보</h2>
+
+                <div class="form-group">
+                    <label for="user_email">이메일 주소 <span class="required">*</span></label>
+                    <div class="input-with-validation">
+                        <input type="email" id="user_email" name="user_email" placeholder="예: user@weatherly.com" required>
+                        <button type="button" class="validation-btn" id="emailCheckBtn">중복확인</button>
+                    </div>
+                    <div class="validation-message" id="emailMessage"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="user_name">닉네임 <span class="required">*</span></label>
+                    <div class="input-with-validation">
+                        <input type="text" id="user_name" name="user_name" placeholder="2~10자 한글, 영문, 숫자" maxlength="10" required>
+                        <button type="button" class="validation-btn" id="nameCheckBtn">중복확인</button>
+                    </div>
+                    <div class="validation-message" id="nameMessage"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="user_password">비밀번호 <span class="required">*</span></label>
+                    <input type="password" id="user_password" name="user_password" placeholder="영문, 숫자, 특수문자 포함 8자 이상" required>
+                    <div class="validation-message" id="passwordMessage"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password_confirm">비밀번호 확인 <span class="required">*</span></label>
+                    <input type="password" id="password_confirm" name="password_confirm" placeholder="비밀번호를 다시 입력해주세요" required>
+                    <div class="validation-message" id="passwordConfirmMessage"></div>
+                </div>
+            </div>
+
+            <!-- 프로필 이미지 -->
+            <div class="form-section">
+                <h2><i class="fas fa-image"></i> 프로필 이미지 (선택)</h2>
+                <div class="profile-image-upload">
+                    <div class="profile-preview">
+                        <img id="profilePreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='20' fill='%233498db'/%3E%3Cpath d='M30,85 Q50,65 70,85' fill='none' stroke='%233498db' stroke-width='5'/%3E%3C/svg%3E" alt="기본 프로필">
+                    </div>
+                    <div class="profile-upload-controls">
+                        <label for="profile_image" class="upload-btn">
+                            <i class="fas fa-camera"></i> 이미지 선택
+                        </label>
+                        <input type="file" id="profile_image" name="profile_image" accept="image/*" style="display: none;">
+                        <button type="button" class="remove-btn" id="removeImageBtn">
+                            <i class="fas fa-trash"></i> 제거
+                        </button>
+                        <p class="upload-info">JPG, PNG, GIF 파일 (최대 5MB)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 이용약관 동의 -->
+            <div class="form-section agreement-section">
+                <h2><i class="fas fa-file-contract"></i> 이용약관 동의</h2>
+
+                <!-- 필수 동의 항목 -->
+                <div class="agreement-group required">
+                    <h3>필수 동의 항목</h3>
+
+                    <div class="agreement-item">
+                        <div class="agreement-header">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="agree_terms" name="agree_terms" required>
+                                <span class="checkmark"></span>
+                                <span class="agreement-label">이용약관 동의 <span class="required">(필수)</span></span>
+                            </label>
+                            <button type="button" class="view-agreement-btn" data-target="termsContent">보기</button>
+                        </div>
+                        <div class="agreement-content" id="termsContent">
+                            <h4>Weatherly 서비스 이용약관</h4>
+                            <p><strong>제1조 (목적)</strong><br>
+                                이 약관은 Weatherly(이하 "회사")가 제공하는 날씨 정보 서비스 및 커뮤니티 서비스(이하 "서비스")의 이용과 관련하여 회사와 회원 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+
+                            <p><strong>제2조 (정의)</strong><br>
+                                1. "서비스"라 함은 구현되는 단말기(PC, 휴대형단말기 등의 각종 유무선 장치를 포함)와 상관없이 회원이 이용할 수 있는 Weatherly 서비스를 의미합니다.<br>
+                                2. "회원"이라 함은 회사의 서비스에 접속하여 이 약관에 동의하고 회사와 이용계약을 체결한 자를 의미합니다.</p>
+
+                            <p><strong>제3조 (약관의 효력 및 변경)</strong><br>
+                                1. 본 약관은 서비스를 이용하고자 하는 모든 회원에 대하여 그 효력을 발생합니다.<br>
+                                2. 회사는 필요한 경우 관련 법령을 위반하지 않는 범위 내에서 본 약관을 변경할 수 있습니다.</p>
+
+                            <p><strong>제4조 (이용계약의 성립)</strong><br>
+                                1. 이용계약은 회원이 되고자 하는 자가 본 약관의 내용에 대하여 동의를 한 다음 회원가입 신청을 하고 회사가 이러한 신청에 대하여 승낙함으로써 체결됩니다.</p>
+
+                            <p><strong>제5조 (서비스의 제공 및 변경)</strong><br>
+                                1. 회사는 회원에게 다음과 같은 서비스를 제공합니다.<br>
+                                &nbsp;&nbsp;&nbsp;a. 실시간 날씨 정보 제공 서비스<br>
+                                &nbsp;&nbsp;&nbsp;b. 기상특보 및 예보 서비스<br>
+                                &nbsp;&nbsp;&nbsp;c. 커뮤니티 서비스<br>
+                                &nbsp;&nbsp;&nbsp;d. 기타 회사가 정하는 서비스</p>
+
+                            <p><strong>제6조 (서비스 이용의 제한 및 중지)</strong><br>
+                                1. 회사는 천재지변, 국가비상사태 등 불가항력적인 사유가 있는 경우에는 서비스의 전부 또는 일부를 제한하거나 중지할 수 있습니다.</p>
+
+                            <p><strong>제7조 (회원의 의무)</strong><br>
+                                1. 회원은 다음 행위를 하여서는 안 됩니다.<br>
+                                &nbsp;&nbsp;&nbsp;a. 타인의 정보 도용<br>
+                                &nbsp;&nbsp;&nbsp;b. 회사의 서비스에 관한 정보를 변경하는 행위<br>
+                                &nbsp;&nbsp;&nbsp;c. 타인의 명예를 훼손하거나 모욕하는 행위<br>
+                                &nbsp;&nbsp;&nbsp;d. 기타 불법적이거나 부당한 행위</p>
+
+                            <p><strong>제8조 (책임제한)</strong><br>
+                                1. 회사는 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.<br>
+                                2. 회사는 회원의 귀책사유로 인한 서비스 이용의 장애에 대하여 책임을 지지 않습니다.</p>
+
+                            <p><strong>제9조 (준거법 및 재판관할)</strong><br>
+                                1. 본 약관은 대한민국 법률에 따라 규정되고 이행됩니다.<br>
+                                2. 서비스 이용과 관련하여 회사와 회원 사이에 분쟁이 발생한 경우, 그 분쟁의 해결은 회사의 본사 소재지를 관할하는 법원으로 합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="agreement-item">
+                        <div class="agreement-header">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="agree_privacy" name="agree_privacy" required>
+                                <span class="checkmark"></span>
+                                <span class="agreement-label">개인정보 수집 및 이용 동의 <span class="required">(필수)</span></span>
+                            </label>
+                            <button type="button" class="view-agreement-btn" data-target="privacyContent">보기</button>
+                        </div>
+                        <div class="agreement-content" id="privacyContent">
+                            <h4>개인정보 수집 및 이용 동의서</h4>
+                            <p><strong>1. 수집하는 개인정보 항목</strong><br>
+                                Weatherly는 회원가입, 서비스 이용 등을 위해 아래와 같은 개인정보를 수집하고 있습니다.<br>
+                                - 필수 항목: 이메일 주소, 닉네임, 비밀번호<br>
+                                - 선택 항목: 프로필 이미지<br>
+                                - 자동 수집 항목: 서비스 이용 기록, 접속 로그, 쿠키, 접속 IP 정보</p>
+
+                            <p><strong>2. 개인정보의 수집 및 이용 목적</strong><br>
+                                회사는 수집한 개인정보를 다음의 목적을 위해 활용합니다.<br>
+                                - 서비스 제공에 관한 계약 이행 및 서비스 제공에 따른 요금정산<br>
+                                - 회원 관리: 회원제 서비스 이용에 따른 본인확인, 개인 식별, 불량회원의 부정 이용 방지와 비인가 사용 방지<br>
+                                - 마케팅 및 광고에 활용: 신규 서비스 개발 및 맞춤 서비스 제공, 통계학적 특성에 따른 서비스 제공 및 광고 게재</p>
+
+                            <p><strong>3. 개인정보의 보유 및 이용기간</strong><br>
+                                원칙적으로 개인정보 수집 및 이용목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다. 단, 다음의 정보에 대해서는 아래의 이유로 명시한 기간 동안 보존합니다.<br>
+                                - 보존 항목: 이메일, 닉네임<br>
+                                - 보존 근거: 회원 탈퇴 시 상법 등 법령의 규정에 의하여 보존할 필요가 있는 경우<br>
+                                - 보존 기간: 5년</p>
+
+                            <p><strong>4. 동의를 거부할 권리 및 동의 거부에 따른 불이익</strong><br>
+                                정보주체는 개인정보 수집 및 이용에 대한 동의를 거부할 권리가 있습니다. 다만, 필수 항목에 대한 동의를 거부할 경우 Weatherly 서비스 이용이 제한될 수 있습니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 선택 동의 항목 -->
+                <div class="agreement-group optional">
+                    <h3>선택 동의 항목</h3>
+
+                    <div class="agreement-item">
+                        <div class="agreement-header">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="agree_marketing" name="agree_marketing">
+                                <span class="checkmark"></span>
+                                <span class="agreement-label">게시판 알림 및 기상특보 알림 설정 동의 <span class="optional-tag">(선택)</span></span>
+                            </label>
+                            <button type="button" class="view-agreement-btn" data-target="marketingContent">보기</button>
+                        </div>
+                        <div class="agreement-content" id="marketingContent">
+                            <h4>게시판 알림 및 기상특보 알림 설정 동의</h4>
+                            <p><strong>1. 수집 및 이용 목적</strong><br>
+                                - 게시판 활동 알림: 회원님이 관심을 가질 만한 게시판 활동(댓글, 좋아요, 팔로우 등)에 대한 알림 제공<br>
+                                - 기상특보 알림: 회원님이 설정한 지역의 기상특보(폭염, 한파, 호우, 태풍 등) 발표 시 즉시 알림 제공<br>
+                                - 맞춤형 날씨 정보: 회원님의 관심 지역과 활동 패턴을 분석한 맞춤형 날씨 정보 제공</p>
+
+                            <p><strong>2. 수집하는 정보</strong><br>
+                                - 관심 지역 설정 정보<br>
+                                - 게시판 활동 기록 (좋아요, 댓글, 스크랩 등)<br>
+                                - 알림 수신 설정 정보</p>
+
+                            <p><strong>3. 알림 제공 방법</strong><br>
+                                - 이메일: 가입 시 입력한 이메일 주소로 발송<br>
+                                - 푸시 알림: Weatherly 모바일 앱 설치 시 푸시 알림으로 제공 (별도 앱 알림 동의 필요)<br>
+                                - 웹 알림: 브라우저 알림 허용 시 웹 알림으로 제공</p>
+
+                            <p><strong>4. 동의 거부 권리 및 방법</strong><br>
+                                본 동의는 거부하실 수 있으며, 동의 후에도 언제든지 철회 가능합니다. 동의를 거부하시더라도 Weatherly 서비스 이용에는 제한이 없습니다.<br>
+                                동의를 철회하시려면 마이페이지 > 알림 설정에서 수신 동의를 해지하실 수 있습니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- 동의안함 기본 체크박스 -->
+                    <div class="agreement-item">
+                        <div class="agreement-header">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="agree_none" name="agree_none">
+                                <span class="checkmark"></span>
+                                <span class="agreement-label">전체 동의안함 <span class="optional-tag">(선택)</span></span>
+                            </label>
+                        </div>
+                        <p class="agreement-note">선택 항목에 대해서는 동의하지 않아도 서비스 이용이 가능합니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 폼 버튼 -->
+            <div class="form-buttons">
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-user-check"></i> 회원가입 완료
+                </button>
+                <button type="button" class="cancel-btn" onclick="window.location.href='index.html'">
+                    <i class="fas fa-times"></i> 취소
+                </button>
+            </div>
+
+            <div class="login-link">
+                이미 계정이 있으신가요? <a href="login.html">로그인하기</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<!-- 푸터 -->
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <p class="copyright">© 2025 Weatherly. All rights reserved.</p>
+            <p class="footer-info">날씨 정보 제공 서비스 및 커뮤니티 플랫폼</p>
+            <p class="project-info">본 프로젝트는 학습용으로 제작된 웹사이트입니다.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="signup.js"></script>
+<script>
+    // 다크모드 전환 (기존 스크립트 활용)
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        const icon = this.querySelector('i');
+        if (document.body.classList.contains('dark-mode')) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    });
+</script>
+</body>
+</html>

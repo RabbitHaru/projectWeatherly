@@ -1,4 +1,4 @@
-package me.shinsunyoung.projectweatherly.member.Controller;
+package me.shinsunyoung.projectweatherly.member.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
