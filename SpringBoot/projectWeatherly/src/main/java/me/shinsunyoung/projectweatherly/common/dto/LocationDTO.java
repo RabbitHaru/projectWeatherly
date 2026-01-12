@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LocationDto {
+public class LocationDTO {
     private Double latitude;    // 위도
     private Double longitude;   // 경도
     private String regionName;  // 지역명 (예: 서울특별시)

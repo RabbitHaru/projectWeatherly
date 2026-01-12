@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.shinsunyoung.projectweatherly.common.dto.LocationDto;
+import me.shinsunyoung.projectweatherly.common.dto.LocationDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ public class LocationService {
      * IP 주소로부터 위치 정보 조회
      */
     @Cacheable(value = "locationCache", key = "#ipAddress")
-    public LocationDto getLocationByIp(String ipAddress) {
+    public LocationDTO getLocationByIp(String ipAddress) {
         try {
             String url = ipInfoUrl;
             if (!ipAddress.equals("127.0.0.1") && !ipAddress.equals("0:0:0:0:0:0:0:1")) {
@@ -44,7 +44,7 @@ public class LocationService {
             String response = restTemplate.getForObject(url, String.class);
             JsonNode node = objectMapper.readTree(response);
 
-            LocationDto location = new LocationDto();
+            LocationDTO location = new LocationDTO();
             location.setIpAddress(ipAddress);
             location.setCity(node.get("city").asText());
             location.setCountry(node.get("country").asText());
@@ -100,7 +100,7 @@ public class LocationService {
      * GPS 좌표로부터 위치 정보 조회 (카카오 API 사용)
      */
     @Cacheable(value = "gpsLocationCache", key = "#latitude + ',' + #longitude")
-    public LocationDto getLocationByGps(Double latitude, Double longitude) {
+    public LocationDTO getLocationByGps(Double latitude, Double longitude) {
         try {
             // 카카오 로컬 API로 좌표 → 주소 변환
             String url = "https://dapi.kakao.com/v2/local/geo/coord2address.json" +
@@ -111,7 +111,7 @@ public class LocationService {
             //     new HttpEntity<>(createHeaders(apiKey)), String.class).getBody();
 
             // 임시 더미 데이터 반환 (실제 구현 시 API 연동)
-            LocationDto location = new LocationDto();
+            LocationDTO location = new LocationDTO();
             location.setLatitude(latitude);
             location.setLongitude(longitude);
             location.setRegionName("서울특별시");
@@ -130,8 +130,8 @@ public class LocationService {
     /**
      * 기본 위치 정보 반환
      */
-    private LocationDto getDefaultLocation() {
-        LocationDto location = new LocationDto();
+    private LocationDTO getDefaultLocation() {
+        LocationDTO location = new LocationDTO();
         location.setRegionName(defaultRegion);
         location.setRegionCode(defaultRegionCode);
         location.setCity(defaultRegion);
