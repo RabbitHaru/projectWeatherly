@@ -1,4 +1,4 @@
 package me.shinsunyoung.projectweatherly.common.util;
 
-public class GeoUtil {
+public class IpAddressUtil {
 }
