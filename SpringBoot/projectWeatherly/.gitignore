@@ -1,3 +1,8 @@
+# 비밀 설정 파일
+secret.properties
+*.properties.enc
+.env
+
 HELP.md
 .gradle
 build/
