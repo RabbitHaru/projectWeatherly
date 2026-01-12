@@ -1,5 +1,7 @@
 package me.shinsunyoung.projectweatherly.weather.controller;
 
+import com.google.maps.internal.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import me.shinsunyoung.projectweatherly.common.dto.ApiResponse;
 import me.shinsunyoung.projectweatherly.common.dto.LocationDto;
@@ -9,7 +11,8 @@ import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDto;
 import me.shinsunyoung.projectweatherly.weather.service.WeatherService;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/weather")
@@ -53,12 +56,12 @@ public class WeatherController {
      * 위치 동기화 (클라이언트에서 GPS 정보 전송)
      */
     @PostMapping("/sync-location")
-    public ApiResponse<LocationDto> syncLocation(
+    public ApiResponse<LocationDTO> syncLocation(
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude,
             HttpServletRequest request) {
 
-        LocationDto location;
+        LocationDTO location;
         if (latitude != null && longitude != null) {
             // GPS 기반 위치 정보
             location = locationService.getLocationByGps(latitude, longitude);
@@ -79,5 +82,18 @@ public class WeatherController {
             @RequestBody WeatherRequestDto requestDto) {
         WeatherResponseDto weather = weatherService.getWeather(requestDto);
         return ApiResponse.success(weather);
+    }
+
+    /**
+     * 지역별 날씨 비교
+     */
+    @GetMapping("/compare")
+    public ApiResponse<List<WeatherResponseDto>> compareWeather(
+            @RequestParam List<String> regionCodes) {
+        List<WeatherResponseDto> results = new java.util.ArrayList<>();
+        for (String regionCode : regionCodes) {
+            results.add(weatherService.getWeatherByRegionCode(regionCode));
+        }
+        return ApiResponse.success(results);
     }
 }

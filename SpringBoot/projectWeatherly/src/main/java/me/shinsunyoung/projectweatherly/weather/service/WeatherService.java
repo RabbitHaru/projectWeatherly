@@ -1,5 +1,6 @@
 package me.shinsunyoung.projectweatherly.weather.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.common.dto.LocationDto;
@@ -8,7 +9,7 @@ import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDto;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDto;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
+
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class WeatherService {
      */
     public WeatherResponseDto getWeatherByIp(HttpServletRequest request) {
         String clientIp = locationService.getClientIp(request);
-        LocationDto location = locationService.getLocationByIp(clientIp);
+        LocationDTO location = locationService.getLocationByIp(clientIp);
 
         log.info("IP 기반 날씨 조회: {} -> {}", clientIp, location.getRegionName());
 
@@ -34,7 +35,7 @@ public class WeatherService {
      * GPS 좌표 기반 날씨 정보 조회
      */
     public WeatherResponseDto getWeatherByGps(Double latitude, Double longitude) {
-        LocationDto location = locationService.getLocationByGps(latitude, longitude);
+        LocationDTO location = locationService.getLocationByGps(latitude, longitude);
 
         log.info("GPS 기반 날씨 조회: ({}, {}) -> {}",
                 latitude, longitude, location.getRegionName());
