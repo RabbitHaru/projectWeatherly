@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 설정 파일
 config/secret.properties
 config/*secret*
@@ -46,6 +47,12 @@ test-output/
 # 임시 파일
 tmp/
 temp/
+=======
+# 비밀 설정 파일
+secret.properties
+*.properties.enc
+.env
+>>>>>>> main
 
 HELP.md
 .gradle
