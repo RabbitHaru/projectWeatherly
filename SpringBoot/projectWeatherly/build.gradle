@@ -34,10 +34,11 @@ dependencies {
 
     // 데이터베이스
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     runtimeOnly 'com.h2database:h2' // 개발용 인메모리 DB
-    runtimeOnly 'mysql:mysql-connector-java' // 또는 실제 DB 사용시
+//    runtimeOnly 'mysql:mysql-connector-java' // 또는 실제 DB 사용시
     // runtimeOnly 'org.postgresql:postgresql' // PostgreSQL 사용시
+    // 또는 MariaDB 사용 시
+    // runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
 
     // 타임리프 레이아웃 및 확장
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'
@@ -81,9 +82,14 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    // Lombok 추가함 (maando)
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 
     // 개발 도구
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    // 이메일
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -103,6 +109,6 @@ sourceSets {
 tasks.withType(JavaCompiler){
     options.getGeneratedSourceOutputDirectory().set(file(queryDir))
 }
-clean{
+clean {
     delete file(queryDir)
 }

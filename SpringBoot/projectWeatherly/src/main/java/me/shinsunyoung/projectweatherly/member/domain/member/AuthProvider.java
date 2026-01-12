@@ -1,4 +1,4 @@
-package me.shinsunyoung.projectweatherly.member.domain.model.entity.member;
+package me.shinsunyoung.projectweatherly.member.domain.member;
 
 import lombok.Getter;
 

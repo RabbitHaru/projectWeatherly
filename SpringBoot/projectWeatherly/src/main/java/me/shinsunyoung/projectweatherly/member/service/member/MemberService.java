@@ -6,7 +6,7 @@ package me.shinsunyoung.projectweatherly.member.service.member;
 
 import me.shinsunyoung.projectweatherly.member.RequestDto.MemberJoinRequest;
 import me.shinsunyoung.projectweatherly.member.UserResponseDto.MemberResponseDto;
-import me.shinsunyoung.projectweatherly.member.domain.model.entity.member.Member;
+import me.shinsunyoung.projectweatherly.member.domain.member.Member;
 import me.shinsunyoung.projectweatherly.member.dto.user.MemberUpdateRequest;
 
 import java.util.List;

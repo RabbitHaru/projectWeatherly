@@ -1,8 +1,8 @@
-package me.shinsunyoung.projectweatherly.member.repository.member;
+package me.shinsunyoung.projectweatherly.member.repository;
 
-import me.shinsunyoung.projectweatherly.member.domain.model.entity.member.Member;
+import me.shinsunyoung.projectweatherly.member.domain.member.Member;
 
-import me.shinsunyoung.projectweatherly.member.domain.model.entity.member.MemberRole;
+import me.shinsunyoung.projectweatherly.member.domain.member.MemberRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -56,5 +56,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 특정 권한의 회원 수
     long countByUserRole(String userRole);
 
-    List<Member> findByUserRoleAndIsActiveTrue(MemberRole userRole, Boolean isActive);
+    List<Member> findByUserRoleAndIsActive(MemberRole userRole, Boolean isActive);
 }

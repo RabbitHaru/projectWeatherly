@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.member.RequestDto.MemberJoinRequest;
 import me.shinsunyoung.projectweatherly.member.UserResponseDto.MemberResponseDto;
-import me.shinsunyoung.projectweatherly.member.domain.model.entity.member.AuthProvider;
-import me.shinsunyoung.projectweatherly.member.domain.model.entity.member.Member;
-import me.shinsunyoung.projectweatherly.member.domain.model.entity.member.MemberRole;
+import me.shinsunyoung.projectweatherly.member.domain.member.AuthProvider;
+import me.shinsunyoung.projectweatherly.member.domain.member.Member;
+import me.shinsunyoung.projectweatherly.member.domain.member.MemberRole;
 import me.shinsunyoung.projectweatherly.member.dto.user.MemberUpdateRequest;
-import me.shinsunyoung.projectweatherly.member.repository.member.MemberRepository;
+import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -224,7 +224,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         // Repository가 Enum을 받도록 수정 필요
-        List<Member> members = memberRepository.findByUserRoleAndIsActiveTrue(memberRole, true);
+        List<Member> members = memberRepository.findByUserRoleAndIsActive(memberRole, true);
         log.info("역할별 회원 조회: role={}, count={}", role, members.size());
 
         return members.stream()

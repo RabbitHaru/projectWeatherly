@@ -1,4 +1,4 @@
-package me.shinsunyoung.projectweatherly.member.dto.response.common;
+package me.shinsunyoung.projectweatherly.member.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

@@ -1,8 +1,8 @@
-package me.shinsunyoung.projectweatherly.member.domain.model.entity.member;
+package me.shinsunyoung.projectweatherly.member.domain.member;
 
 import jakarta.persistence.*;
 import lombok.*;
-import me.shinsunyoung.projectweatherly.member.domain.model.entity.BaseTimeEntity;
+import me.shinsunyoung.projectweatherly.member.domain.BaseTimeEntity;
 
 
 
