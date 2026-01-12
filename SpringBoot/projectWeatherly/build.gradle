@@ -31,14 +31,19 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
-
-    // 데이터베이스
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+<<<<<<< HEAD
     runtimeOnly 'com.h2database:h2' // 개발용 인메모리 DB
 //    runtimeOnly 'mysql:mysql-connector-java' // 또는 실제 DB 사용시
     // runtimeOnly 'org.postgresql:postgresql' // PostgreSQL 사용시
     // 또는 MariaDB 사용 시
     // runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
+=======
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // MariaDB 드라이버
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
+>>>>>>> origin/main
 
     // 타임리프 레이아웃 및 확장
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'
@@ -67,15 +72,6 @@ dependencies {
     // Geocoding
     implementation 'com.google.maps:google-maps-services:2.1.0'
 
-    // 이메일 발송
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-
-    // OAuth2 소셜 로그인
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-
-    // 모니터링
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
     // API 문서화
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 
@@ -94,8 +90,6 @@ dependencies {
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-    testImplementation 'com.h2database:h2' // 테스트용 DB
 }
 
 tasks.named('test') {
