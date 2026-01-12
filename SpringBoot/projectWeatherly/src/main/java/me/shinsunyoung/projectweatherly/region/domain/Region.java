@@ -20,12 +20,12 @@ public class Region {
     @Column(name = "region_name", nullable = false)
     private String regionName;
 
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    @Column(name = "active", nullable = false)
+    private boolean active;
 
-    public Region(String regionCode, String regionName, boolean isActive){
+    public Region(String regionCode, String regionName, boolean active) {
         this.regionCode = regionCode;
         this.regionName = regionName;
-        this.isActive = isActive;
+        this.active = active;
     }
 }

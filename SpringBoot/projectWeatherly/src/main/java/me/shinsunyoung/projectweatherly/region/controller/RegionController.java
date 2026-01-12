@@ -3,7 +3,7 @@ package me.shinsunyoung.projectweatherly.region.controller;
 import lombok.RequiredArgsConstructor;
 import me.shinsunyoung.projectweatherly.region.Service.RegionService;
 import me.shinsunyoung.projectweatherly.region.domain.Region;
-import me.shinsunyoung.projectweatherly.region.repository.RegionRepository;
+import me.shinsunyoung.projectweatherly.region.dto.RegionResponseDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,13 +18,21 @@ public class RegionController {
 
     private final RegionService regionService;
 
-    @GetMapping("/{regionCode}")
-    public Region getRegion(@PathVariable String regionCode) {
-        return regionService.findByCode(regionCode);
+    // 전체 지역 조회
+    @GetMapping
+    public List<RegionResponseDTO> getRegions() {
+        return regionService.findAll();
     }
+
+    // 활성 지역만 조회
     @GetMapping("/active")
-    public List<Region> getActiveRegions() {
+    public List<RegionResponseDTO> getActiveRegions() {
         return regionService.findActiveRegions();
     }
 
+    // 지역 코드로 단건 조회
+    @GetMapping("/{code}")
+    public RegionResponseDTO getRegion(@PathVariable String code) {
+        return regionService.findByCode(code);
+    }
 }
