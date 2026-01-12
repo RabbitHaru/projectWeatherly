@@ -2,9 +2,10 @@ package me.shinsunyoung.projectweatherly.member.domain.model.entity.member;
 
 import jakarta.persistence.*;
 import lombok.*;
-import me.shinsunyoung.projectweatherly.domain.model.entity.BaseTimeEntity;
+import me.shinsunyoung.projectweatherly.member.domain.model.entity.BaseTimeEntity;
 
-import java.security.AuthProvider;
+
+
 import java.time.LocalDateTime;
 
 @Entity

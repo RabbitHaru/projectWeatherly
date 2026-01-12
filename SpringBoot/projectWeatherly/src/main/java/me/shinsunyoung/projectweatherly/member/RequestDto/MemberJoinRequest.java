@@ -8,13 +8,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberJoinRequest{
+public class MemberJoinRequest {
 
     @NotBlank(message = "이메일은 필수 입력값입니다.")
     @Email(message = "이메일 형식이 올바르지 않습니다.")

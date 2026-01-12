@@ -23,6 +23,4 @@ public class MemberResponseDto {
     private LocalDateTime lastLoginAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    // 비밀번호는 응답에서 제외
 }

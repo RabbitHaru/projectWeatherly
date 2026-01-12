@@ -1,4 +1,4 @@
-package me.shinsunyoung.projectweatherly.domain.model.entity;
+package me.shinsunyoung.projectweatherly.member.domain.model.entity;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;

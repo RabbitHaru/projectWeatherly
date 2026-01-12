@@ -14,12 +14,16 @@ public enum MemberRole {
         this.description = description;
     }
 
+
     public static MemberRole fromString(String role) {
-        for (MemberRole memberRole : MemberRole.values()) {
-            if (memberRole.name().equalsIgnoreCase(role)) {
-                return memberRole;
-            }
+        if (role == null || role.trim().isEmpty()) {
+            return USER;
         }
-        return USER; // 기본값
+
+        try {
+            return MemberRole.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return USER; // 기본값
+        }
     }
 }

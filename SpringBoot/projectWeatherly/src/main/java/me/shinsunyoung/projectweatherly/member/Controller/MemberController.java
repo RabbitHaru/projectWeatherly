@@ -1,10 +1,11 @@
-package me.shinsunyoung.projectweatherly.controller.api.v1.member;
+package me.shinsunyoung.projectweatherly.member.Controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import me.shinsunyoung.projectweatherly.member.RequestDto.MemberJoinRequest;
 import me.shinsunyoung.projectweatherly.member.UserResponseDto.MemberResponseDto;
+import me.shinsunyoung.projectweatherly.member.dto.request.member.PasswordChangeRequest;
 import me.shinsunyoung.projectweatherly.member.dto.user.MemberUpdateRequest;
 import me.shinsunyoung.projectweatherly.member.service.member.MemberService;
 import org.springframework.http.HttpStatus;
