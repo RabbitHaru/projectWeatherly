@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weatherly - 날씨 커뮤니티</title>
+    <!-- Bootstrap 5.3.0 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #3498db;
+            --weather-blue: #1a73e8;
+            --light-bg: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        /* 헤더 스타일 */
+        .weather-header {
+            background: linear-gradient(135deg, var(--weather-blue) 0%, #2980b9 100%);
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .location-info h2 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .current-weather {
+            font-size: 3.5rem;
+            font-weight: 300;
+        }
+
+        /* 날씨 정보 카드 */
+        .weather-card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .weather-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .weather-card .card-header {
+            background-color: rgba(26, 115, 232, 0.1);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            padding: 0.75rem 1.25rem;
+        }
+
+        /* 대기질 지표 */
+        .air-quality-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .air-quality-item:last-child {
+            border-bottom: none;
+        }
+
+        .air-quality-badge {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .good { background-color: #2ecc71; }
+        .normal { background-color: #f1c40f; }
+        .bad { background-color: #e74c3c; }
+
+        /* 시간별 날씨 */
+        .hourly-weather {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 1rem 0;
+        }
+
+        .hour-item {
+            display: inline-block;
+            text-align: center;
+            padding: 0 1rem;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .hour-item:last-child {
+            border-right: none;
+        }
+
+        /* 게시판 스타일 */
+        .board-header {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .board-info-table {
+            width: 100%;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .board-info-table td {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .board-info-table td:first-child {
+            font-weight: 600;
+            background-color: var(--light-bg);
+            width: 20%;
+        }
+
+        /* 게시글 검색 및 필터 */
+        .search-filter-section {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .post-list {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .post-item {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .post-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .post-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .post-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* 사이드바 (아름부) */
+        .sidebar-section {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-section h5 {
+            color: var(--weather-blue);
+            border-bottom: 2px solid var(--weather-blue);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 반응형 조정 */
+        @media (max-width: 768px) {
+            .current-weather {
+                font-size: 2.5rem;
+            }
+
+            .hour-item {
+                padding: 0 0.5rem;
+            }
+        }
+
+        /* 커스텀 버튼 */
+        .btn-weatherly {
+            background-color: var(--weather-blue);
+            color: white;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-weatherly:hover {
+            background-color: #0d62d9;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<!-- 헤더 (날씨 정보) -->
+<header class="weather-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="location-info">
+                    <h2><i class="fas fa-location-dot"></i> 서울특별시</h2>
+                    <p class="mb-0">2023년 10월 20일 금요일 14:30</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="current-weather">
+                    23°C
+                </div>
+                <div class="weather-details">
+                    <span class="me-3"><i class="fas fa-wind"></i> 2.5 m/s</span>
+                    <span class="me-3"><i class="fas fa-droplet"></i> 45%</span>
+                    <span><i class="fas fa-cloud-rain"></i> 0 mm</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <div class="row">
+        <!-- 왼쪽 컬럼: 날씨 정보 -->
+        <div class="col-lg-4">
+            <!-- 대기질 정보 -->
+            <div class="weather-card card">
+                <div class="card-header">
+                    <i class="fas fa-wind me-2"></i>실시간 대기질
+                </div>
+                <div class="card-body p-0">
+                    <div class="air-quality-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="air-quality-badge good"></span>
+                            미세먼지 (PM10)
+                        </div>
+                        <div>
+                            <strong>35 μg/㎡</strong>
+                            <span class="badge bg-success ms-2">좋음</span>
+                        </div>
+                    </div>
+                    <div class="air-quality-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="air-quality-badge good"></span>
+                            초미세먼지 (PM2.5)
+                        </div>
+                        <div>
+                            <strong>15 μg/㎡</strong>
+                            <span class="badge bg-success ms-2">좋음</span>
+                        </div>
+                    </div>
+                    <div class="air-quality-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="air-quality-badge good"></span>
+                            오존 (O3)
+                        </div>
+                        <div>
+                            <strong>0.025 ppm</strong>
+                            <span class="badge bg-success ms-2">좋음</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 시간별 날씨 -->
+            <div class="weather-card card">
+                <div class="card-header">
+                    <i class="fas fa-clock me-2"></i>시간별 날씨
+                </div>
+                <div class="card-body">
+                    <div class="hourly-weather">
+                        <div class="hour-item">
+                            <div class="hour">현재</div>
+                            <div class="temp">22°</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour">15시</div>
+                            <div class="temp">23°</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour">16시</div>
+                            <div class="temp">24°</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour">17시</div>
+                            <div class="temp">24°</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour">18시</div>
+                            <div class="temp">23°</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour">19시</div>
+                            <div class="temp">22°</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour">20시</div>
+                            <div class="temp">21°</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour">21시</div>
+                            <div class="temp">20°</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 기상특보 -->
+            <div class="weather-card card">
+                <div class="card-header">
+                    <i class="fas fa-triangle-exclamation me-2"></i>기상특보
+                </div>
+                <div class="card-body">
+                    <p class="text-success mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        현재 발표된 기상특보가 없습니다.<br>
+                        안전한 날씨가 예상됩니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 오른쪽 컬럼: 커뮤니티 게시판 -->
+        <div class="col-lg-8">
+            <!-- 게시판 헤더 정보 -->
+            <div class="board-header">
+                <h3 class="mb-3"><i class="fas fa-users me-2"></i>Weatherly Community Panel</h3>
+
+                <table class="board-info-table">
+                    <tr>
+                        <td>배전(ver)</td>
+                        <td>1.0</td>
+                        <td>배전자료표</td>
+                        <td>MSCI</td>
+                    </tr>
+                    <tr>
+                        <td>배전자명</td>
+                        <td>거리나타 리스트</td>
+                        <td>백황현</td>
+                        <td>2026.01.06</td>
+                    </tr>
+                    <tr>
+                        <td>배전자 명확</td>
+                        <td colspan="3">JIM</td>
+                    </tr>
+                </table>
+
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-weatherly">
+                        <i class="fas fa-pen me-2"></i>글쓰기
+                    </button>
+                </div>
+            </div>
+
+            <!-- 검색 및 필터 -->
+            <div class="search-filter-section">
+                <div class="row">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="검색어를 입력하세요">
+                            <button class="btn btn-outline-primary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex gap-3">
+                            <div class="stat-item">
+                                <i class="fas fa-heart text-danger"></i>
+                                <span>좋아요 계수</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-eye text-primary"></i>
+                                <span>조회수</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-comment text-success"></i>
+                                <span>댓글</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 게시글 리스트 -->
+            <div class="post-list">
+                <div class="post-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">서울 강남구 미세먼지 상태가 나빠지고 있습니다</h5>
+                        <span class="badge bg-warning">주의</span>
+                    </div>
+                    <p class="text-muted mb-2">미세먼지 농도가 시간당 15μg/㎡ 증가하였습니다. 외출시 마스크 착용을 권장합니다.</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="post-meta">
+                            <span class="me-3">글번호: 245</span>
+                            <span class="me-3">미세인지: PM10 65</span>
+                            <span class="me-3">거리나타: 강남구</span>
+                        </div>
+                        <div class="post-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-heart"></i> 42
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i> 128
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">주말에 눈 올 가능성 있습니다</h5>
+                        <span class="badge bg-info">정보</span>
+                    </div>
+                    <p class="text-muted mb-2">기상청 발표에 따르면 토요일 오후부터 일요일 아침까지 서울 지역에 눈이 올 수 있습니다.</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="post-meta">
+                            <span class="me-3">글번호: 244</span>
+                            <span class="me-3">미세인지: PM10 32</span>
+                            <span class="me-3">거리나타: 종로구</span>
+                        </div>
+                        <div class="post-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-heart"></i> 31
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i> 89
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">바람이 강하게 불어서 미세먼지가 개선되었습니다</h5>
+                        <span class="badge bg-success">좋음</span>
+                    </div>
+                    <p class="text-muted mb-2">서풍이 강하게 불면서 중국에서 오는 미세먼지가 해소되고 있습니다. 현재 공기질이 매우 좋습니다.</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="post-meta">
+                            <span class="me-3">글번호: 243</span>
+                            <span class="me-3">미세인지: PM10 22</span>
+                            <span class="me-3">거리나타: 서초구</span>
+                        </div>
+                        <div class="post-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-heart"></i> 56
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i> 156
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">이전</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">다음</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- 아름부 섹션 (하단 정보) -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="sidebar-section">
+                <h5><i class="fas fa-info-circle me-2"></i>아름부 정보</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <h6><i class="fas fa-palette me-2"></i>예술과</h6>
+                        <p class="small">날씨와 예술의 조화를 위한 공간입니다.</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h6><i class="fas fa-desktop me-2"></i>PC 버전</h6>
+                        <p class="small">최적화된 PC 환경을 제공합니다.</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h6><i class="fas fa-sitemap me-2"></i>메이버</h6>
+                        <p class="small">커뮤니티 관리 시스템</p>
+                    </div>
+                </div>
+                <div class="alert alert-light">
+                    <h6>배전 정보 안내</h6>
+                    <p class="small mb-2">오늘못을 통해 실시한 배전자료로 이용하여 외 배전자에 있는 배전을 누르면 그 응답을 받은 경우는 다음 공통소를 통해 배전자료를 사용하는 배전자료를 고려 할 때 내 배전을 보유함, 하지만 배전자료를 만들어진 쿼싱 가상황날 한 건물 검색에서 동작합니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 컨트롤 버튼들 (오른쪽 하단 고정) -->
+<div class="control-buttons fixed-bottom me-4 mb-4" style="z-index: 1000; right: 0; bottom: 0; width: auto;">
+    <div class="d-flex gap-2">
+        <button class="btn btn-light btn-lg rounded-circle shadow" title="알림">
+            <i class="fas fa-bell text-primary"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    3
+                </span>
+        </button>
+
+        <button class="btn btn-light btn-lg rounded-circle shadow" title="즐겨찾기">
+            <i class="fas fa-star text-warning"></i>
+        </button>
+
+        <button class="btn btn-light btn-lg rounded-circle shadow" title="다크모드 전환" id="darkmode-toggle">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // 다크모드 토글 기능
+    document.addEventListener('DOMContentLoaded', function() {
+        const darkModeToggle = document.getElementById('darkmode-toggle');
+        const body = document.body;
+
+        // 로컬스토리지에서 다크모드 상태 확인
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+        // 초기 다크모드 상태 설정
+        if (isDarkMode) {
+            body.classList.add('dark-mode');
+            updateDarkModeIcon(true);
+        }
+
+        // 다크모드 토글 버튼 클릭 이벤트
+        darkModeToggle.addEventListener('click', function() {
+            const isCurrentlyDark = body.classList.contains('dark-mode');
+
+            if (isCurrentlyDark) {
+                body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+                updateDarkModeIcon(false);
+            } else {
+                body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+                updateDarkModeIcon(true);
+            }
+        });
+
+        // 현재 시간 업데이트
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 60000);
+    });
+
+    // 다크모드 아이콘 업데이트 함수
+    function updateDarkModeIcon(isDarkMode) {
+        const icon = document.querySelector('#darkmode-toggle i');
+        const button = document.getElementById('darkmode-toggle');
+
+        if (isDarkMode) {
+            icon.className = 'fas fa-sun';
+            button.title = '라이트모드';
+        } else {
+            icon.className = 'fas fa-moon';
+            button.title = '다크모드';
+        }
+    }
+
+    // 현재 시간 업데이트 함수
+    function updateCurrentTime() {
+        const now = new Date();
+        const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+
+        const timeString = now.toLocaleDateString('ko-KR', options);
+        document.querySelector('.location-info p').textContent = timeString;
+    }
+</script>
+</body>
+</html>
