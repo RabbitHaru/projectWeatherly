@@ -3,7 +3,7 @@ package me.shinsunyoung.projectweatherly.weather.dto;
 import lombok.Data;
 
 @Data
-public class WeatherRequestDto {
+public class WeatherRequestDTO {
     private String regionCode;      // 지역 코드
     private String regionName;      // 지역 이름
     private Double latitude;        // 위도 (GPS용)

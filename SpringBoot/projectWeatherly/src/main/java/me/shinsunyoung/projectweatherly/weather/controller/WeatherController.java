@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import me.shinsunyoung.projectweatherly.common.dto.ApiResponse;
 import me.shinsunyoung.projectweatherly.common.dto.LocationDTO;
 import me.shinsunyoung.projectweatherly.common.service.LocationService;
-import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDto;
-import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDto;
+import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDTO;
+import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDTO;
 import me.shinsunyoung.projectweatherly.weather.service.WeatherService;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,23 +21,23 @@ public class WeatherController {
     private final LocationService locationService;
 
     @GetMapping("/current")
-    public ApiResponse<WeatherResponseDto> getCurrentWeather(HttpServletRequest request) {
-        WeatherResponseDto weather = weatherService.getWeatherByIp(request);
+    public ApiResponse<WeatherResponseDTO> getCurrentWeather(HttpServletRequest request) {
+        WeatherResponseDTO weather = weatherService.getWeatherByIp(request);
         return ApiResponse.success(weather);
     }
 
     @PostMapping("/gps")
-    public ApiResponse<WeatherResponseDto> getWeatherByGps(
+    public ApiResponse<WeatherResponseDTO> getWeatherByGps(
             @RequestParam Double latitude,
             @RequestParam Double longitude) {
-        WeatherResponseDto weather = weatherService.getWeatherByGps(latitude, longitude);
+        WeatherResponseDTO weather = weatherService.getWeatherByGps(latitude, longitude);
         return ApiResponse.success("GPS 위치 기반 날씨 정보", weather);
     }
 
     @GetMapping("/region/{regionCode}")
-    public ApiResponse<WeatherResponseDto> getWeatherByRegion(
+    public ApiResponse<WeatherResponseDTO> getWeatherByRegion(
             @PathVariable String regionCode) {
-        WeatherResponseDto weather = weatherService.getWeatherByRegionCode(regionCode);
+        WeatherResponseDTO weather = weatherService.getWeatherByRegionCode(regionCode);
         return ApiResponse.success(weather);
     }
 
@@ -59,16 +59,16 @@ public class WeatherController {
     }
 
     @PostMapping("/forecast")
-    public ApiResponse<WeatherResponseDto> getWeatherForecast(
-            @RequestBody WeatherRequestDto requestDto) {
-        WeatherResponseDto weather = weatherService.getWeather(requestDto);
+    public ApiResponse<WeatherResponseDTO> getWeatherForecast(
+            @RequestBody WeatherRequestDTO requestDto) {
+        WeatherResponseDTO weather = weatherService.getWeather(requestDto);
         return ApiResponse.success(weather);
     }
 
     @GetMapping("/compare")
-    public ApiResponse<List<WeatherResponseDto>> compareWeather(
+    public ApiResponse<List<WeatherResponseDTO>> compareWeather(
             @RequestParam List<String> regionCodes) {
-        List<WeatherResponseDto> results = new java.util.ArrayList<>();
+        List<WeatherResponseDTO> results = new java.util.ArrayList<>();
         for (String regionCode : regionCodes) {
             results.add(weatherService.getWeatherByRegionCode(regionCode));
         }

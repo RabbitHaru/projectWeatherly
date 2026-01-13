@@ -3,8 +3,8 @@ package me.shinsunyoung.projectweatherly.airquality.service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityRequestDto;
-import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDto;
+import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityRequestDTO;
+import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDTO;
 import me.shinsunyoung.projectweatherly.common.dto.LocationDTO;
 import me.shinsunyoung.projectweatherly.common.service.LocationService;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class AirQualityService {
     /**
      * IP 기반 현재 위치의 대기질 정보 조회
      */
-    public AirQualityResponseDto getAirQualityByIp(HttpServletRequest request) {
+    public AirQualityResponseDTO getAirQualityByIp(HttpServletRequest request) {
         String clientIp = locationService.getClientIp(request);
         LocationDTO location = locationService.getLocationByIp(clientIp);
 
@@ -31,7 +31,7 @@ public class AirQualityService {
 
         // 시도명 추출 (예: "서울특별시" → "서울")
         String sidoName = extractSidoName(location.getRegionName());
-        List<AirQualityResponseDto> sidoData = airQualityApiService.getAirQualityBySido(sidoName);
+        List<AirQualityResponseDTO> sidoData = airQualityApiService.getAirQualityBySido(sidoName);
 
         // 첫 번째 측정소 데이터 반환 (실제로는 근접 측정소 계산 필요)
         return sidoData.isEmpty() ? null : sidoData.get(0);
@@ -40,7 +40,7 @@ public class AirQualityService {
     /**
      * GPS 좌표 기반 대기질 정보 조회
      */
-    public AirQualityResponseDto getAirQualityByGps(Double latitude, Double longitude) {
+    public AirQualityResponseDTO getAirQualityByGps(Double latitude, Double longitude) {
         LocationDTO location = locationService.getLocationByGps(latitude, longitude);
 
         log.info("GPS 기반 대기질 조회: ({}, {}) -> {}",
@@ -61,7 +61,7 @@ public class AirQualityService {
     /**
      * 시도명으로 대기질 정보 조회
      */
-    public List<AirQualityResponseDto> getAirQualityBySido(String sidoName) {
+    public List<AirQualityResponseDTO> getAirQualityBySido(String sidoName) {
         log.info("시도별 대기질 조회: {}", sidoName);
         return airQualityApiService.getAirQualityBySido(sidoName);
     }
@@ -69,7 +69,7 @@ public class AirQualityService {
     /**
      * 측정소명으로 대기질 정보 조회
      */
-    public AirQualityResponseDto getAirQualityByStation(String stationName) {
+    public AirQualityResponseDTO getAirQualityByStation(String stationName) {
         log.info("측정소별 대기질 조회: {}", stationName);
         return airQualityApiService.getAirQualityByStation(stationName);
     }
@@ -77,7 +77,7 @@ public class AirQualityService {
     /**
      * 대기질 예보 정보 조회
      */
-    public List<AirQualityResponseDto.AirQualityForecast> getAirQualityForecast(String sidoName) {
+    public List<AirQualityResponseDTO.AirQualityForecast> getAirQualityForecast(String sidoName) {
         log.info("대기질 예보 조회: {}", sidoName);
         return airQualityApiService.getAirQualityForecast(sidoName);
     }
@@ -85,13 +85,13 @@ public class AirQualityService {
     /**
      * 다양한 파라미터로 대기질 정보 조회
      */
-    public AirQualityResponseDto getAirQuality(AirQualityRequestDto requestDto) {
+    public AirQualityResponseDTO getAirQuality(AirQualityRequestDTO requestDto) {
         if (requestDto.getLatitude() != null && requestDto.getLongitude() != null) {
             return getAirQualityByGps(requestDto.getLatitude(), requestDto.getLongitude());
         } else if (requestDto.getStationName() != null) {
             return getAirQualityByStation(requestDto.getStationName());
         } else if (requestDto.getSidoName() != null) {
-            List<AirQualityResponseDto> sidoData = getAirQualityBySido(requestDto.getSidoName());
+            List<AirQualityResponseDTO> sidoData = getAirQualityBySido(requestDto.getSidoName());
             return sidoData.isEmpty() ? null : sidoData.get(0);
         } else {
             throw new IllegalArgumentException("시도명, 측정소명 또는 좌표 정보가 필요합니다.");

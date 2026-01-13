@@ -5,10 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.common.dto.LocationDTO;
 import me.shinsunyoung.projectweatherly.common.service.LocationService;
-import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDto;
-import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDto;
+import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDTO;
+import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +22,7 @@ public class WeatherService {
     private final LocationService locationService;
     private final RestTemplate restTemplate;
 
-    public WeatherResponseDto getWeatherByIp(HttpServletRequest request) {
+    public WeatherResponseDTO getWeatherByIp(HttpServletRequest request) {
         String clientIp = locationService.getClientIp(request);
         LocationDTO location = locationService.getLocationByIp(clientIp);
 
@@ -28,7 +31,7 @@ public class WeatherService {
         return getWeatherByRegionCode(location.getRegionCode());
     }
 
-    public WeatherResponseDto getWeatherByGps(Double latitude, Double longitude) {
+    public WeatherResponseDTO getWeatherByGps(Double latitude, Double longitude) {
         LocationDTO location = locationService.getLocationByGps(latitude, longitude);
 
         log.info("GPS 기반 날씨 조회: ({}, {}) -> {}",
@@ -37,9 +40,16 @@ public class WeatherService {
         return getWeatherByRegionCode(location.getRegionCode());
     }
 
-    public WeatherResponseDto getWeatherByRegionCode(String regionCode) {
+    public WeatherResponseDTO getWeatherByRegionCode(String regionCode) {
         try {
-            return weatherApiService.getShortTermForecast(regionCode);
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            WeatherResponseDTO dto = weatherApiService.getShortTermForecast(regionCode);
+            WeatherResponseDTO dto2 = weatherApiService.getUltraShortForecast(regionCode,now.format(formatter),"0600");
+            dto.setCurrent(dto2.getCurrent());
+            dto.setHourly(dto2.getHourly());
+            dto.getSummary().setUltraShortSummary(dto2.getSummary().getUltraShortSummary());
+            return dto;
         } catch (Exception e) {
             log.error("날씨 정보 조회 실패: {}", e.getMessage());
 
@@ -48,7 +58,7 @@ public class WeatherService {
         }
     }
 
-    public WeatherResponseDto getWeather(WeatherRequestDto requestDto) {
+    public WeatherResponseDTO getWeather(WeatherRequestDTO requestDto) {
         if (requestDto.getLatitude() != null && requestDto.getLongitude() != null) {
             return getWeatherByGps(requestDto.getLatitude(), requestDto.getLongitude());
         } else if (requestDto.getRegionCode() != null) {
@@ -58,7 +68,7 @@ public class WeatherService {
         }
     }
 
-    private WeatherResponseDto createFallbackWeatherData(String regionCode) {
+    private WeatherResponseDTO createFallbackWeatherData(String regionCode) {
         String regionName = switch (regionCode) {
             case "1100000000" -> "서울특별시";
             case "2600000000" -> "부산광역시";
@@ -70,12 +80,12 @@ public class WeatherService {
             default -> "서울특별시";
         };
 
-        return WeatherResponseDto.builder()
+        return WeatherResponseDTO.builder()
                 .regionName(regionName)
                 .regionCode(regionCode)
                 .currentTime(java.time.LocalDateTime.now().format(
                         java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 E요일 HH:mm")))
-                .current(WeatherResponseDto.CurrentWeather.builder()
+                .current(WeatherResponseDTO.CurrentWeather.builder()
                         .temperature(22.0)
                         .feelsLike(23.0)
                         .humidity(45.0)
@@ -86,7 +96,7 @@ public class WeatherService {
                         .weatherIcon("fas fa-sun")
                         .updateTime(java.time.LocalDateTime.now())
                         .build())
-                .summary(WeatherResponseDto.WeatherSummary.builder()
+                .summary(WeatherResponseDTO.WeatherSummary.builder()
                         .ultraShortSummary("데이터를 불러오는 중입니다.")
                         .shortSummary("기본 날씨 정보를 표시합니다.")
                         .midSummary("API 연결을 확인해주세요.")

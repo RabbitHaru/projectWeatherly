@@ -2,8 +2,8 @@ package me.shinsunyoung.projectweatherly.airquality.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityRequestDto;
-import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDto;
+import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityRequestDTO;
+import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDTO;
 import me.shinsunyoung.projectweatherly.common.dto.ApiResponse;
 import me.shinsunyoung.projectweatherly.airquality.service.AirQualityService;
 import org.springframework.web.bind.annotation.*;
@@ -18,47 +18,47 @@ public class AirQualityController {
     private final AirQualityService airQualityService;
 
     @GetMapping("/current")
-    public ApiResponse<AirQualityResponseDto> getCurrentAirQuality(HttpServletRequest request) {
-        AirQualityResponseDto airQuality = airQualityService.getAirQualityByIp(request);
+    public ApiResponse<AirQualityResponseDTO> getCurrentAirQuality(HttpServletRequest request) {
+        AirQualityResponseDTO airQuality = airQualityService.getAirQualityByIp(request);
         return ApiResponse.success(airQuality);
     }
 
     @PostMapping("/gps")
-    public ApiResponse<AirQualityResponseDto> getAirQualityByGps(
+    public ApiResponse<AirQualityResponseDTO> getAirQualityByGps(
             @RequestParam Double latitude,
             @RequestParam Double longitude) {
-        AirQualityResponseDto airQuality = airQualityService.getAirQualityByGps(latitude, longitude);
+        AirQualityResponseDTO airQuality = airQualityService.getAirQualityByGps(latitude, longitude);
         return ApiResponse.success("GPS 위치 기반 대기질 정보", airQuality);
     }
 
     @GetMapping("/sido/{sidoName}")
-    public ApiResponse<List<AirQualityResponseDto>> getAirQualityBySido(
+    public ApiResponse<List<AirQualityResponseDTO>> getAirQualityBySido(
             @PathVariable String sidoName) {
-        List<AirQualityResponseDto> airQualityList = airQualityService.getAirQualityBySido(sidoName);
+        List<AirQualityResponseDTO> airQualityList = airQualityService.getAirQualityBySido(sidoName);
         return ApiResponse.success(airQualityList);
     }
 
     @GetMapping("/station/{stationName}")
-    public ApiResponse<AirQualityResponseDto> getAirQualityByStation(
+    public ApiResponse<AirQualityResponseDTO> getAirQualityByStation(
             @PathVariable String stationName) {
-        AirQualityResponseDto airQuality = airQualityService.getAirQualityByStation(stationName);
+        AirQualityResponseDTO airQuality = airQualityService.getAirQualityByStation(stationName);
         return ApiResponse.success(airQuality);
     }
 
     @GetMapping("/forecast/{sidoName}")
-    public ApiResponse<List<AirQualityResponseDto.AirQualityForecast>> getAirQualityForecast(
+    public ApiResponse<List<AirQualityResponseDTO.AirQualityForecast>> getAirQualityForecast(
             @PathVariable String sidoName) {
-        List<AirQualityResponseDto.AirQualityForecast> forecasts =
+        List<AirQualityResponseDTO.AirQualityForecast> forecasts =
                 airQualityService.getAirQualityForecast(sidoName);
         return ApiResponse.success(forecasts);
     }
 
     @GetMapping("/compare")
-    public ApiResponse<List<AirQualityResponseDto>> compareRegionalAirQuality(
+    public ApiResponse<List<AirQualityResponseDTO>> compareRegionalAirQuality(
             @RequestParam List<String> sidoNames) {
-        List<AirQualityResponseDto> results = new java.util.ArrayList<>();
+        List<AirQualityResponseDTO> results = new java.util.ArrayList<>();
         for (String sidoName : sidoNames) {
-            List<AirQualityResponseDto> sidoData = airQualityService.getAirQualityBySido(sidoName);
+            List<AirQualityResponseDTO> sidoData = airQualityService.getAirQualityBySido(sidoName);
             if (!sidoData.isEmpty()) {
                 results.add(sidoData.get(0));
             }
@@ -67,9 +67,9 @@ public class AirQualityController {
     }
 
     @PostMapping("/search")
-    public ApiResponse<AirQualityResponseDto> searchAirQuality(
-            @RequestBody AirQualityRequestDto requestDto) {
-        AirQualityResponseDto airQuality = airQualityService.getAirQuality(requestDto);
+    public ApiResponse<AirQualityResponseDTO> searchAirQuality(
+            @RequestBody AirQualityRequestDTO requestDto) {
+        AirQualityResponseDTO airQuality = airQualityService.getAirQuality(requestDto);
         return ApiResponse.success(airQuality);
     }
 }

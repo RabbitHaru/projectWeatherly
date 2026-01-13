@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WeatherResponseDto {
+public class WeatherResponseDTO {
 
     // 기본 정보
     private String regionName;

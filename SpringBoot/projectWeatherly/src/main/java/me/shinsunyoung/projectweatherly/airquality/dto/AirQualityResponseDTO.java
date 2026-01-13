@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AirQualityResponseDto {
+public class AirQualityResponseDTO {
 
     // 기본 정보
     private String stationName;

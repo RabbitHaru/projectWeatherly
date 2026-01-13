@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDto;
+import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ public class AirQualityApiService {
      * 시도별 실시간 측정정보 조회
      */
     @Cacheable(value = "airQualityBySido", key = "#sidoName")
-    public List<AirQualityResponseDto> getAirQualityBySido(String sidoName) {
+    public List<AirQualityResponseDTO> getAirQualityBySido(String sidoName) {
         try {
             // API 호출 URL 생성
             URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getCtprvnRltmMesureDnsty")
@@ -76,7 +76,7 @@ public class AirQualityApiService {
      * 측정소별 실시간 측정정보 조회
      */
     @Cacheable(value = "airQualityByStation", key = "#stationName")
-    public AirQualityResponseDto getAirQualityByStation(String stationName) {
+    public AirQualityResponseDTO getAirQualityByStation(String stationName) {
         try {
             URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getMsrstnAcctoRltmMesureDnsty")
                     .queryParam("serviceKey", apiKey)
@@ -144,7 +144,7 @@ public class AirQualityApiService {
      * 대기질 예보 정보 조회
      */
     @Cacheable(value = "airQualityForecast", key = "#sidoName")
-    public List<AirQualityResponseDto.AirQualityForecast> getAirQualityForecast(String sidoName) {
+    public List<AirQualityResponseDTO.AirQualityForecast> getAirQualityForecast(String sidoName) {
         try {
             String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -175,16 +175,16 @@ public class AirQualityApiService {
     /**
      * 대기질 응답 파싱
      */
-    private List<AirQualityResponseDto> parseAirQualityResponse(String jsonResponse, String sidoName) throws Exception {
+    private List<AirQualityResponseDTO> parseAirQualityResponse(String jsonResponse, String sidoName) throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items");
 
-        List<AirQualityResponseDto> result = new ArrayList<>();
+        List<AirQualityResponseDTO> result = new ArrayList<>();
 
         if (items.isArray()) {
             for (JsonNode item : items) {
                 try {
-                    AirQualityResponseDto dto = parseAirQualityItem(item, sidoName);
+                    AirQualityResponseDTO dto = parseAirQualityItem(item, sidoName);
                     if (dto != null) {
                         result.add(dto);
                     }
@@ -201,7 +201,7 @@ public class AirQualityApiService {
     /**
      * 개별 대기질 항목 파싱
      */
-    private AirQualityResponseDto parseAirQualityItem(JsonNode item, String sidoName) {
+    private AirQualityResponseDTO parseAirQualityItem(JsonNode item, String sidoName) {
         try {
             // 필수 필드 확인
             String stationName = item.path("stationName").asText(null);
@@ -243,7 +243,7 @@ public class AirQualityApiService {
             // 전체 등급 결정 (가장 나쁜 등급으로)
             String overallGrade = determineOverallGrade(pm10Grade, pm25Grade, o3Grade, no2Grade, coGrade, so2Grade);
 
-            return AirQualityResponseDto.builder()
+            return AirQualityResponseDTO.builder()
                     .stationName(stationName)
                     .sidoName(sidoName)
                     .dataTime(dataTime)
@@ -268,7 +268,7 @@ public class AirQualityApiService {
     /**
      * 측정소별 응답 파싱
      */
-    private AirQualityResponseDto parseStationAirQualityResponse(String jsonResponse, String stationName) throws Exception {
+    private AirQualityResponseDTO parseStationAirQualityResponse(String jsonResponse, String stationName) throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items");
 
@@ -283,11 +283,11 @@ public class AirQualityApiService {
     /**
      * 예보 응답 파싱
      */
-    private List<AirQualityResponseDto.AirQualityForecast> parseForecastResponse(String jsonResponse) throws Exception {
+    private List<AirQualityResponseDTO.AirQualityForecast> parseForecastResponse(String jsonResponse) throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items");
 
-        List<AirQualityResponseDto.AirQualityForecast> forecasts = new ArrayList<>();
+        List<AirQualityResponseDTO.AirQualityForecast> forecasts = new ArrayList<>();
 
         if (items.isArray()) {
             for (JsonNode item : items) {
@@ -300,7 +300,7 @@ public class AirQualityApiService {
                 String pm10Grade = extractGradeFromForecast(informOverall);
                 String pm25Grade = extractGradeFromForecast(informOverall);
 
-                forecasts.add(AirQualityResponseDto.AirQualityForecast.builder()
+                forecasts.add(AirQualityResponseDTO.AirQualityForecast.builder()
                         .date(informData)
                         .overallGrade(overallGrade)
                         .pm10Grade(pm10Grade)
@@ -337,10 +337,10 @@ public class AirQualityApiService {
         }
     }
 
-    private AirQualityResponseDto.AirQualityIndex createAirQualityIndex(Number value, String grade, String status, String unit) {
+    private AirQualityResponseDTO.AirQualityIndex createAirQualityIndex(Number value, String grade, String status, String unit) {
         Integer intValue = (value != null) ? value.intValue() : null;
 
-        return AirQualityResponseDto.AirQualityIndex.builder()
+        return AirQualityResponseDTO.AirQualityIndex.builder()
                 .value(intValue)
                 .grade(grade)
                 .status(status)

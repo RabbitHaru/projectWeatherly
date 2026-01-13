@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.common.util.DateUtil;
-import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDto;
+import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +40,7 @@ public class WeatherApiService {
      * 초단기예보 조회 (6시간)
      */
     @Cacheable(value = "ultraShortForecast", key = "#regionCode + '_' + #baseDate + '_' + #baseTime")
-    public WeatherResponseDto getUltraShortForecast(String regionCode, String baseDate, String baseTime) {
+    public WeatherResponseDTO getUltraShortForecast(String regionCode, String baseDate, String baseTime) {
         try {
             // 격자 좌표 조회
             Map<String, String> gridCoords = getGridCoordinates(regionCode);
@@ -87,7 +87,7 @@ public class WeatherApiService {
      * 단기예보 조회 (3일)
      */
     @Cacheable(value = "shortTermForecast", key = "#regionCode")
-    public WeatherResponseDto getShortTermForecast(String regionCode) {
+    public WeatherResponseDTO getShortTermForecast(String regionCode) {
         try {
             String baseDate = DateUtil.formatDateOnly(LocalDateTime.now());
             String baseTime = "0500"; // 기상청 기준 시간
@@ -129,7 +129,7 @@ public class WeatherApiService {
      * 현재 날씨 정보 조회
      */
     @Cacheable(value = "currentWeather", key = "#regionCode")
-    public WeatherResponseDto.CurrentWeather getCurrentWeather(String regionCode) {
+    public WeatherResponseDTO.CurrentWeather getCurrentWeather(String regionCode) {
         try {
             String baseDate = DateUtil.formatDateOnly(LocalDateTime.now());
             String baseTime = DateUtil.getBaseTime();
@@ -170,7 +170,7 @@ public class WeatherApiService {
     /**
      * 초단기예보 응답 파싱
      */
-    private WeatherResponseDto parseUltraShortResponse(String jsonResponse, String regionCode, String baseDate, String baseTime) throws Exception {
+    private WeatherResponseDTO parseUltraShortResponse(String jsonResponse, String regionCode, String baseDate, String baseTime) throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items").path("item");
 
@@ -194,7 +194,7 @@ public class WeatherApiService {
         }
 
         // 시간별 예보 생성
-        List<WeatherResponseDto.HourlyForecast> hourly = new ArrayList<>();
+        List<WeatherResponseDTO.HourlyForecast> hourly = new ArrayList<>();
 
         for (Map.Entry<String, Map<String, String>> entry : hourlyData.entrySet()) {
             String time = entry.getKey().substring(0, 2) + "시";
@@ -204,7 +204,7 @@ public class WeatherApiService {
             String sky = data.getOrDefault("SKY", "1");
             String precipitation = data.getOrDefault("PTY", "0");
 
-            WeatherResponseDto.HourlyForecast forecast = WeatherResponseDto.HourlyForecast.builder()
+            WeatherResponseDTO.HourlyForecast forecast = WeatherResponseDTO.HourlyForecast.builder()
                     .time(time)
                     .temperature(Double.parseDouble(temperature))
                     .weatherCondition(getWeatherCondition(sky, precipitation))
@@ -217,15 +217,15 @@ public class WeatherApiService {
         }
 
         // 현재 날씨 생성
-        WeatherResponseDto.CurrentWeather current = createCurrentWeatherFromHourly(hourly);
+        WeatherResponseDTO.CurrentWeather current = createCurrentWeatherFromHourly(hourly);
 
-        return WeatherResponseDto.builder()
+        return WeatherResponseDTO.builder()
                 .regionName(getRegionNameFromCode(regionCode))
                 .regionCode(regionCode)
                 .currentTime(DateUtil.getCurrentFormattedDateTime())
                 .current(current)
                 .hourly(hourly)
-                .summary(WeatherResponseDto.WeatherSummary.builder()
+                .summary(WeatherResponseDTO.WeatherSummary.builder()
                         .ultraShortSummary("초단기예보: " + hourly.size() + "시간 동안 " +
                                 getWeatherTrend(hourly) + " 날씨가 예상됩니다.")
                         .build())
@@ -235,7 +235,7 @@ public class WeatherApiService {
     /**
      * 단기예보 응답 파싱
      */
-    private WeatherResponseDto parseShortTermResponse(String jsonResponse, String regionCode) throws Exception {
+    private WeatherResponseDTO parseShortTermResponse(String jsonResponse, String regionCode) throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items").path("item");
 
@@ -260,7 +260,7 @@ public class WeatherApiService {
         }
 
         // 일별 예보 생성
-        List<WeatherResponseDto.DailyForecast> daily = new ArrayList<>();
+        List<WeatherResponseDTO.DailyForecast> daily = new ArrayList<>();
 
         for (Map.Entry<String, Map<String, String>> entry : dailyData.entrySet()) {
             String dateStr = entry.getKey();
@@ -277,7 +277,7 @@ public class WeatherApiService {
             String sky = data.getOrDefault("SKY", "1");
             String pty = data.getOrDefault("PTY", "0");
 
-            WeatherResponseDto.DailyForecast forecast = WeatherResponseDto.DailyForecast.builder()
+            WeatherResponseDTO.DailyForecast forecast = WeatherResponseDTO.DailyForecast.builder()
                     .date(date.format(DateTimeFormatter.ofPattern("MM/dd")))
                     .dayOfWeek(dayOfWeek)
                     .maxTemp(maxTemp != null ? maxTemp : 20.0)
@@ -295,12 +295,12 @@ public class WeatherApiService {
         // 요약 생성
         String summary = generateDailySummary(daily);
 
-        return WeatherResponseDto.builder()
+        return WeatherResponseDTO.builder()
                 .regionName(getRegionNameFromCode(regionCode))
                 .regionCode(regionCode)
                 .currentTime(DateUtil.getCurrentFormattedDateTime())
                 .daily(daily)
-                .summary(WeatherResponseDto.WeatherSummary.builder()
+                .summary(WeatherResponseDTO.WeatherSummary.builder()
                         .shortSummary(summary)
                         .midSummary("중기예보는 별도 API를 호출해야 합니다.")
                         .build())
@@ -310,7 +310,7 @@ public class WeatherApiService {
     /**
      * 현재 날씨 응답 파싱
      */
-    private WeatherResponseDto.CurrentWeather parseCurrentWeatherResponse(String jsonResponse) throws Exception {
+    private WeatherResponseDTO.CurrentWeather parseCurrentWeatherResponse(String jsonResponse) throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items").path("item");
 
@@ -337,7 +337,7 @@ public class WeatherApiService {
             }
         }
 
-        return WeatherResponseDto.CurrentWeather.builder()
+        return WeatherResponseDTO.CurrentWeather.builder()
                 .temperature(temperature)
                 .feelsLike(calculateFeelsLike(temperature, humidity))
                 .humidity(humidity)
@@ -482,9 +482,9 @@ public class WeatherApiService {
         return temp + (humidity - 50) * 0.1;
     }
 
-    private WeatherResponseDto.CurrentWeather createCurrentWeatherFromHourly(List<WeatherResponseDto.HourlyForecast> hourly) {
+    private WeatherResponseDTO.CurrentWeather createCurrentWeatherFromHourly(List<WeatherResponseDTO.HourlyForecast> hourly) {
         if (hourly.isEmpty()) {
-            return WeatherResponseDto.CurrentWeather.builder()
+            return WeatherResponseDTO.CurrentWeather.builder()
                     .temperature(20.0)
                     .feelsLike(21.0)
                     .humidity(50.0)
@@ -497,8 +497,8 @@ public class WeatherApiService {
                     .build();
         }
 
-        WeatherResponseDto.HourlyForecast first = hourly.get(0);
-        return WeatherResponseDto.CurrentWeather.builder()
+        WeatherResponseDTO.HourlyForecast first = hourly.get(0);
+        return WeatherResponseDTO.CurrentWeather.builder()
                 .temperature(first.getTemperature())
                 .feelsLike(first.getTemperature() + 1.0)
                 .humidity(first.getHumidity())
@@ -511,7 +511,7 @@ public class WeatherApiService {
                 .build();
     }
 
-    private String getWeatherTrend(List<WeatherResponseDto.HourlyForecast> hourly) {
+    private String getWeatherTrend(List<WeatherResponseDTO.HourlyForecast> hourly) {
         if (hourly.size() < 2) return "변화 없는";
 
         String first = hourly.get(0).getWeatherCondition();
@@ -524,12 +524,12 @@ public class WeatherApiService {
         }
     }
 
-    private String generateDailySummary(List<WeatherResponseDto.DailyForecast> daily) {
+    private String generateDailySummary(List<WeatherResponseDTO.DailyForecast> daily) {
         if (daily.isEmpty()) return "예보 정보 없음";
 
         StringBuilder summary = new StringBuilder();
         for (int i = 0; i < Math.min(3, daily.size()); i++) {
-            WeatherResponseDto.DailyForecast day = daily.get(i);
+            WeatherResponseDTO.DailyForecast day = daily.get(i);
             summary.append(day.getDate())
                     .append("(").append(day.getDayOfWeek()).append(") ")
                     .append(day.getDayWeather())

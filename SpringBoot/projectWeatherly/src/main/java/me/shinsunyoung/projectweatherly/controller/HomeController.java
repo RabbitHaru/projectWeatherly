@@ -8,6 +8,24 @@ public class HomeController {
 
     @GetMapping("/")
     public String home() {
-        return "index";  // 또는 "main" 등 적절한 뷰 이름
+        return "index";
+    }
+
+    // 추가: 미세먼지 페이지 매핑
+    @GetMapping("/fine-dust")
+    public String fineDust() {
+        return "fine-dust";
+    }
+
+    // 추가: 옷차림 페이지 매핑
+    @GetMapping("/outfit")
+    public String outfit() {
+        return "outfit";
+    }
+
+    // 추가: 커뮤니티 페이지 매핑
+    @GetMapping("/community")
+    public String community() {
+        return "community";
     }
 }
