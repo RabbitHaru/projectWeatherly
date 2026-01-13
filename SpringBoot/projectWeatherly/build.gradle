@@ -25,6 +25,8 @@ repositories {
 }
 
 dependencies {
+    // oauth2(oauth login) maando add
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
@@ -77,15 +79,22 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    // Lombok 추가함 (maando)
+    // Lombok + add (maando)
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
-
+    // JWT(maando)
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    // Swagger(maando)add
+    implementation 'io.springfox:springfox-boot-starter:3.0.0'
+    implementation 'io.springfox:springfox-swagger-ui:3.0.0'
     // 개발 도구
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     // 이메일
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-
+    // File Upload(maando) add
+    implementation 'commons-io:commons-io:2.11.0'
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

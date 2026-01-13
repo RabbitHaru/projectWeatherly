@@ -2,8 +2,8 @@ package me.shinsunyoung.projectweatherly.member.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import me.shinsunyoung.projectweatherly.member.domain.enmus.AuthProvider;
-import me.shinsunyoung.projectweatherly.member.domain.enmus.MemberRole;
+import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
+import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 
 import java.time.LocalDateTime;
 
@@ -47,14 +47,17 @@ public class Member {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @Column(name = "last_login_at")
-    private LocalDateTime lastLoginAt;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "refresh_token", length = 512)
+    private String refreshToken;
+
+    @Column(name = "refresh_token_expiry")
+    private LocalDateTime refreshTokenExpiry;
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Agreement agreement;
@@ -71,5 +74,23 @@ public class Member {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+    // 역할 이름을 문자열로 반환하는 헬퍼 메서드 추가
+    public String getRoleName() {
+        return this.role != null ? this.role.name() : MemberRole.USER.name();
+    }
+
+    // 역할을 문자열로 설정하는 헬퍼 메서드
+    public void setRoleFromString(String name) {
+        if (name == null) {
+            this.role = MemberRole.USER;
+            return;
+        }
+
+        try {
+            this.role = MemberRole.valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            this.role = MemberRole.USER; // 기본값
+        }
     }
 }

@@ -1,60 +1,118 @@
 package me.shinsunyoung.projectweatherly.member.repository;
 
-import me.shinsunyoung.projectweatherly.member.domain.member.Member;
-
-import me.shinsunyoung.projectweatherly.member.domain.member.MemberRole;
+import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
+import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.security.AuthProvider;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
-    // 이메일로 회원 찾기
-    Optional<Member> findByUserEmail(String userEmail);
+    Optional<Member> findByEmail(String email);
 
-    // 이메일 존재 여부 확인
-    boolean existsByUserEmail(String userEmail);
+    Optional<Member> findByProviderId(String providerId);
 
-    // 소셜 로그인 제공자와 제공자 ID로 회원 찾기
-    Optional<Member> findByAuthProviderAndProviderId(AuthProvider authProvider, String providerId);
+    Optional<Member> findByEmailAndIsActiveTrue(String email);
 
-    // 활성 상태로 회원 찾기
-    Optional<Member> findByUserEmailAndIsActiveTrue(String userEmail);
+    boolean existsByEmail(String email);
 
-    // 특정 권한을 가진 회원들 찾기
-    @Query("SELECT m FROM Member m WHERE m.userRole = :role AND m.isActive = true")
-    List<Member> findActiveMembersByRole(@Param("role") String role);
+    boolean existsByNickname(String nickname);
 
-    // 비활성화된 회원들 찾기
-    List<Member> findByIsActiveFalse();
+    Optional<Member> findByProviderIdAndAuthProvider(String providerId, AuthProvider authProvider);
 
-    // 활성화된 회원들 찾기
+    @Query("SELECT m FROM Member m LEFT JOIN FETCH m.agreement LEFT JOIN FETCH m.notificationSetting WHERE m.id = :id")
+    Optional<Member> findByIdWithAgreementAndNotification(@Param("id") Long id);
+
+    // ✅ Refresh Token 관련 메서드들 추가
+
+    // Refresh Token으로 회원 찾기
+    Optional<Member> findByRefreshToken(String refreshToken);
+
+    // 이메일과 인증 제공자로 회원 찾기
+    Optional<Member> findByEmailAndAuthProvider(String email, AuthProvider authProvider);
+
+    // 활성화된 회원들 조회
     List<Member> findByIsActiveTrue();
 
-    // 활성 상태별 카운트
-    long countByIsActive(boolean isActive);
+    // 특정 권한을 가진 회원들 조회
+    List<Member> findByRole(String role);
 
-    // 제공자별 회원 수
-    long countByAuthProvider(AuthProvider authProvider);
+    // Refresh Token 업데이트 메서드
+    @Modifying
+    @Transactional
+    @Query("UPDATE Member m SET m.refreshToken = :refreshToken, m.refreshTokenExpiry = :expiry WHERE m.id = :memberId")
+    void updateRefreshToken(@Param("memberId") Long memberId,
+                            @Param("refreshToken") String refreshToken,
+                            @Param("expiry") LocalDateTime expiry);
 
-    // 마지막 로그인 이후 일정 기간이 지난 회원들 찾기
-    @Query("SELECT m FROM Member m WHERE m.lastLoginAt < :date AND m.isActive = true")
-    List<Member> findInactiveMembersSince(@Param("date") java.time.LocalDateTime date);
+    // Refresh Token 만료시키기
+    @Modifying
+    @Transactional
+    @Query("UPDATE Member m SET m.refreshToken = NULL, m.refreshTokenExpiry = NULL WHERE m.id = :memberId")
+    void clearRefreshToken(@Param("memberId") Long memberId);
 
-    // 검색 기능 (이메일 또는 이름으로 검색)
-    @Query("SELECT m FROM Member m WHERE " +
-            "LOWER(m.userEmail) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(m.userName) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    List<Member> searchByKeyword(@Param("keyword") String keyword);
+    // 회원 상태 변경 (활성/비활성)
+    @Modifying
+    @Transactional
+    @Query("UPDATE Member m SET m.isActive = :isActive WHERE m.id = :memberId")
+    void updateMemberStatus(@Param("memberId") Long memberId,
+                            @Param("isActive") Boolean isActive);
 
-    // 특정 권한의 회원 수
-    long countByUserRole(String userRole);
+    // 프로필 이미지 업데이트
+    @Modifying
+    @Transactional
+    @Query("UPDATE Member m SET m.profileImage = :profileImage WHERE m.id = :memberId")
+    void updateProfileImage(@Param("memberId") Long memberId,
+                            @Param("profileImage") String profileImage);
 
-    List<Member> findByUserRoleAndIsActive(MemberRole userRole, Boolean isActive);
+    // 닉네임 업데이트 및 중복 확인
+    @Modifying
+    @Transactional
+    @Query("UPDATE Member m SET m.nickname = :nickname WHERE m.id = :memberId")
+    void updateNickname(@Param("memberId") Long memberId,
+                        @Param("nickname") String nickname);
+
+    // 비밀번호 업데이트
+    @Modifying
+    @Transactional
+    @Query("UPDATE Member m SET m.password = :password WHERE m.id = :memberId")
+    void updatePassword(@Param("memberId") Long memberId,
+                        @Param("password") String password);
+
+    // 소셜 로그인 정보 연결
+    @Modifying
+    @Transactional
+    @Query("UPDATE Member m SET m.authProvider = :authProvider, m.providerId = :providerId WHERE m.id = :memberId")
+    void updateAuthProvider(@Param("memberId") Long memberId,
+                            @Param("authProvider") AuthProvider authProvider,
+                            @Param("providerId") String providerId);
+
+    // 회원 검색 기능
+    @Query("SELECT m FROM Member m WHERE m.email LIKE %:keyword% OR m.nickname LIKE %:keyword%")
+    List<Member> searchMembers(@Param("keyword") String keyword);
+
+    // 특정 기간 내 가입한 회원 조회
+    @Query("SELECT m FROM Member m WHERE m.createdAt BETWEEN :startDate AND :endDate")
+    List<Member> findMembersByJoinDateRange(@Param("startDate") LocalDateTime startDate,
+                                            @Param("endDate") LocalDateTime endDate);
+
+    // 권한별 회원 수 조회
+    @Query("SELECT COUNT(m) FROM Member m WHERE m.role = :role")
+    Long countByRole(@Param("role") String role);
+
+    // 활성/비활성 회원 수 조회
+    @Query("SELECT COUNT(m) FROM Member m WHERE m.isActive = :isActive")
+    Long countByIsActive(@Param("isActive") Boolean isActive);
+
+    // Refresh Token이 만료되지 않은 회원 찾기
+    @Query("SELECT m FROM Member m WHERE m.refreshToken IS NOT NULL AND m.refreshTokenExpiry > :currentTime")
+    List<Member> findMembersWithValidRefreshToken(@Param("currentTime") LocalDateTime currentTime);
 }
