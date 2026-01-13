@@ -3,52 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${pageTitle}">Weatherly - 미세먼지 정보</title>
+    <title>Weatherly - 미세먼지 정보</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/main.css}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script th:src="@{/js/main2.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/fine-dust.css}">
 </head>
 <body>
-<header class="main-header" th:replace="index :: header"></header>
+<header class="main-header">
+    <div class="header-container">
+        <div class="header-left">
+            <a href="/" class="logo">
+                <i class="fas fa-cloud-sun logo-icon"></i>
+                <span class="logo-text">Weatherly</span>
+            </a>
+        </div>
+
+        <nav class="header-center">
+            <ul class="main-menu">
+                <li><a href="/" class="menu-item"><i class="fas fa-home"></i> 홈</a></li>
+                <li><a href="/fine-dust" class="menu-item active"><i class="fas fa-wind"></i> 미세먼지</a></li>
+                <li><a href="/outfit" class="menu-item"><i class="fas fa-tshirt"></i> 옷차림</a></li>
+                <li><a href="/community" class="menu-item"><i class="fas fa-comments"></i> 커뮤니티</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-right">
+            <div class="user-greeting">
+                <span class="greeting-text">안녕하세요, <strong id="username">방문자</strong>님!</span>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn notification-btn" title="알림">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">0</span>
+                </button>
+
+                <button class="control-btn favorites-btn" title="즐겨찾기">
+                    <i class="fas fa-star"></i>
+                </button>
+
+                <button class="control-btn darkmode-toggle" id="darkmode-toggle" title="다크모드 전환">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+                <div class="dropdown">
+                    <button class="user-menu-btn">
+                        <i class="fas fa-user-circle"></i>
+                        <span>마이페이지</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="/mypage"><i class="fas fa-user"></i> 프로필</a>
+                        <a href="/settings"><i class="fas fa-cog"></i> 설정</a>
+                        <a href="/favorites"><i class="fas fa-star"></i> 즐겨찾기</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> 로그아웃</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
 
 <main class="main-container">
     <div class="main-content">
+        <!-- 현재 위치 및 대기질 요약 -->
         <section class="weather-summary">
-            <h1><i class="fas fa-wind"></i> 미세먼지 상세 정보</h1>
-            <div id="air-quality-detail"></div>
+            <div class="location-header">
+                <div class="location-info">
+                    <h1 class="location-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="location-name" id="fine-dust-location">서울특별시</span>
+                        <button class="location-control-btn gps-sync-btn" title="현재 위치로 동기화" id="fine-dust-gps-sync-btn">
+                            <i class="fas fa-satellite"></i>
+                            <span class="btn-text">위치 동기화</span>
+                        </button>
+                        <div class="location-meta">
+                            <span class="current-time" id="fine-dust-current-time"></span>
+                        </div>
+                    </h1>
+                </div>
+                <div class="weather-status">
+                    <div class="aqi-badge large-badge" id="fine-dust-overall-badge">--</div>
+                    <div class="weather-condition" id="fine-dust-health-advice">데이터 로딩 중...</div>
+                </div>
+            </div>
+
+            <!-- 실시간 대기질 상세 정보 -->
+            <div class="air-quality-summary expanded">
+                <div class="aqi-header">
+                    <h3><i class="fas fa-lungs"></i> 실시간 대기질 상세 정보</h3>
+                    <div class="update-time" id="fine-dust-update-time">업데이트: --</div>
+                </div>
+
+                <div class="aqi-detailed-grid">
+                    <!-- 통합대기환경지수 -->
+                    <div class="aqi-detail-card khai">
+                        <div class="aqi-detail-header">
+                            <i class="fas fa-chart-line"></i>
+                            <h4>통합대기환경지수 (KHAI)</h4>
+                        </div>
+                        <div class="aqi-detail-body">
+                            <div class="aqi-detail-value" id="khai-value">--</div>
+                            <div class="aqi-detail-status" id="khai-status">--</div>
+                            <div class="aqi-detail-grade" id="khai-grade">--</div>
+                        </div>
+                    </div>
+
+                    <!-- 미세먼지 -->
+                    <div class="aqi-detail-card pm10">
+                        <div class="aqi-detail-header">
+                            <i class="fas fa-smog"></i>
+                            <h4>미세먼지 (PM10)</h4>
+                        </div>
+                        <div class="aqi-detail-body">
+                            <div class="aqi-detail-value" id="pm10-detail-value">--</div>
+                            <div class="aqi-detail-status" id="pm10-detail-status">--</div>
+                            <div class="aqi-detail-grade" id="pm10-detail-grade">--</div>
+                        </div>
+                    </div>
+
+                    <!-- 초미세먼지 -->
+                    <div class="aqi-detail-card pm25">
+                        <div class="aqi-detail-header">
+                            <i class="fas fa-wind"></i>
+                            <h4>초미세먼지 (PM2.5)</h4>
+                        </div>
+                        <div class="aqi-detail-body">
+                            <div class="aqi-detail-value" id="pm25-detail-value">--</div>
+                            <div class="aqi-detail-status" id="pm25-detail-status">--</div>
+                            <div class="aqi-detail-grade" id="pm25-detail-grade">--</div>
+                        </div>
+                    </div>
+
+                    <!-- 오존 -->
+                    <div class="aqi-detail-card o3">
+                        <div class="aqi-detail-header">
+                            <i class="fas fa-cloud"></i>
+                            <h4>오존 (O3)</h4>
+                        </div>
+                        <div class="aqi-detail-body">
+                            <div class="aqi-detail-value" id="o3-detail-value">--</div>
+                            <div class="aqi-detail-status" id="o3-detail-status">--</div>
+                            <div class="aqi-detail-grade" id="o3-detail-grade">--</div>
+                        </div>
+                    </div>
+
+                    <!-- 이산화질소 -->
+                    <div class="aqi-detail-card no2">
+                        <div class="aqi-detail-header">
+                            <i class="fas fa-industry"></i>
+                            <h4>이산화질소 (NO2)</h4>
+                        </div>
+                        <div class="aqi-detail-body">
+                            <div class="aqi-detail-value" id="no2-value">--</div>
+                            <div class="aqi-detail-status" id="no2-status">--</div>
+                            <div class="aqi-detail-grade" id="no2-grade">--</div>
+                        </div>
+                    </div>
+
+                    <!-- 일산화탄소 -->
+                    <div class="aqi-detail-card co">
+                        <div class="aqi-detail-header">
+                            <i class="fas fa-car"></i>
+                            <h4>일산화탄소 (CO)</h4>
+                        </div>
+                        <div class="aqi-detail-body">
+                            <div class="aqi-detail-value" id="co-value">--</div>
+                            <div class="aqi-detail-status" id="co-status">--</div>
+                            <div class="aqi-detail-grade" id="co-grade">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
+        <!-- 대기질 예보 -->
         <section class="forecast-section">
-            <h2>미세먼지 예보</h2>
-            <div id="air-quality-forecast"></div>
+            <div class="forecast-tabs">
+                <button class="tab-btn active" data-tab="today-aqi">
+                    <i class="fas fa-calendar-day"></i> 오늘 예보
+                </button>
+                <button class="tab-btn" data-tab="tomorrow-aqi">
+                    <i class="fas fa-calendar-alt"></i> 내일 예보
+                </button>
+                <button class="tab-btn" data-tab="weekly-aqi">
+                    <i class="fas fa-calendar-week"></i> 주간 예보
+                </button>
+            </div>
+
+            <div class="tab-content active" id="tab-today-aqi">
+                <div class="aqi-forecast-container" id="today-aqi-forecast">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-tomorrow-aqi">
+                <div class="aqi-forecast-container" id="tomorrow-aqi-forecast">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-weekly-aqi">
+                <div class="aqi-forecast-container" id="weekly-aqi-forecast">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 건강 조언 및 팁 -->
+        <section class="health-advice-section">
+            <div class="card-header">
+                <h3><i class="fas fa-heartbeat"></i> 건강 조언</h3>
+            </div>
+            <div class="health-advice-content">
+                <div class="advice-card" id="health-advice-card">
+                    <div class="advice-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="advice-text">
+                        <h4 id="advice-title">대기질 정보를 확인해주세요</h4>
+                        <p id="advice-description">데이터를 불러오는 중입니다...</p>
+                    </div>
+                </div>
+
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <i class="fas fa-mask"></i>
+                        <h5>마스크 착용</h5>
+                        <p>미세먼지 농도가 높을 때 외출 시 KF94 이상 마스크 착용</p>
+                    </div>
+                    <div class="tip-card">
+                        <i class="fas fa-home"></i>
+                        <h5>실내 공기 정화</h5>
+                        <p>공기청정기 가동 및 환기는 오전에 짧게</p>
+                    </div>
+                    <div class="tip-card">
+                        <i class="fas fa-walking"></i>
+                        <h5>외출 자제</h5>
+                        <p>나쁨 이상일 경우 장시간 실외 활동 자제</p>
+                    </div>
+                    <div class="tip-card">
+                        <i class="fas fa-seedling"></i>
+                        <h5>실내 식물</h5>
+                        <p>공기정화 식물을 통해 실내 공기 질 개선</p>
+                    </div>
+                </div>
+            </div>
         </section>
     </div>
+
+    <!-- 사이드바 -->
+    <aside class="sidebar">
+        <!-- 지역별 대기질 비교 -->
+        <div class="sidebar-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-bar"></i> 지역별 대기질</h3>
+            </div>
+            <div class="card-content">
+                <div class="regional-aqi-list" id="regional-aqi-list">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 측정소 정보 -->
+        <div class="sidebar-card">
+            <div class="card-header">
+                <h3><i class="fas fa-map-marker-alt"></i> 측정소 정보</h3>
+            </div>
+            <div class="card-content">
+                <div class="station-info" id="station-info">
+                    <p><i class="fas fa-info-circle"></i> <strong>측정소:</strong> <span id="station-name">--</span></p>
+                    <p><i class="fas fa-clock"></i> <strong>측정시간:</strong> <span id="measurement-time">--</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 관련 정보 -->
+        <div class="sidebar-card">
+            <div class="card-header">
+                <h3><i class="fas fa-link"></i> 관련 정보</h3>
+            </div>
+            <div class="card-content">
+                <div class="related-links">
+                    <a href="https://www.airkorea.or.kr" target="_blank" class="related-link">
+                        <i class="fas fa-external-link-alt"></i> 에어코리아
+                    </a>
+                    <a href="https://www.weather.go.kr" target="_blank" class="related-link">
+                        <i class="fas fa-external-link-alt"></i> 기상청
+                    </a>
+                    <a href="https://www.me.go.kr" target="_blank" class="related-link">
+                        <i class="fas fa-external-link-alt"></i> 환경부
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
 </main>
 
-<footer class="main-footer" th:replace="index :: footer"></footer>
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
+            <p class="footer-info">에어코리아 API를 활용한 실시간 대기질 정보 서비스</p>
+            <p class="project-info">Project by GMR</p>
+        </div>
+    </div>
+</footer>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        loadAirQualityDetail();
-    });
-
-    async function loadAirQualityDetail() {
-        try {
-            const response = await fetch('/api/air-quality/current');
-            const data = await response.json();
-
-            if (data.success) {
-                updateAirQualityDetail(data.data);
-            }
-        } catch (error) {
-            console.error('미세먼지 데이터 로드 실패:', error);
-        }
-    }
-
-    function updateAirQualityDetail(airQuality) {
-        // 미세먼지 상세 정보 표시 로직
-    }
-</script>
+<!-- 기본 JavaScript (공통 기능) -->
+<script th:src="@{/js/main.js}"></script>
+<!-- 미세먼지 페이지 전용 JavaScript -->
+<script th:src="@{/js/fine-dust.js}"></script>
 </body>
 </html>

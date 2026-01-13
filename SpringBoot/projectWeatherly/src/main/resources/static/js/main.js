@@ -219,8 +219,13 @@ async function loadAirQualityData() {
         const response = await fetch(`${API_BASE_URL}/api/air-quality/current`);
         const data = await response.json();
 
+        console.log('대기질 API 응답:', data); // 디버깅용
+
         if (data.success) {
             updateAirQualityUI(data.data);
+        } else {
+            console.error('대기질 API 실패:', data.message);
+            showFallbackAirQualityData();
         }
     } catch (error) {
         console.error('대기질 데이터 로드 실패:', error);
@@ -335,7 +340,13 @@ function updateWeatherUI(weather) {
 
 // 대기질 UI 업데이트
 function updateAirQualityUI(airQuality) {
-    if (!airQuality) return;
+    console.log('대기질 데이터:', airQuality); // 디버깅용
+
+    if (!airQuality) {
+        console.error('대기질 데이터 없음');
+        showFallbackAirQualityData();
+        return;
+    }
 
     // 전체 등급
     if (airQuality.overallStatus) {
@@ -344,25 +355,37 @@ function updateAirQualityUI(airQuality) {
         badge.className = 'aqi-badge ' + getAqiClass(airQuality.overallGrade || '2');
     }
 
-    // PM10
+    // PM10 (미세먼지)
     if (airQuality.pm10) {
-        document.getElementById('pm10-value').textContent = `${airQuality.pm10.value || '--'} ㎍/㎥`;
-        document.getElementById('pm10-status').textContent = airQuality.pm10.status || '--';
-        document.getElementById('pm10-status').className = 'aqi-status ' + getAqiClass(airQuality.pm10.grade || '2');
+        const value = airQuality.pm10.value || '--';
+        const status = airQuality.pm10.status || '--';
+        const grade = airQuality.pm10.grade || '2';
+
+        document.getElementById('pm10-value').textContent = `${value} ${airQuality.pm10.unit || '㎍/㎥'}`;
+        document.getElementById('pm10-status').textContent = status;
+        document.getElementById('pm10-status').className = 'aqi-status ' + getAqiClass(grade);
     }
 
-    // PM2.5
+    // PM2.5 (초미세먼지)
     if (airQuality.pm25) {
-        document.getElementById('pm25-value').textContent = `${airQuality.pm25.value || '--'} ㎍/㎥`;
-        document.getElementById('pm25-status').textContent = airQuality.pm25.status || '--';
-        document.getElementById('pm25-status').className = 'aqi-status ' + getAqiClass(airQuality.pm25.grade || '2');
+        const value = airQuality.pm25.value || '--';
+        const status = airQuality.pm25.status || '--';
+        const grade = airQuality.pm25.grade || '2';
+
+        document.getElementById('pm25-value').textContent = `${value} ${airQuality.pm25.unit || '㎍/㎥'}`;
+        document.getElementById('pm25-status').textContent = status;
+        document.getElementById('pm25-status').className = 'aqi-status ' + getAqiClass(grade);
     }
 
     // 오존
     if (airQuality.o3) {
-        document.getElementById('o3-value').textContent = `${airQuality.o3.value || '--'} ppm`;
-        document.getElementById('o3-status').textContent = airQuality.o3.status || '--';
-        document.getElementById('o3-status').className = 'aqi-status ' + getAqiClass(airQuality.o3.grade || '2');
+        const value = airQuality.o3.value || '--';
+        const status = airQuality.o3.status || '--';
+        const grade = airQuality.o3.grade || '2';
+
+        document.getElementById('o3-value').textContent = `${value} ${airQuality.o3.unit || 'ppm'}`;
+        document.getElementById('o3-status').textContent = status;
+        document.getElementById('o3-status').className = 'aqi-status ' + getAqiClass(grade);
     }
 
     // 예보 정보
