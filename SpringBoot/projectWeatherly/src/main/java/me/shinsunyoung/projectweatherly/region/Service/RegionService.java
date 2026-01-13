@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.shinsunyoung.projectweatherly.region.domain.Region;
 import me.shinsunyoung.projectweatherly.region.dto.RegionResponseDTO;
 import me.shinsunyoung.projectweatherly.region.repository.RegionRepository;
+import okhttp3.internal.http2.ErrorCode;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,5 +39,11 @@ public class RegionService {
                 .map(RegionResponseDTO::from)
                 .toList();
     }
+
+    public Region getActiveRegion(String regionCode) {
+        return regionRepository.findByRegionCodeAndIsAbolishedFalse(regionCode)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+    }
+
 }
 

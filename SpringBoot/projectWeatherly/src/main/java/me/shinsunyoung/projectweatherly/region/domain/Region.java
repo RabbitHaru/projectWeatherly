@@ -23,6 +23,12 @@ public class Region {
     @Column(name = "active", nullable = false)
     private boolean active;
 
+    @Column(nullable = false)
+    private int nx;
+
+    @Column(nullable = false)
+    private int ny;
+
     public Region(String regionCode, String regionName, boolean active) {
         this.regionCode = regionCode;
         this.regionName = regionName;
