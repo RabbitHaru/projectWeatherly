@@ -1,0 +1,943 @@
+/* 옷차림 페이지 전용 스타일 */
+
+.outfit-container {
+    max-width: 1600px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+/* 오늘의 옷차림 추천 섹션 */
+.outfit-recommendation {
+    background: var(--light-card);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    box-shadow: var(--shadow-light);
+    margin-bottom: 30px;
+}
+
+body.dark-mode .outfit-recommendation {
+    background: var(--dark-card);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(52, 152, 219, 0.2);
+}
+
+.section-header h1 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 2rem;
+    color: var(--secondary-color);
+}
+
+body.dark-mode .section-header h1 {
+    color: var(--dark-text);
+}
+
+.location-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.current-location,
+.current-weather {
+    font-size: 1rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+body.dark-mode .current-location,
+body.dark-mode .current-weather {
+    color: #4fc3f7;
+}
+
+/* 날씨별 옷차림 그리드 */
+.outfit-based-on-weather h2 {
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+}
+
+body.dark-mode .outfit-based-on-weather h2 {
+    color: var(--dark-text);
+}
+
+.weather-outfit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.weather-outfit-card {
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: var(--transition);
+    border: 1px solid var(--light-border);
+}
+
+body.dark-mode .weather-outfit-card {
+    background: #2a2a4a;
+    border-color: var(--dark-border);
+}
+
+.weather-outfit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.weather-icon {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 25px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.weather-icon i {
+    font-size: 3rem;
+}
+
+.weather-label {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.outfit-details {
+    padding: 25px;
+}
+
+.outfit-details h3 {
+    margin: 0 0 15px 0;
+    color: var(--secondary-color);
+    font-size: 1.3rem;
+}
+
+body.dark-mode .outfit-details h3 {
+    color: var(--dark-text);
+}
+
+.outfit-list {
+    list-style: none;
+    margin: 0 0 20px 0;
+    padding: 0;
+}
+
+.outfit-list li {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #555;
+}
+
+body.dark-mode .outfit-list li {
+    color: #ddd;
+}
+
+.outfit-list li i {
+    color: var(--success-color);
+}
+
+.outfit-tip {
+    background: rgba(52, 152, 219, 0.1);
+    padding: 15px;
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid var(--primary-color);
+    font-size: 0.95rem;
+}
+
+body.dark-mode .outfit-tip {
+    background: rgba(79, 195, 247, 0.1);
+    border-left-color: #4fc3f7;
+}
+
+.outfit-tip strong {
+    color: var(--primary-color);
+}
+
+body.dark-mode .outfit-tip strong {
+    color: #4fc3f7;
+}
+
+/* 시간대별 옷차림 가이드 */
+.time-based-outfit {
+    margin-bottom: 40px;
+}
+
+.time-based-outfit h2 {
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+}
+
+body.dark-mode .time-based-outfit h2 {
+    color: var(--dark-text);
+}
+
+.time-outfit-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom: 25px;
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+}
+
+body.dark-mode .time-outfit-tabs {
+    background: #2a2a4a;
+}
+
+.time-tab-btn {
+    padding: 18px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: var(--transition);
+    position: relative;
+}
+
+body.dark-mode .time-tab-btn {
+    color: #bdc3c7;
+}
+
+.time-tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.time-tab-btn:not(.active):hover {
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--primary-color);
+}
+
+body.dark-mode .time-tab-btn:not(.active):hover {
+    background: rgba(79, 195, 247, 0.1);
+    color: #4fc3f7;
+}
+
+.time-outfit-content {
+    display: none;
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: 30px;
+}
+
+body.dark-mode .time-outfit-content {
+    background: #2a2a4a;
+}
+
+.time-outfit-content.active {
+    display: block;
+}
+
+.time-outfit-info {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+}
+
+@media (max-width: 768px) {
+    .time-outfit-info {
+        grid-template-columns: 1fr;
+    }
+}
+
+.time-weather {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: var(--shadow-light);
+}
+
+body.dark-mode .time-weather {
+    background: #3a3a5d;
+}
+
+.temp-range,
+.weather-condition {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.temp-range .label,
+.weather-condition .label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    font-weight: 600;
+}
+
+body.dark-mode .temp-range .label,
+body.dark-mode .weather-condition .label {
+    color: #bdc3c7;
+}
+
+.temp-range .value,
+.weather-condition .value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.outfit-suggestion h3 {
+    margin: 0 0 20px 0;
+    color: var(--secondary-color);
+    font-size: 1.3rem;
+}
+
+body.dark-mode .outfit-suggestion h3 {
+    color: var(--dark-text);
+}
+
+.outfit-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.outfit-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: white;
+    padding: 15px;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-light);
+    transition: var(--transition);
+}
+
+body.dark-mode .outfit-item {
+    background: #3a3a5d;
+}
+
+.outfit-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-medium);
+}
+
+.item-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.item-name {
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+body.dark-mode .item-name {
+    color: var(--dark-text);
+}
+
+.item-desc {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+body.dark-mode .item-desc {
+    color: #bdc3c7;
+}
+
+/* 활동별 옷차림 추천 */
+.activity-based-outfit {
+    margin-bottom: 40px;
+}
+
+.activity-based-outfit h2 {
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+}
+
+body.dark-mode .activity-based-outfit h2 {
+    color: var(--dark-text);
+}
+
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.activity-card {
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: var(--transition);
+    border: 1px solid var(--light-border);
+}
+
+body.dark-mode .activity-card {
+    background: #2a2a4a;
+    border-color: var(--dark-border);
+}
+
+.activity-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.activity-icon {
+    background: linear-gradient(135deg, var(--success-color), #27ae60);
+    color: white;
+    padding: 25px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.activity-icon i {
+    font-size: 2.5rem;
+}
+
+.activity-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.activity-outfit {
+    padding: 25px;
+}
+
+.activity-outfit h4 {
+    margin: 0 0 15px 0;
+    color: var(--secondary-color);
+    font-size: 1.2rem;
+}
+
+body.dark-mode .activity-outfit h4 {
+    color: var(--dark-text);
+}
+
+.activity-outfit ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.activity-outfit li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+    color: #555;
+}
+
+body.dark-mode .activity-outfit li {
+    color: #ddd;
+}
+
+.activity-outfit li:before {
+    content: '•';
+    color: var(--success-color);
+    font-size: 1.2rem;
+    position: absolute;
+    left: 0;
+    top: -2px;
+}
+
+/* 옷차림 팁 */
+.outfit-tips h2 {
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+}
+
+body.dark-mode .outfit-tips h2 {
+    color: var(--dark-text);
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.tip-card {
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: 25px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    transition: var(--transition);
+    border: 1px solid var(--light-border);
+}
+
+body.dark-mode .tip-card {
+    background: #2a2a4a;
+    border-color: var(--dark-border);
+}
+
+.tip-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.tip-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--warning-color), #e67e22);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.tip-content {
+    flex: 1;
+}
+
+.tip-content h3 {
+    margin: 0 0 10px 0;
+    color: var(--secondary-color);
+    font-size: 1.2rem;
+}
+
+body.dark-mode .tip-content h3 {
+    color: var(--dark-text);
+}
+
+.tip-content p {
+    margin: 0;
+    color: #555;
+    line-height: 1.6;
+}
+
+body.dark-mode .tip-content p {
+    color: #ddd;
+}
+
+/* 사이드바 전용 스타일 */
+.personalized-outfit .card-content {
+    padding: 20px;
+}
+
+.personalized-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.user-preference h4 {
+    margin: 0 0 10px 0;
+    color: var(--secondary-color);
+    font-size: 1rem;
+}
+
+body.dark-mode .user-preference h4 {
+    color: var(--dark-text);
+}
+
+.preference-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--primary-color);
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+body.dark-mode .tag {
+    background: rgba(79, 195, 247, 0.2);
+    color: #4fc3f7;
+}
+
+.today-outfit h4 {
+    margin: 0 0 15px 0;
+    color: var(--secondary-color);
+    font-size: 1rem;
+}
+
+body.dark-mode .today-outfit h4 {
+    color: var(--dark-text);
+}
+
+.recommended-outfit {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.recommended-outfit .outfit-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9rem;
+}
+
+body.dark-mode .recommended-outfit .outfit-item {
+    background: #3a3a5d;
+}
+
+.recommended-outfit .outfit-item i {
+    color: var(--primary-color);
+}
+
+body.dark-mode .recommended-outfit .outfit-item i {
+    color: #4fc3f7;
+}
+
+.customize-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: var(--transition);
+    margin-top: 10px;
+}
+
+.customize-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* 옷장 추천 */
+.wardrobe-status {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+}
+
+body.dark-mode .status-item {
+    background: #3a3a5d;
+}
+
+.status-item .label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+body.dark-mode .status-item .label {
+    color: #bdc3c7;
+}
+
+.status-item .value {
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+body.dark-mode .status-item .value {
+    color: var(--dark-text);
+}
+
+.wardrobe-tip {
+    background: rgba(52, 152, 219, 0.1);
+    padding: 15px;
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid var(--primary-color);
+}
+
+body.dark-mode .wardrobe-tip {
+    background: rgba(79, 195, 247, 0.1);
+    border-left-color: #4fc3f7;
+}
+
+.wardrobe-tip p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+body.dark-mode .wardrobe-tip p {
+    color: #ddd;
+}
+
+.wardrobe-tip strong {
+    color: var(--primary-color);
+}
+
+body.dark-mode .wardrobe-tip strong {
+    color: #4fc3f7;
+}
+
+/* 날씨 변화 대비 */
+.weather-change-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.change-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+}
+
+body.dark-mode .change-item {
+    background: #3a3a5d;
+}
+
+.change-time {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+    font-size: 0.95rem;
+}
+
+body.dark-mode .change-time {
+    color: var(--dark-text);
+}
+
+.change-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.from-to {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.from, .to {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: 600;
+}
+
+.from {
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--primary-color);
+}
+
+body.dark-mode .from {
+    background: rgba(79, 195, 247, 0.2);
+    color: #4fc3f7;
+}
+
+.to {
+    background: rgba(46, 204, 113, 0.1);
+    color: var(--success-color);
+}
+
+body.dark-mode .to {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.from-to i {
+    color: #7f8c8d;
+}
+
+.change-suggestion {
+    font-size: 0.9rem;
+    color: #555;
+    padding-left: 10px;
+    border-left: 3px solid var(--warning-color);
+}
+
+body.dark-mode .change-suggestion {
+    color: #ddd;
+    border-left-color: var(--warning-color);
+}
+
+/* 인기 옷차림 게시글 */
+.popular-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.popular-posts .post-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition);
+}
+
+body.dark-mode .popular-posts .post-item {
+    background: #3a3a5d;
+}
+
+.popular-posts .post-item:hover {
+    transform: translateX(5px);
+}
+
+.post-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--secondary-color);
+    font-size: 0.95rem;
+}
+
+body.dark-mode .post-title {
+    color: var(--dark-text);
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.post-meta .author {
+    color: #7f8c8d;
+}
+
+body.dark-mode .post-meta .author {
+    color: #bdc3c7;
+}
+
+.post-meta .likes {
+    color: var(--danger-color);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+}
+
+.view-more-btn {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.view-more-btn:hover {
+    background: var(--primary-dark);
+    transform: translateX(3px);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+    .weather-outfit-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tips-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .weather-outfit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .time-outfit-tabs {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .activity-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .location-info {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .time-outfit-tabs {
+        grid-template-columns: 1fr;
+    }
+
+    .activity-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .time-tab-btn {
+        justify-content: flex-start;
+        padding: 15px;
+    }
+}
