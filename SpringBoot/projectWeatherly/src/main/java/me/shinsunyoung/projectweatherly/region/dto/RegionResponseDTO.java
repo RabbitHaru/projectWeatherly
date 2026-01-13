@@ -8,9 +8,11 @@ import me.shinsunyoung.projectweatherly.region.domain.Region;
 @Getter
 @Builder
 public class RegionResponseDTO {
-    private String regionCode;
-    private String regionName;
-    private boolean active;
+    private String regionCode; // 법정동 코드
+    private String regionName; // 법정동 이름
+    private boolean active; // 폐지유무 확인
+    private int nx; // x좌표 값
+    private int ny; // y좌표 값
 
     public static RegionResponseDTO from(Region region) {
         return RegionResponseDTO.builder()
