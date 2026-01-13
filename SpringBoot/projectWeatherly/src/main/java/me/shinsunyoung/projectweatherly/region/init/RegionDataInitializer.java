@@ -49,7 +49,13 @@ public class RegionDataInitializer implements CommandLineRunner {
             boolean isActive = tokens[2].trim().equals("존재");
 
             regionRepository.save(
-                    new Region(code, name, isActive)
+                    Region.builder()
+                            .regionCode(code)
+                            .regionName(name)
+                            .active(isActive)
+                            .nx(0)
+                            .ny(0)
+                            .build()
             );
         }
     }

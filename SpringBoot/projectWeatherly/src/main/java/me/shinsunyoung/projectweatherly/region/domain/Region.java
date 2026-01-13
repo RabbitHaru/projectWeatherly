@@ -1,37 +1,48 @@
 package me.shinsunyoung.projectweatherly.region.domain;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "region")
+@Table(name = "regions")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
-
 public class Region {
+
+    // 법정동 코드 (PK)
+
     @Id
-    @Column(name = "region_code", length = 10)
     private String regionCode;
 
-    @Column(name = "region_name", nullable = false)
+    // 지역명
     private String regionName;
 
-    @Column(name = "active", nullable = false)
+    // 사용 여부 (폐지되지 않은 지역)
     private boolean active;
 
-    @Column(nullable = false)
+    // 기상청 격자 좌표
     private int nx;
-
-    @Column(nullable = false)
     private int ny;
 
-    public Region(String regionCode, String regionName, boolean active) {
+    // Builder 생성자
+    // - JPA 기본 생성자와 분리
+
+    @Builder
+    public Region(String regionCode,
+                  String regionName,
+                  boolean active,
+                  int nx,
+                  int ny) {
+
         this.regionCode = regionCode;
         this.regionName = regionName;
         this.active = active;
+        this.nx = nx;
+        this.ny = ny;
     }
 }

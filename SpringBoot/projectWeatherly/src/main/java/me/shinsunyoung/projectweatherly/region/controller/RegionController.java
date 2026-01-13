@@ -1,8 +1,7 @@
 package me.shinsunyoung.projectweatherly.region.controller;
 
 import lombok.RequiredArgsConstructor;
-import me.shinsunyoung.projectweatherly.region.Service.RegionService;
-import me.shinsunyoung.projectweatherly.region.domain.Region;
+import me.shinsunyoung.projectweatherly.region.service.RegionService;
 import me.shinsunyoung.projectweatherly.region.dto.RegionResponseDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

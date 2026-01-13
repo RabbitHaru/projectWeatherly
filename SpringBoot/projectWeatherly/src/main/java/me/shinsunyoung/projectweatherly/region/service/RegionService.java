@@ -1,14 +1,14 @@
-package me.shinsunyoung.projectweatherly.region.Service;
+package me.shinsunyoung.projectweatherly.region.service;
 
 import lombok.RequiredArgsConstructor;
 import me.shinsunyoung.projectweatherly.region.domain.Region;
 import me.shinsunyoung.projectweatherly.region.dto.RegionResponseDTO;
 import me.shinsunyoung.projectweatherly.region.repository.RegionRepository;
-import okhttp3.internal.http2.ErrorCode;
+import me.shinsunyoung.projectweatherly.common.error.CustomException;
+import me.shinsunyoung.projectweatherly.common.error.ErrorCode;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,13 +26,13 @@ public class RegionService {
 
     // 단건 조회
     public RegionResponseDTO findByCode(String regionCode) {
-        return regionRepository.findById(regionCode)
+        return regionRepository.findByRegionCodeAndActiveTrue(regionCode)
                 .map(RegionResponseDTO::from)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 지역 코드입니다"));
+                        new CustomException(ErrorCode.NOT_FOUND));
     }
 
-    // 활성 지역만 조회
+    // 활성 지역 목록
     public List<RegionResponseDTO> findActiveRegions() {
         return regionRepository.findByActiveTrue()
                 .stream()
@@ -40,10 +40,10 @@ public class RegionService {
                 .toList();
     }
 
+    // WeatherQuery용
     public Region getActiveRegion(String regionCode) {
-        return regionRepository.findByRegionCodeAndIsAbolishedFalse(regionCode)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        return regionRepository.findByRegionCodeAndActiveTrue(regionCode)
+                .orElseThrow(() ->
+                        new CustomException(ErrorCode.NOT_FOUND));
     }
-
 }
-
