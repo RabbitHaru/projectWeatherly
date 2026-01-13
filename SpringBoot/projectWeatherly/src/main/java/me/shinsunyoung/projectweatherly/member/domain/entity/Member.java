@@ -5,6 +5,7 @@ import lombok.*;
 import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -53,11 +54,6 @@ public class Member {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "refresh_token", length = 512)
-    private String refreshToken;
-
-    @Column(name = "refresh_token_expiry")
-    private LocalDateTime refreshTokenExpiry;
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Agreement agreement;

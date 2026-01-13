@@ -6,7 +6,6 @@ import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
-import me.shinsunyoung.projectweatherly.member.service.JwtTokenProvider;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -26,7 +25,6 @@ import java.util.Optional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
-    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     @Transactional
@@ -43,7 +41,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return processOAuthUser(attributes, AuthProvider.NAVER);
         }
 
-        // ✅ 카카오인 경우 추가
+        // 카카오인 경우
         else if ("kakao".equals(registrationId)) {
             return processOAuthUser(attributes, AuthProvider.KAKAO);
         }
@@ -119,25 +117,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 회원 처리 로직
         Member member = processMember(providerId, email, nickname, profileImage, provider);
 
-        // JWT 토큰 생성
-        String accessToken = jwtTokenProvider.createTokenFromMember(member);
-        String refreshToken = jwtTokenProvider.createRefreshTokenFromMember(member);
+        // JWT 토큰 관련 코드 제거됨
 
-        // Refresh Token 저장
-        try {
-            memberRepository.updateRefreshToken(member.getId(), refreshToken,
-                    jwtTokenProvider.calculateRefreshTokenExpiry());
-            log.info("{} Refresh Token 저장 완료: memberId={}", provider, member.getId());
-        } catch (Exception e) {
-            log.error("Refresh Token 저장 실패: {}", e.getMessage());
-            // 저장 실패해도 로그인은 진행
-        }
-
-
-
-        // 프론트엔드로 전달할 추가 정보 저장
-        attributes.put("access_token", accessToken);
-        attributes.put("refresh_token", refreshToken);
+        // 프론트엔드로 전달할 추가 정보 저장 (JWT 제외)
         attributes.put("member_id", member.getId());
         attributes.put("email", member.getEmail());
         attributes.put("nickname", member.getNickname());

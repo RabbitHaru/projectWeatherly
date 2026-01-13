@@ -23,6 +23,12 @@ configurations {
 repositories {
     mavenCentral()
 }
+// QueryDSL 설정을 위한 변수 - 변수명 통일
+def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
+
+sourceSets {
+    main.java.srcDirs += [querydslDir]
+}
 
 dependencies {
     // oauth2(oauth login) maando add
@@ -34,13 +40,17 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
 
-        //    runtimeOnly 'mysql:mysql-connector-java' // 또는 실제 DB 사용시
+
+
+    //    runtimeOnly 'mysql:mysql-connector-java' // 또는 실제 DB 사용시
     // runtimeOnly 'org.postgresql:postgresql' // PostgreSQL 사용시
     // 또는 MariaDB 사용 시
     // runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
 
     // MariaDB 드라이버
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
@@ -82,10 +92,11 @@ dependencies {
     // Lombok + add (maando)
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
-    // JWT(maando)
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    // QueryDSL 의존성 추가 (필수)
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
     // Swagger(maando)add
     implementation 'io.springfox:springfox-boot-starter:3.0.0'
     implementation 'io.springfox:springfox-swagger-ui:3.0.0'
@@ -93,8 +104,7 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     // 이메일
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-    // File Upload(maando) add
-    implementation 'commons-io:commons-io:2.11.0'
+
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
@@ -109,8 +119,15 @@ sourceSets {
     main.java.srcDirs += [queryDir]
 }
 tasks.withType(JavaCompiler){
-    options.getGeneratedSourceOutputDirectory().set(file(queryDir))
+    // options.getGeneratedSourceOutputDirectory().set(file(queryDir))
+    options.generatedSourceOutputDirectory = file(querydslDir)
+    // Java 17 호환성을 위한 설정
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
 }
 clean {
     delete file(queryDir)
+}
+tasks.named('test') {
+    useJUnitPlatform()
 }

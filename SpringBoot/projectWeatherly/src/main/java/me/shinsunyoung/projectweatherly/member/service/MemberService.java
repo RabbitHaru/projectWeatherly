@@ -1,6 +1,5 @@
 package me.shinsunyoung.projectweatherly.member.service;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
@@ -16,6 +15,9 @@ import me.shinsunyoung.projectweatherly.member.exception.MemberException;
 import me.shinsunyoung.projectweatherly.member.repository.AgreementRepository;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
 import me.shinsunyoung.projectweatherly.member.repository.NotificationSettingRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,13 +28,53 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class MemberService {
+public class MemberService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
     private final AgreementRepository agreementRepository;
     private final NotificationSettingRepository notificationSettingRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
+
+    // ==================== UserDetailsService 구현 ====================
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Member member = memberRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(member.getEmail())
+                .password(member.getPassword())
+                .roles(member.getRole().name())
+                .build();
+    }
+
+    // ==================== 추가된 메서드들 ====================
+
+    /**
+     * 이메일로 회원 정보 조회
+     */
+    public MemberResponse getMemberByEmail(String email) {
+        Member member = memberRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() -> new MemberException("회원을 찾을 수 없습니다."));
+
+        return convertToResponse(member);
+    }
+
+    /**
+     * 이메일 중복 체크
+     */
+    public boolean checkEmailExists(String email) {
+        return memberRepository.existsByEmail(email);
+    }
+
+    /**
+     * 닉네임 중복 체크
+     */
+    public boolean checkNicknameExists(String nickname) {
+        return memberRepository.existsByNickname(nickname);
+    }
+
+    // ==================== 기존 메서드들 (수정 없음) ====================
 
     @Transactional
     public Long signup(SignupRequest request) {
@@ -92,21 +134,14 @@ public class MemberService {
             throw new MemberException("이메일 또는 비밀번호를 확인해주세요.");
         }
 
-
-        // JWT 토큰 생성
-        String token = jwtTokenProvider.createToken(
-                member.getEmail(),
-                member.getRole()
-        );
-
+        // Spring Security Session 인증 방식 사용
         return LoginResponse.builder()
-                .accessToken(token)
-                .tokenType("Bearer")
                 .memberId(member.getId())
                 .email(member.getEmail())
                 .nickname(member.getNickname())
+                .profileImage(member.getProfileImage())
                 .role(member.getRole().name())
-                .expiresIn(86400000L) // 24시간
+                .authProvider(member.getAuthProvider().name())
                 .build();
     }
 
@@ -215,19 +250,18 @@ public class MemberService {
                 .weatherAlertAgree(notificationSetting != null ? notificationSetting.getWeatherAlertAgree() : null)
                 .build();
     }
-    // MemberService.java에 다음 메서드 추가
+
     public MyPageResponse getMyPageInfo(Long memberId) {
         MemberResponse memberResponse = getMemberById(memberId);
         MyPageResponse response = MyPageResponse.fromMemberResponse(memberResponse);
 
-        // 추가 통계 정보 설정 (실제로는 다른 서비스나 레포지토리에서 가져옴)
+        // 추가 통계 정보 설정
         response.setPostCount(0);
         response.setCommentCount(0);
         response.setLikeCount(0);
 
         return response;
     }
-
 
     @Transactional
     public MyPageResponse updateMemberForMyPage(Long memberId, UpdateMemberRequest request) {
@@ -244,7 +278,6 @@ public class MemberService {
 
         memberRepository.save(member);
 
-        // MyPageResponse로 반환
         return getMyPageInfo(memberId);
     }
 

@@ -1,7 +1,7 @@
 package me.shinsunyoung.projectweatherly.member.controller;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,10 @@ import me.shinsunyoung.projectweatherly.member.dto.request.UpdateNotificationReq
 import me.shinsunyoung.projectweatherly.member.dto.response.ApiResponse2;
 import me.shinsunyoung.projectweatherly.member.dto.response.MyPageResponse;
 import me.shinsunyoung.projectweatherly.member.service.MemberService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,53 +28,90 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/mypage")
 @RequiredArgsConstructor
-@Api(tags = "마이페이지 API")
+@Tag(name = "마이페이지 API", description = "마이페이지 관련 기능 API")
 public class MyPageController {
 
     private final MemberService memberService;
-    private final String UPLOAD_DIR = "./uploads/";
-
-    // ✅ 제네릭 error 메서드 유틸리티
-    private <T> ApiResponse2<T> createErrorResponse(String message) {
-        return ApiResponse2.<T>builder()
-                .success(false)
-                .message(message)
-                .data(null)
-                .build();
-    }
+    private static final String UPLOAD_DIR = "./uploads/";
 
     @GetMapping("/me")
-    @ApiOperation(value = "내 정보 조회", notes = "현재 로그인한 회원의 정보를 조회합니다.")
+    @Operation(summary = "내 정보 조회", description = "현재 로그인한 회원의 정보를 조회합니다.")
     public ResponseEntity<ApiResponse2<MyPageResponse>> getMyInfo(
-            @RequestHeader("Authorization") String token) {
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-        Long memberId = extractMemberIdFromToken(token);
-        MyPageResponse response = memberService.getMyPageInfo(memberId);
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse2.error("로그인이 필요합니다."));
+        }
+
+        String email = userDetails.getUsername();
+        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
+                memberService.getMemberByEmail(email);
+        MyPageResponse response = memberService.getMyPageInfo(memberResponse.getMemberId());
 
         return ResponseEntity.ok(ApiResponse2.success(response));
     }
 
     @PutMapping("/profile")
-    @ApiOperation(value = "프로필 수정", notes = "닉네임 및 프로필 이미지를 수정합니다.")
+    @Operation(summary = "프로필 수정", description = "닉네임 및 프로필 이미지를 수정합니다.")
     public ResponseEntity<ApiResponse2<MyPageResponse>> updateProfile(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody UpdateMemberRequest request) {
 
-        Long memberId = extractMemberIdFromToken(token);
-        MyPageResponse response = memberService.updateMemberForMyPage(memberId, request);
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse2.error("로그인이 필요합니다."));
+        }
+
+        String email = userDetails.getUsername();
+        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
+                memberService.getMemberByEmail(email);
+        MyPageResponse response = memberService.updateMemberForMyPage(
+                memberResponse.getMemberId(), request);
 
         return ResponseEntity.ok(ApiResponse2.success("프로필이 수정되었습니다.", response));
     }
 
     @PostMapping("/profile-image")
-    @ApiOperation(value = "프로필 이미지 업로드", notes = "프로필 이미지를 업로드하고 URL을 반환합니다.")
+    @Operation(summary = "프로필 이미지 업로드",
+            description = "프로필 이미지를 업로드하고 URL을 반환합니다.")
     public ResponseEntity<ApiResponse2<String>> uploadProfileImage(
             @RequestParam("file") MultipartFile file) throws IOException {
 
         if (file.isEmpty()) {
-            // ✅ 유틸리티 메서드 사용
             return ResponseEntity.badRequest()
-                    .body(createErrorResponse("파일이 비어있습니다."));
+                    .body(ApiResponse2.error("파일이 비어있습니다."));
+        }
+
+        // 파일 유효성 검사
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.contains(".")) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse2.error("올바른 파일 형식이 아닙니다."));
+        }
+
+        // 허용되는 이미지 확장자
+        String[] allowedExtensions = {".jpg", ".jpeg", ".png", ".gif"};
+        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+
+        boolean isValidExtension = false;
+        for (String ext : allowedExtensions) {
+            if (ext.equals(fileExtension)) {
+                isValidExtension = true;
+                break;
+            }
+        }
+
+        if (!isValidExtension) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse2.error("지원하지 않는 파일 형식입니다. JPG, JPEG, PNG, GIF만 업로드 가능합니다."));
+        }
+
+        // 파일 크기 제한 (5MB)
+        long maxFileSize = 5 * 1024 * 1024; // 5MB
+        if (file.getSize() > maxFileSize) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse2.error("파일 크기는 5MB를 초과할 수 없습니다."));
         }
 
         // 파일 저장 디렉토리 생성
@@ -81,23 +121,17 @@ public class MyPageController {
         }
 
         // 고유한 파일명 생성
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || originalFilename.lastIndexOf(".") == -1) {
-            return ResponseEntity.badRequest()
-                    .body(createErrorResponse("올바른 파일 형식이 아닙니다."));
-        }
-
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String newFilename = UUID.randomUUID().toString() + fileExtension;
 
         // 파일 저장
         Path filePath = uploadPath.resolve(newFilename);
         try {
             Files.copy(file.getInputStream(), filePath);
+            log.info("파일 저장 성공: {}", newFilename);
         } catch (IOException e) {
             log.error("파일 저장 중 오류 발생: {}", e.getMessage());
             return ResponseEntity.internalServerError()
-                    .body(createErrorResponse("파일 저장 중 오류가 발생했습니다."));
+                    .body(ApiResponse2.error("파일 저장 중 오류가 발생했습니다."));
         }
 
         // 이미지 URL 생성
@@ -107,43 +141,61 @@ public class MyPageController {
     }
 
     @PutMapping("/agreements")
-    @ApiOperation(value = "약관 동의 수정", notes = "약관 동의 여부를 수정합니다.")
+    @Operation(summary = "약관 동의 수정", description = "약관 동의 여부를 수정합니다.")
     public ResponseEntity<ApiResponse2<MyPageResponse>> updateAgreements(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody UpdateAgreementRequest request) {
 
-        Long memberId = extractMemberIdFromToken(token);
-        MyPageResponse response = memberService.updateAgreementForMyPage(memberId, request);
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse2.error("로그인이 필요합니다."));
+        }
+
+        String email = userDetails.getUsername();
+        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
+                memberService.getMemberByEmail(email);
+        MyPageResponse response = memberService.updateAgreementForMyPage(
+                memberResponse.getMemberId(), request);
 
         return ResponseEntity.ok(ApiResponse2.success("약관 동의가 수정되었습니다.", response));
     }
 
     @PutMapping("/notifications")
-    @ApiOperation(value = "알림 설정 수정", notes = "게시판 및 기상특보 알림 설정을 수정합니다.")
+    @Operation(summary = "알림 설정 수정",
+            description = "게시판 및 기상특보 알림 설정을 수정합니다.")
     public ResponseEntity<ApiResponse2<MyPageResponse>> updateNotifications(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody UpdateNotificationRequest request) {
 
-        Long memberId = extractMemberIdFromToken(token);
-        MyPageResponse response = memberService.updateNotificationForMyPage(memberId, request);
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse2.error("로그인이 필요합니다."));
+        }
+
+        String email = userDetails.getUsername();
+        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
+                memberService.getMemberByEmail(email);
+        MyPageResponse response = memberService.updateNotificationForMyPage(
+                memberResponse.getMemberId(), request);
 
         return ResponseEntity.ok(ApiResponse2.success("알림 설정이 수정되었습니다.", response));
     }
 
     @DeleteMapping("/deactivate")
-    @ApiOperation(value = "회원 탈퇴", notes = "현재 로그인한 회원을 탈퇴 처리합니다.")
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인한 회원을 탈퇴 처리합니다.")
     public ResponseEntity<ApiResponse2<Void>> deactivateMember(
-            @RequestHeader("Authorization") String token) {
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-        Long memberId = extractMemberIdFromToken(token);
-        memberService.deactivateMember(memberId);
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse2.error("로그인이 필요합니다."));
+        }
 
-        return ResponseEntity.ok(ApiResponse2.success("회원 탈퇴가 완료되었습니다.", null));
-    }
+        String email = userDetails.getUsername();
+        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
+                memberService.getMemberByEmail(email);
+        memberService.deactivateMember(memberResponse.getMemberId());
 
-    private Long extractMemberIdFromToken(String token) {
-        // 실제 구현에서는 JWT 토큰에서 memberId를 추출
-        // 간단한 예시를 위해 1L 반환
-        return 1L;
+        return ResponseEntity.ok(ApiResponse2.success("회원 탈퇴가 완료되었습니다."));
     }
 }
