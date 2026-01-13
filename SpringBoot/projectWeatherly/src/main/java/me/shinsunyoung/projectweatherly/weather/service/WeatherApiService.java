@@ -9,6 +9,7 @@ import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -24,9 +25,7 @@ import java.util.List;
 public class WeatherApiService {
 
     private final ObjectMapper objectMapper;
-
-    @Value("${weatherly.api.kma.url}")
-    private String kmaApiUrl;
+    private final WebClient kmaWebClient;
 
     @Value("${api.kma.key}")
     private String apiKey;
@@ -37,7 +36,9 @@ public class WeatherApiService {
     @Cacheable(value = "ultraShortForecast", key = "#regionCode + '_' + #baseDate + '_' + #baseTime")
     public WeatherResponseDto getUltraShortForecast(String regionCode, String baseDate, String baseTime) {
         try {
-            URI uri = UriComponentsBuilder.fromHttpUrl(kmaApiUrl + "/getUltraSrtFcst")
+            // API 호출 URL 생성
+            String url = UriComponentsBuilder.newInstance()
+                    .path("/getUltraSrtFcst")
                     .queryParam("serviceKey", apiKey)
                     .queryParam("pageNo", 1)
                     .queryParam("numOfRows", 60)
@@ -46,21 +47,35 @@ public class WeatherApiService {
                     .queryParam("base_time", baseTime)
                     .queryParam("nx", getNxFromRegionCode(regionCode))
                     .queryParam("ny", getNyFromRegionCode(regionCode))
-                    .build()
-                    .toUri();
+                    .toUriString();
 
-            // 실제 API 호출 (주석 처리됨 - 실제 구현 시 활성화)
-            // String response = restTemplate.getForObject(uri, String.class);
-            // JsonNode root = objectMapper.readTree(response);
+            log.info("초단기예보 API 호출: {}, {}, {}", regionCode, baseDate, baseTime);
 
-            log.info("초단기예보 API 호출: {}, {}", regionCode, baseTime);
+            // WebClient를 사용한 실제 API 호출 시도
+            try {
+                JsonNode response = kmaWebClient.get()
+                        .uri(url)
+                        .retrieve()
+                        .bodyToMono(JsonNode.class)
+                        .block();
 
-            // 임시 더미 데이터 반환
+                // 실제 API 응답 파싱 (여기서는 간단히 로그만 출력)
+                log.info("API 응답 수신: {}", response != null ? "성공" : "실패");
+
+                // 실제 구현에서는 여기서 response 파싱하여 WeatherResponseDto 생성
+                // return parseUltraShortResponse(response, regionCode);
+
+            } catch (Exception apiError) {
+                log.warn("API 호출 실패, 더미 데이터 사용: {}", apiError.getMessage());
+            }
+
+            // 임시 더미 데이터 반환 (실제 API 연결 시 주석 해제하고 위의 파싱 코드 활성화)
             return createDummyUltraShortForecast(regionCode);
 
         } catch (Exception e) {
-            log.error("초단기예보 API 호출 실패", e);
-            throw new RuntimeException("날씨 정보를 불러올 수 없습니다.");
+            log.error("초단기예보 처리 중 오류", e);
+            // 에러 발생 시 기본 더미 데이터 반환
+            return createFallbackUltraShortForecast(regionCode);
         }
     }
 
@@ -73,7 +88,9 @@ public class WeatherApiService {
             String baseDate = DateUtil.formatDateOnly(LocalDateTime.now());
             String baseTime = "0500"; // 기상청 기준 시간
 
-            URI uri = UriComponentsBuilder.fromHttpUrl(kmaApiUrl + "/getVilageFcst")
+            // API 호출 URL 생성
+            String url = UriComponentsBuilder.newInstance()
+                    .path("/getVilageFcst")
                     .queryParam("serviceKey", apiKey)
                     .queryParam("pageNo", 1)
                     .queryParam("numOfRows", 300)
@@ -82,17 +99,33 @@ public class WeatherApiService {
                     .queryParam("base_time", baseTime)
                     .queryParam("nx", getNxFromRegionCode(regionCode))
                     .queryParam("ny", getNyFromRegionCode(regionCode))
-                    .build()
-                    .toUri();
+                    .toUriString();
 
             log.info("단기예보 API 호출: {}", regionCode);
+
+            // WebClient를 사용한 실제 API 호출 시도
+            try {
+                JsonNode response = kmaWebClient.get()
+                        .uri(url)
+                        .retrieve()
+                        .bodyToMono(JsonNode.class)
+                        .block();
+
+                log.info("단기예보 API 응답 수신: {}", response != null ? "성공" : "실패");
+
+                // 실제 구현에서는 여기서 response 파싱
+                // return parseShortTermResponse(response, regionCode);
+
+            } catch (Exception apiError) {
+                log.warn("단기예보 API 호출 실패, 더미 데이터 사용: {}", apiError.getMessage());
+            }
 
             // 임시 더미 데이터 반환
             return createDummyShortTermForecast(regionCode);
 
         } catch (Exception e) {
-            log.error("단기예보 API 호출 실패", e);
-            throw new RuntimeException("날씨 정보를 불러올 수 없습니다.");
+            log.error("단기예보 처리 중 오류", e);
+            return createFallbackShortTermForecast(regionCode);
         }
     }
 
@@ -101,12 +134,13 @@ public class WeatherApiService {
      */
     @Cacheable(value = "currentWeather", key = "#regionCode")
     public WeatherResponseDto.CurrentWeather getCurrentWeather(String regionCode) {
-        // 초단기실황 API 또는 단기예보의 첫 번째 데이터 사용
-        String baseDate = DateUtil.formatDateOnly(LocalDateTime.now());
-        String baseTime = DateUtil.getBaseTime();
-
         try {
-            URI uri = UriComponentsBuilder.fromHttpUrl(kmaApiUrl + "/getUltraSrtNcst")
+            String baseDate = DateUtil.formatDateOnly(LocalDateTime.now());
+            String baseTime = DateUtil.getBaseTime();
+
+            // API 호출 URL 생성
+            String url = UriComponentsBuilder.newInstance()
+                    .path("/getUltraSrtNcst")
                     .queryParam("serviceKey", apiKey)
                     .queryParam("pageNo", 1)
                     .queryParam("numOfRows", 10)
@@ -115,21 +149,38 @@ public class WeatherApiService {
                     .queryParam("base_time", baseTime)
                     .queryParam("nx", getNxFromRegionCode(regionCode))
                     .queryParam("ny", getNyFromRegionCode(regionCode))
-                    .build()
-                    .toUri();
+                    .toUriString();
 
             log.info("현재 날씨 API 호출: {}", regionCode);
+
+            // WebClient를 사용한 실제 API 호출 시도
+            try {
+                JsonNode response = kmaWebClient.get()
+                        .uri(url)
+                        .retrieve()
+                        .bodyToMono(JsonNode.class)
+                        .block();
+
+                log.info("현재 날씨 API 응답 수신: {}", response != null ? "성공" : "실패");
+
+                // 실제 구현에서는 여기서 response 파싱
+                // return parseCurrentWeatherResponse(response);
+
+            } catch (Exception apiError) {
+                log.warn("현재 날씨 API 호출 실패, 더미 데이터 사용: {}", apiError.getMessage());
+            }
 
             // 임시 더미 데이터 반환
             return createDummyCurrentWeather();
 
         } catch (Exception e) {
-            log.error("현재 날씨 API 호출 실패", e);
-            throw new RuntimeException("현재 날씨 정보를 불러올 수 없습니다.");
+            log.error("현재 날씨 처리 중 오류", e);
+            return createFallbackCurrentWeather();
         }
     }
 
-    // 더미 데이터 생성 메서드들 (실제 구현 시 삭제)
+    // ===== 더미 데이터 생성 메서드들 (API 연동 전 임시 사용) =====
+
     private WeatherResponseDto createDummyUltraShortForecast(String regionCode) {
         List<WeatherResponseDto.HourlyForecast> hourly = new ArrayList<>();
         String[] times = {"현재", "15시", "16시", "17시", "18시", "19시", "20시", "21시"};
@@ -147,7 +198,7 @@ public class WeatherApiService {
         }
 
         return WeatherResponseDto.builder()
-                .regionName("서울특별시")
+                .regionName(getRegionNameFromCode(regionCode))
                 .regionCode(regionCode)
                 .currentTime(DateUtil.getCurrentFormattedDateTime())
                 .current(createDummyCurrentWeather())
@@ -180,7 +231,7 @@ public class WeatherApiService {
         }
 
         return WeatherResponseDto.builder()
-                .regionName("서울특별시")
+                .regionName(getRegionNameFromCode(regionCode))
                 .regionCode(regionCode)
                 .currentTime(DateUtil.getCurrentFormattedDateTime())
                 .daily(daily)
@@ -205,6 +256,48 @@ public class WeatherApiService {
                 .build();
     }
 
+    // ===== 폴백 데이터 생성 메서드들 (에러 발생 시 사용) =====
+
+    private WeatherResponseDto createFallbackUltraShortForecast(String regionCode) {
+        return WeatherResponseDto.builder()
+                .regionName(getRegionNameFromCode(regionCode))
+                .regionCode(regionCode)
+                .currentTime(DateUtil.getCurrentFormattedDateTime())
+                .current(createFallbackCurrentWeather())
+                .summary(WeatherResponseDto.WeatherSummary.builder()
+                        .ultraShortSummary("데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.")
+                        .build())
+                .build();
+    }
+
+    private WeatherResponseDto createFallbackShortTermForecast(String regionCode) {
+        return WeatherResponseDto.builder()
+                .regionName(getRegionNameFromCode(regionCode))
+                .regionCode(regionCode)
+                .currentTime(DateUtil.getCurrentFormattedDateTime())
+                .summary(WeatherResponseDto.WeatherSummary.builder()
+                        .shortSummary("데이터를 불러오는 중입니다.")
+                        .midSummary("API 연결을 확인해주세요.")
+                        .build())
+                .build();
+    }
+
+    private WeatherResponseDto.CurrentWeather createFallbackCurrentWeather() {
+        return WeatherResponseDto.CurrentWeather.builder()
+                .temperature(20.0)
+                .feelsLike(21.0)
+                .humidity(50.0)
+                .windSpeed(1.5)
+                .windDirection("북서풍")
+                .precipitation(0.0)
+                .weatherCondition("정보 없음")
+                .weatherIcon("fas fa-question")
+                .updateTime(LocalDateTime.now())
+                .build();
+    }
+
+    // ===== 헬퍼 메서드들 =====
+
     private String getWeatherIcon(String condition, boolean isDay) {
         return switch (condition) {
             case "맑음" -> isDay ? "fas fa-sun" : "fas fa-moon";
@@ -216,12 +309,47 @@ public class WeatherApiService {
         };
     }
 
+    private String getRegionNameFromCode(String regionCode) {
+        return switch (regionCode) {
+            case "1100000000" -> "서울특별시";
+            case "2600000000" -> "부산광역시";
+            case "2800000000" -> "인천광역시";
+            case "2700000000" -> "대구광역시";
+            case "3000000000" -> "대전광역시";
+            case "2900000000" -> "광주광역시";
+            case "3100000000" -> "울산광역시";
+            case "4100000000" -> "경기도";
+            case "4200000000" -> "강원도";
+            case "4300000000" -> "충청북도";
+            case "4400000000" -> "충청남도";
+            case "4500000000" -> "전라북도";
+            case "4600000000" -> "전라남도";
+            case "4700000000" -> "경상북도";
+            case "4800000000" -> "경상남도";
+            case "5000000000" -> "제주특별자치도";
+            default -> "서울특별시";
+        };
+    }
+
     private String getNxFromRegionCode(String regionCode) {
         // 지역코드 → 격자 좌표 변환 (간단한 예시)
         return switch (regionCode) {
             case "1100000000" -> "60";  // 서울
             case "2600000000" -> "98";  // 부산
             case "2800000000" -> "55";  // 인천
+            case "2700000000" -> "89";  // 대구
+            case "3000000000" -> "67";  // 대전
+            case "2900000000" -> "58";  // 광주
+            case "3100000000" -> "102"; // 울산
+            case "4100000000" -> "60";  // 경기
+            case "4200000000" -> "73";  // 강원
+            case "4300000000" -> "69";  // 충북
+            case "4400000000" -> "68";  // 충남
+            case "4500000000" -> "63";  // 전북
+            case "4600000000" -> "51";  // 전남
+            case "4700000000" -> "89";  // 경북
+            case "4800000000" -> "91";  // 경남
+            case "5000000000" -> "52";  // 제주
             default -> "60";
         };
     }
@@ -231,7 +359,43 @@ public class WeatherApiService {
             case "1100000000" -> "127";  // 서울
             case "2600000000" -> "76";   // 부산
             case "2800000000" -> "124";  // 인천
+            case "2700000000" -> "90";   // 대구
+            case "3000000000" -> "100";  // 대전
+            case "2900000000" -> "74";   // 광주
+            case "3100000000" -> "84";   // 울산
+            case "4100000000" -> "120";  // 경기
+            case "4200000000" -> "134";  // 강원
+            case "4300000000" -> "107";  // 충북
+            case "4400000000" -> "100";  // 충남
+            case "4500000000" -> "89";   // 전북
+            case "4600000000" -> "67";   // 전남
+            case "4700000000" -> "91";   // 경북
+            case "4800000000" -> "77";   // 경남
+            case "5000000000" -> "38";   // 제주
             default -> "127";
         };
     }
+
+    /**
+     * 실제 API 응답 파싱 메서드 (템플릿 - 실제 API 키가 있을 때 활성화)
+     */
+    /*
+    private WeatherResponseDto parseUltraShortResponse(JsonNode response, String regionCode) {
+        // 실제 API 응답 파싱 로직 구현
+        // response.path("response").path("body").path("items").path("item") 등으로 데이터 추출
+
+        // 임시로 더미 데이터 반환
+        return createDummyUltraShortForecast(regionCode);
+    }
+
+    private WeatherResponseDto parseShortTermResponse(JsonNode response, String regionCode) {
+        // 실제 API 응답 파싱 로직 구현
+        return createDummyShortTermForecast(regionCode);
+    }
+
+    private WeatherResponseDto.CurrentWeather parseCurrentWeatherResponse(JsonNode response) {
+        // 실제 API 응답 파싱 로직 구현
+        return createDummyCurrentWeather();
+    }
+    */
 }

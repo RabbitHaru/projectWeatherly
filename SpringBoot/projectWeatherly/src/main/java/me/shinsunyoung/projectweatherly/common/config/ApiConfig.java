@@ -18,6 +18,9 @@ public class ApiConfig {
     @Value("${weatherly.api.kakao.url}")
     private String kakaoApiUrl;
 
+    @Value("${api.kakao.key}")
+    private String kakaoApiKey;
+
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
@@ -38,10 +41,10 @@ public class ApiConfig {
     }
 
     @Bean
-    public WebClient kakaoWebClient(@Value("${api.kakao.key}") String kakaoApiKey) {
+    public WebClient kakaoWebClient() {
         return WebClient.builder()
                 .baseUrl(kakaoApiUrl)
-                .defaultHeader("Authorization", "KakaoAK " + kakaoApiKey)  // 변수 사용 수정
+                .defaultHeader("Authorization", "KakaoAK " + kakaoApiKey)
                 .build();
     }
 }

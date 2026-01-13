@@ -3,13 +3,12 @@ package me.shinsunyoung.projectweatherly.weather.service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.shinsunyoung.projectweatherly.common.dto.LocationDto;
+import me.shinsunyoung.projectweatherly.common.dto.LocationDTO;
 import me.shinsunyoung.projectweatherly.common.service.LocationService;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDto;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDto;
 import org.springframework.stereotype.Service;
-
-
+import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -18,10 +17,8 @@ public class WeatherService {
 
     private final WeatherApiService weatherApiService;
     private final LocationService locationService;
+    private final RestTemplate restTemplate;
 
-    /**
-     * IP 기반 현재 위치의 날씨 정보 조회
-     */
     public WeatherResponseDto getWeatherByIp(HttpServletRequest request) {
         String clientIp = locationService.getClientIp(request);
         LocationDTO location = locationService.getLocationByIp(clientIp);
@@ -31,9 +28,6 @@ public class WeatherService {
         return getWeatherByRegionCode(location.getRegionCode());
     }
 
-    /**
-     * GPS 좌표 기반 날씨 정보 조회
-     */
     public WeatherResponseDto getWeatherByGps(Double latitude, Double longitude) {
         LocationDTO location = locationService.getLocationByGps(latitude, longitude);
 
@@ -43,46 +37,17 @@ public class WeatherService {
         return getWeatherByRegionCode(location.getRegionCode());
     }
 
-    /**
-     * 지역 코드로 날씨 정보 조회
-     */
     public WeatherResponseDto getWeatherByRegionCode(String regionCode) {
-        WeatherResponseDto response = new WeatherResponseDto();
+        try {
+            return weatherApiService.getShortTermForecast(regionCode);
+        } catch (Exception e) {
+            log.error("날씨 정보 조회 실패: {}", e.getMessage());
 
-        // 현재 날씨
-        response.setCurrent(weatherApiService.getCurrentWeather(regionCode));
-
-        // 시간별 예보
-        WeatherResponseDto ultraShort = weatherApiService.getUltraShortForecast(
-                regionCode,
-                me.shinsunyoung.projectweatherly.common.util.DateUtil.formatDateOnly(java.time.LocalDateTime.now()),
-                me.shinsunyoung.projectweatherly.common.util.DateUtil.getBaseTime()
-        );
-        response.setHourly(ultraShort.getHourly());
-
-        // 일별 예보
-        WeatherResponseDto shortTerm = weatherApiService.getShortTermForecast(regionCode);
-        response.setDaily(shortTerm.getDaily());
-
-        // 지역 정보 및 시간
-        response.setRegionName(ultraShort.getRegionName());
-        response.setRegionCode(regionCode);
-        response.setCurrentTime(me.shinsunyoung.projectweatherly.common.util.DateUtil.getCurrentFormattedDateTime());
-
-        // 요약 정보
-        WeatherResponseDto.WeatherSummary summary = WeatherResponseDto.WeatherSummary.builder()
-                .ultraShortSummary(ultraShort.getSummary().getUltraShortSummary())
-                .shortSummary(shortTerm.getSummary().getShortSummary())
-                .midSummary(shortTerm.getSummary().getMidSummary())
-                .build();
-        response.setSummary(summary);
-
-        return response;
+            // 에러 시 더미 데이터 반환
+            return createFallbackWeatherData(regionCode);
+        }
     }
 
-    /**
-     * 다양한 예보 타입에 따른 날씨 정보 조회
-     */
     public WeatherResponseDto getWeather(WeatherRequestDto requestDto) {
         if (requestDto.getLatitude() != null && requestDto.getLongitude() != null) {
             return getWeatherByGps(requestDto.getLatitude(), requestDto.getLongitude());
@@ -91,5 +56,41 @@ public class WeatherService {
         } else {
             throw new IllegalArgumentException("지역 코드 또는 좌표 정보가 필요합니다.");
         }
+    }
+
+    private WeatherResponseDto createFallbackWeatherData(String regionCode) {
+        String regionName = switch (regionCode) {
+            case "1100000000" -> "서울특별시";
+            case "2600000000" -> "부산광역시";
+            case "2800000000" -> "인천광역시";
+            case "2700000000" -> "대구광역시";
+            case "3000000000" -> "대전광역시";
+            case "2900000000" -> "광주광역시";
+            case "3100000000" -> "울산광역시";
+            default -> "서울특별시";
+        };
+
+        return WeatherResponseDto.builder()
+                .regionName(regionName)
+                .regionCode(regionCode)
+                .currentTime(java.time.LocalDateTime.now().format(
+                        java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 E요일 HH:mm")))
+                .current(WeatherResponseDto.CurrentWeather.builder()
+                        .temperature(22.0)
+                        .feelsLike(23.0)
+                        .humidity(45.0)
+                        .windSpeed(2.5)
+                        .windDirection("남서풍")
+                        .precipitation(0.0)
+                        .weatherCondition("맑음")
+                        .weatherIcon("fas fa-sun")
+                        .updateTime(java.time.LocalDateTime.now())
+                        .build())
+                .summary(WeatherResponseDto.WeatherSummary.builder()
+                        .ultraShortSummary("데이터를 불러오는 중입니다.")
+                        .shortSummary("기본 날씨 정보를 표시합니다.")
+                        .midSummary("API 연결을 확인해주세요.")
+                        .build())
+                .build();
     }
 }

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Weatherly - 미세먼지 정보</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+<header class="main-header" th:replace="index :: header"></header>
+
+<main class="main-container">
+    <div class="main-content">
+        <section class="weather-summary">
+            <h1><i class="fas fa-wind"></i> 미세먼지 상세 정보</h1>
+            <div id="air-quality-detail"></div>
+        </section>
+
+        <section class="forecast-section">
+            <h2>미세먼지 예보</h2>
+            <div id="air-quality-forecast"></div>
+        </section>
+    </div>
+</main>
+
+<footer class="main-footer" th:replace="index :: footer"></footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAirQualityDetail();
+    });
+
+    async function loadAirQualityDetail() {
+        try {
+            const response = await fetch('/api/air-quality/current');
+            const data = await response.json();
+
+            if (data.success) {
+                updateAirQualityDetail(data.data);
+            }
+        } catch (error) {
+            console.error('미세먼지 데이터 로드 실패:', error);
+        }
+    }
+
+    function updateAirQualityDetail(airQuality) {
+        // 미세먼지 상세 정보 표시 로직
+    }
+</script>
+</body>
+</html>
