@@ -25,47 +25,28 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot Starters
+    // 필수 Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
 
-    // MariaDB 드라이버
-    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
+    // Database
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-    // 타임리프 레이아웃 및 확장
-    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'
-    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-
-    // API 통신
-    implementation 'org.springframework:spring-webflux'
+    // Thymeleaf
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
 
     // JSON 처리
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-    // HTTP 클라이언트
-    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    // HTTP Client (Spring이 제공하는 RestTemplate 사용 - 추가 의존성 필요 없음)
+    // implementation 'org.apache.httpcomponents.client5:httpclient5' // 필요하지 않음
 
-    // 캐시
-    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.1'
-
-    // 파일 업로드
-    implementation 'commons-io:commons-io:2.11.0'
-    implementation 'commons-fileupload:commons-fileupload:1.4'
-
-    // 날씨 API 클라이언트
-    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-
-    // Geocoding
-    implementation 'com.google.maps:google-maps-services:2.1.0'
-
-    // API 문서화
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    // Cache
+    implementation 'com.github.ben-manes.caffeine:caffeine'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -76,7 +57,6 @@ dependencies {
 
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {

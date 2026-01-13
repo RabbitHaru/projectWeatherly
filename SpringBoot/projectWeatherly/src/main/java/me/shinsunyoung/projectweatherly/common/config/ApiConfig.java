@@ -3,8 +3,10 @@ package me.shinsunyoung.projectweatherly.common.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
+
+import java.time.Duration;
 
 @Configuration
 public class ApiConfig {
@@ -23,28 +25,11 @@ public class ApiConfig {
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000); // 5초
+        factory.setReadTimeout(10000);   // 10초
+        return new RestTemplate(factory);
     }
 
-    @Bean
-    public WebClient kmaWebClient() {
-        return WebClient.builder()
-                .baseUrl(kmaApiUrl)
-                .build();
-    }
-
-    @Bean
-    public WebClient airKoreaWebClient() {
-        return WebClient.builder()
-                .baseUrl(airKoreaApiUrl)
-                .build();
-    }
-
-    @Bean
-    public WebClient kakaoWebClient() {
-        return WebClient.builder()
-                .baseUrl(kakaoApiUrl)
-                .defaultHeader("Authorization", "KakaoAK " + kakaoApiKey)
-                .build();
-    }
+    // WebClient 빈들은 제거하거나 필요시만 유지
 }

@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
-    @GetMapping({"/", "/index.html"})
+    @GetMapping("/")
     public String home() {
-        return "index"; // templates/index.html을 반환
+        return "index";  // 또는 "main" 등 적절한 뷰 이름
     }
-} 
+}

@@ -8,13 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.common.dto.LocationDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.InetAddress;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
@@ -23,10 +23,15 @@ public class LocationService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-    private final WebClient kakaoWebClient;
 
     @Value("${weatherly.api.ipinfo.url}")
     private String ipInfoUrl;
+
+    @Value("${weatherly.api.kakao.url}")
+    private String kakaoApiUrl;
+
+    @Value("${api.kakao.key}")
+    private String kakaoApiKey;
 
     @Value("${weatherly.service.default-region}")
     private String defaultRegion;
@@ -94,35 +99,44 @@ public class LocationService {
     @Cacheable(value = "gpsLocationCache", key = "#latitude + ',' + #longitude")
     public LocationDTO getLocationByGps(Double latitude, Double longitude) {
         try {
-            String response = kakaoWebClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/geo/coord2address.json")
-                            .queryParam("x", longitude)
-                            .queryParam("y", latitude)
-                            .queryParam("input_coord", "WGS84")
-                            .build())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
+            // 카카오 API URL 구성
+            String url = kakaoApiUrl + "/geo/coord2address.json" +
+                    "?x=" + longitude +
+                    "&y=" + latitude +
+                    "&input_coord=WGS84";
 
-            JsonNode root = objectMapper.readTree(response);
-            JsonNode documents = root.path("documents");
+            // 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "KakaoAK " + kakaoApiKey);
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            if (documents.isArray() && documents.size() > 0) {
-                JsonNode address = documents.get(0).path("address");
+            HttpEntity<String> entity = new HttpEntity<>(headers);
 
-                LocationDTO location = new LocationDTO();
-                location.setLatitude(latitude);
-                location.setLongitude(longitude);
-                location.setRegionName(address.path("region_1depth_name").asText());
-                location.setRegionCode(mapRegionToRegionCode(location.getRegionName()));
-                location.setAddress(address.path("address_name").asText());
+            // API 호출
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url, HttpMethod.GET, entity, String.class);
 
-                log.info("GPS 기반 위치 정보 조회 성공: {}", location);
-                return location;
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                JsonNode root = objectMapper.readTree(response.getBody());
+                JsonNode documents = root.path("documents");
+
+                if (documents.isArray() && documents.size() > 0) {
+                    JsonNode address = documents.get(0).path("address");
+
+                    LocationDTO location = new LocationDTO();
+                    location.setLatitude(latitude);
+                    location.setLongitude(longitude);
+                    location.setRegionName(address.path("region_1depth_name").asText());
+                    location.setRegionCode(mapRegionToRegionCode(location.getRegionName()));
+                    location.setAddress(address.path("address_name").asText());
+
+                    log.info("GPS 기반 위치 정보 조회 성공: {}", location);
+                    return location;
+                } else {
+                    throw new RuntimeException("주소 정보를 찾을 수 없습니다.");
+                }
             } else {
-                throw new RuntimeException("주소 정보를 찾을 수 없습니다.");
+                throw new RuntimeException("API 호출 실패: " + response.getStatusCode());
             }
 
         } catch (Exception e) {
