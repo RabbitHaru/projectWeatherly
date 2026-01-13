@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityRequestDto;
 import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDto;
-import me.shinsunyoung.projectweatherly.common.dto.LocationDto;
+import me.shinsunyoung.projectweatherly.common.dto.LocationDTO;
 import me.shinsunyoung.projectweatherly.common.service.LocationService;
 import org.springframework.stereotype.Service;
 

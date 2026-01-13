@@ -38,10 +38,10 @@ public class ApiConfig {
     }
 
     @Bean
-    public WebClient kakaoWebClient() {
+    public WebClient kakaoWebClient(@Value("${api.kakao.key}") String kakaoApiKey) {
         return WebClient.builder()
                 .baseUrl(kakaoApiUrl)
-                .defaultHeader("Authorization", "KakaoAK ${api.kakao.key}")
+                .defaultHeader("Authorization", "KakaoAK " + kakaoApiKey)  // 변수 사용 수정
                 .build();
     }
 }
