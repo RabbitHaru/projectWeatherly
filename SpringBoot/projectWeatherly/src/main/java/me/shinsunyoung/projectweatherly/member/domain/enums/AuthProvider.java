@@ -1,12 +1,9 @@
 package me.shinsunyoung.projectweatherly.member.domain.enums;
 
-
-
 public enum AuthProvider {
-    LOCAL("로컬"),
-    KAKAO("카카오"),
-    NAVER("네이버"),
-    GOOGLE("구글");
+    local("로컬"),
+    kakao("카카오"),
+    naver("네이버");
 
     private final String description;
 

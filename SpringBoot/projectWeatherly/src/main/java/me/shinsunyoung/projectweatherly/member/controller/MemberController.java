@@ -33,7 +33,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/members")
+@RequestMapping("/members")
 @RequiredArgsConstructor
 @Tag(name = "회원 관리 API", description = "회원 정보 조회, 수정, 관리 관련 API")
 public class MemberController {

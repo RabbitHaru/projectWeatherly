@@ -5,7 +5,6 @@ import lombok.*;
 import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -40,7 +39,7 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider", length = 20)
-    private AuthProvider authProvider = AuthProvider.LOCAL;
+    private AuthProvider authProvider = AuthProvider.local;
 
     @Column(name = "provider_id", length = 100)
     private String providerId;

@@ -74,14 +74,4 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse2.success("닉네임 중복 체크 완료", exists));
     }
 
-    @GetMapping("/me")
-    @Operation(summary = "현재 로그인한 사용자 정보 조회",
-            description = "세션에 저장된 현재 로그인한 사용자의 정보를 조회합니다.")
-    public ResponseEntity<ApiResponse2<LoginResponse>> getCurrentUser() {
-        // Spring Security의 @AuthenticationPrincipal을 통해 현재 사용자 정보를 얻을 수 있으나,
-        // AuthController에서는 간단한 정보만 반환하도록 구성
-        // 상세 정보는 MemberController의 /me 엔드포인트를 사용
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse2.error("이 엔드포인트는 사용할 수 없습니다. /api/members/me를 사용해주세요."));
-    }
 }

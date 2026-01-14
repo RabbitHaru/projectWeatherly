@@ -38,12 +38,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 네이버인 경우
         if ("naver".equals(registrationId)) {
-            return processOAuthUser(attributes, AuthProvider.NAVER);
+            return processOAuthUser(attributes, AuthProvider.naver);
         }
 
         // 카카오인 경우
         else if ("kakao".equals(registrationId)) {
-            return processOAuthUser(attributes, AuthProvider.KAKAO);
+            return processOAuthUser(attributes, AuthProvider.kakao);
         }
 
         throw new OAuth2AuthenticationException("지원하지 않는 OAuth2 제공자입니다: " + registrationId);
@@ -58,7 +58,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         try {
             switch (provider) {
-                case NAVER:
+                case naver:
                     Map<String, Object> response = (Map<String, Object>) attributes.get("response");
                     if (response == null) {
                         throw new OAuth2AuthenticationException("네이버 응답 데이터가 없습니다.");
@@ -71,7 +71,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     log.info("네이버 사용자 정보: id={}, email={}, nickname={}", providerId, email, nickname);
                     break;
 
-                case KAKAO:
+                case kakao:
                     providerId = String.valueOf(attributes.get("id"));
 
                     // 카카오 properties에서 닉네임과 프로필 이미지 추출

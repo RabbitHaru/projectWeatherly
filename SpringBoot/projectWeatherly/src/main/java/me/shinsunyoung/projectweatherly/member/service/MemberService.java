@@ -95,7 +95,7 @@ public class MemberService implements UserDetailsService {
                 .nickname(request.getNickname())
                 .profileImage(request.getProfileImage())
                 .role(MemberRole.USER)
-                .authProvider(AuthProvider.LOCAL)
+                .authProvider(AuthProvider.local)
                 .isActive(true)
                 .build();
 

@@ -9,14 +9,14 @@ import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.member.dto.response.ApiResponse2;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
+// import org.springframework.stereotype.Component; // 이 줄 삭제
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@Component
+// @Component 삭제
 @RequiredArgsConstructor
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
