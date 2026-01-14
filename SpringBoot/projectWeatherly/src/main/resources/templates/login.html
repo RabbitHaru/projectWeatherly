@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weatherly - 로그인</title>
+    <link rel="stylesheet" href="../static/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/css/signup.css">
+</head>
+<body>
+<!-- 헤더 -->
+<header class="main-header">
+    <div class="header-container">
+        <div class="header-left">
+            <a href="index.html" class="logo">
+                <i class="fas fa-cloud-sun logo-icon"></i>
+                <span class="logo-text">Weatherly</span>
+            </a>
+        </div>
+
+        <div class="header-right">
+            <div class="control-buttons">
+                <button class="control-btn" id="darkModeToggle" title="다크모드 전환">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 메인 컨텐츠 -->
+<main class="signup-container">
+    <div class="signup-card">
+        <div class="signup-header">
+            <h1><i class="fas fa-user-plus"></i> 로그인</h1>
+            <p class="subtitle">Weatherly 회원이 되어 정확한 날씨 정보와 커뮤니티를 즐기세요</p>
+        </div>
+
+        <form id="signupForm" class="signup-form"  action="/login" method="post">
+            <!-- 소셜 로그인 섹션 -->
+            <div class="social-signup">
+                <p class="social-title">소셜 계정으로 간편 로그인</p>
+                <div class="social-buttons">
+                    <button type="button" class="social-btn kakao">
+                        <i class="fab fa-kaggle"></i> 카카오로 시작하기
+                    </button>
+                    <button type="button" class="social-btn naver">
+                        <i class="fas fa-n"></i> 네이버로 시작하기
+                    </button>
+                    <button type="button" class="social-btn google">
+                        <i class="fab fa-google"></i> Google로 시작하기
+                    </button>
+                </div>
+                <div class="divider">
+                    <span>또는</span>
+                </div>
+            </div>
+
+            <!-- 기본 정보 입력 -->
+            <div class="form-section">
+                <h2><i class="fas fa-id-card"></i> 로그인</h2>
+
+                <div class="form-group">
+                    <label for="user_id">아이디 <span class="required">*</span></label>
+                    <div class="input-with-validation">
+                        <input type="text" id="user_id" name="username" placeholder="예: mmm123" required>
+                    </div>
+                    <div class="validation-message" id="idMessage"></div>
+                </div>
+
+
+
+
+                <div class="form-group">
+                    <label for="user_password">비밀번호 <span class="required">*</span></label>
+                    <input type="password" id="user_password" name="password" placeholder="영문, 숫자, 특수문자 포함 8자 이상" required>
+                    <div class="validation-message" id="passwordMessage"></div>
+                </div>
+
+
+            </div>
+            <!-- 폼 버튼 -->
+            <div class="form-buttons">
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-user-check"></i> 로그인
+                </button>
+                <button type="submit" class="cancel-btn" >
+                    <i class="fas fa-times"></i> 취소
+                </button>
+            </div>
+
+            <div class="login-link">
+                계정이 없으신가요? <a href="/signup">회원가입</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<!-- 푸터 -->
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <p class="copyright">© 2025 Weatherly. All rights reserved.</p>
+            <p class="footer-info">날씨 정보 제공 서비스 및 커뮤니티 플랫폼</p>
+            <p class="project-info">본 프로젝트는 학습용으로 제작된 웹사이트입니다.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="../static/css/js/singup.js"></script>
+<script>
+    // 다크모드 전환 (기존 스크립트 활용)
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        const icon = this.querySelector('i');
+        if (document.body.classList.contains('dark-mode')) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    });
+</script>
+</body>
+</html>

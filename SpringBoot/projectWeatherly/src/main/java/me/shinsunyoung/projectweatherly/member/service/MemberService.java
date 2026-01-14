@@ -15,6 +15,7 @@ import me.shinsunyoung.projectweatherly.member.exception.MemberException;
 import me.shinsunyoung.projectweatherly.member.repository.AgreementRepository;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
 import me.shinsunyoung.projectweatherly.member.repository.NotificationSettingRepository;
+import me.shinsunyoung.projectweatherly.member.util.FileNameUtil;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -77,7 +79,8 @@ public class MemberService implements UserDetailsService {
     // ==================== 기존 메서드들 (수정 없음) ====================
 
     @Transactional
-    public Long signup(SignupRequest request) {
+    public Long signup(SignupRequest request, String profileImg) {
+
         // 이메일 중복 체크
         if (memberRepository.existsByEmail(request.getEmail())) {
             throw new MemberException("이미 사용 중인 이메일입니다.");
@@ -87,38 +90,33 @@ public class MemberService implements UserDetailsService {
         if (!request.getTermsOfServiceAgree() || !request.getPrivacyPolicyAgree()) {
             throw new MemberException("필수 약관에 동의해주세요.");
         }
-
         // 회원 생성
         Member member = Member.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
-                .profileImage(request.getProfileImage())
+                .profileImage(profileImg)
                 .role(MemberRole.USER)
                 .authProvider(AuthProvider.local)
                 .isActive(true)
                 .build();
 
+
         Member savedMember = memberRepository.save(member);
 
-        // 약관 동의 생성
+
+// 약관 동의 생성
         Agreement agreement = Agreement.builder()
                 .member(savedMember)
                 .termsOfServiceAgree(request.getTermsOfServiceAgree())
                 .privacyPolicyAgree(request.getPrivacyPolicyAgree())
-                .marketingAgree(request.getMarketingAgree())
-                .build();
-
-        agreementRepository.save(agreement);
-
-        // 알림 설정 생성
-        NotificationSetting notificationSetting = NotificationSetting.builder()
-                .member(savedMember)
                 .boardNotificationAgree(request.getBoardNotificationAgree())
                 .weatherAlertAgree(request.getWeatherAlertAgree())
                 .build();
+        agreementRepository.save(agreement);
 
-        notificationSettingRepository.save(notificationSetting);
+
+
 
         log.info("회원가입 성공: {}", savedMember.getEmail());
         return savedMember.getId();
@@ -196,8 +194,7 @@ public class MemberService implements UserDetailsService {
         Optional.ofNullable(request.getPrivacyPolicyAgree())
                 .ifPresent(agreement::setPrivacyPolicyAgree);
 
-        Optional.ofNullable(request.getMarketingAgree())
-                .ifPresent(agreement::setMarketingAgree);
+
 
         agreementRepository.save(agreement);
 
@@ -245,7 +242,6 @@ public class MemberService implements UserDetailsService {
                 .updatedAt(member.getUpdatedAt())
                 .termsOfServiceAgree(agreement != null ? agreement.getTermsOfServiceAgree() : null)
                 .privacyPolicyAgree(agreement != null ? agreement.getPrivacyPolicyAgree() : null)
-                .marketingAgree(agreement != null ? agreement.getMarketingAgree() : null)
                 .boardNotificationAgree(notificationSetting != null ? notificationSetting.getBoardNotificationAgree() : null)
                 .weatherAlertAgree(notificationSetting != null ? notificationSetting.getWeatherAlertAgree() : null)
                 .build();

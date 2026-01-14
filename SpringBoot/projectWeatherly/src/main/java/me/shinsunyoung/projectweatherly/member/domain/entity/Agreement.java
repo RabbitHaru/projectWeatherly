@@ -29,8 +29,11 @@ public class Agreement {
     @Column(name = "privacy_policy_agree")
     private Boolean privacyPolicyAgree = false;
 
-    @Column(name = "marketing_agree")
-    private Boolean marketingAgree = false;
+    @Column(name = "board_notification_agree")
+    private Boolean boardNotificationAgree = false;
+
+    @Column(name = "weather_alert_agree")
+    private Boolean weatherAlertAgree = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

@@ -1,4 +1,4 @@
-package me.shinsunyoung.projectweatherly.member.service.dto;
+package me.shinsunyoung.projectweatherly.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
