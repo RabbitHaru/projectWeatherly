@@ -20,16 +20,44 @@ public class ApiConfig {
     @Value("${weatherly.api.kakao.url}")
     private String kakaoApiUrl;
 
+    @Value("${weatherly.api.ipinfo.url}")
+    private String ipInfoUrl;
+
     @Value("${api.kakao.key}")
     private String kakaoApiKey;
+
+    @Value("${api.kma.key}")
+    private String kmaApiKey;
 
     @Bean
     public RestTemplate restTemplate() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(5000); // 5초
-        factory.setReadTimeout(10000);   // 10초
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(10000);
         return new RestTemplate(factory);
     }
 
-    // WebClient 빈들은 제거하거나 필요시만 유지
+    public String getKmaApiKey() {
+        return kmaApiKey;
+    }
+
+    public String getKakaoApiKey() {
+        return kakaoApiKey;
+    }
+
+    public String getKmaApiUrl() {
+        return kmaApiUrl;
+    }
+
+    public String getAirKoreaApiUrl() {
+        return airKoreaApiUrl;
+    }
+
+    public String getKakaoApiUrl() {
+        return kakaoApiUrl;
+    }
+
+    public String getIpInfoUrl() {
+        return ipInfoUrl;
+    }
 }

@@ -157,53 +157,79 @@
             </div>
         </section>
 
-        <!-- 예보 탭 메뉴 -->
+        <!-- 예보 탭 메뉴 (가로 스크롤 카드 형식) -->
         <section class="forecast-section">
             <div class="forecast-tabs">
                 <button class="tab-btn active" data-tab="hourly">
-                    <i class="fas fa-clock"></i> 오늘 시간별
+                    <i class="fas fa-clock"></i> 시간별
                 </button>
                 <button class="tab-btn" data-tab="tomorrow">
-                    <i class="fas fa-sun"></i> 내일 예보
+                    <i class="fas fa-sun"></i> 내일
                 </button>
                 <button class="tab-btn" data-tab="weekly">
-                    <i class="fas fa-calendar-week"></i> 이번 주
+                    <i class="fas fa-calendar-week"></i> 이번주
                 </button>
                 <button class="tab-btn" data-tab="air-quality">
-                    <i class="fas fa-wind"></i> 미세먼지 예보
+                    <i class="fas fa-wind"></i> 미세먼지
                 </button>
             </div>
 
             <!-- 시간별 예보 -->
             <div class="tab-content active" id="tab-hourly">
-                <div class="hourly-forecast-container" id="hourly-forecast">
-                    <!-- JavaScript로 동적 생성 -->
+                <div class="horizontal-forecast-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-clock"></i> 오늘 시간별 예보</h4>
+                        <span class="card-subtitle">24시간 예측</span>
+                    </div>
+                    <div class="horizontal-scroll-container">
+                        <div class="hourly-forecast-items" id="hourly-forecast">
+                            <!-- JavaScript로 동적 생성 -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- 내일 예보 -->
             <div class="tab-content" id="tab-tomorrow">
-                <div class="weekly-forecast-container" id="tomorrow-forecast">
-                    <!-- JavaScript로 동적 생성 -->
+                <div class="horizontal-forecast-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-sun"></i> 내일 예보</h4>
+                        <span class="card-subtitle">24시간 시간별</span>
+                    </div>
+                    <div class="horizontal-scroll-container">
+                        <div class="tomorrow-forecast-items" id="tomorrow-forecast">
+                            <!-- JavaScript로 동적 생성 -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- 주간 예보 -->
             <div class="tab-content" id="tab-weekly">
-                <div class="weekly-forecast-container" id="weekly-forecast">
-                    <!-- JavaScript로 동적 생성 -->
+                <div class="horizontal-forecast-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-calendar-week"></i> 이번 주 예보</h4>
+                        <span class="card-subtitle">7일간 일별</span>
+                    </div>
+                    <div class="horizontal-scroll-container">
+                        <div class="weekly-forecast-items" id="weekly-forecast">
+                            <!-- JavaScript로 동적 생성 -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- 미세먼지 예보 -->
             <div class="tab-content" id="tab-air-quality">
-                <div class="air-quality-summary">
-                    <div class="aqi-header">
-                        <h3><i class="fas fa-wind"></i> 미세먼지 예보</h3>
-                        <div class="aqi-badge" id="aqi-forecast-overall">--</div>
+                <div class="horizontal-forecast-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-wind"></i> 미세먼지 예보</h4>
+                        <span class="card-subtitle">주요 지역별</span>
                     </div>
-                    <div class="aqi-details" id="aqi-forecast-details">
-                        <!-- JavaScript로 동적 생성 -->
+                    <div class="horizontal-scroll-container">
+                        <div class="aqi-forecast-items" id="aqi-forecast-details">
+                            <!-- JavaScript로 동적 생성 -->
+                        </div>
                     </div>
                 </div>
             </div>

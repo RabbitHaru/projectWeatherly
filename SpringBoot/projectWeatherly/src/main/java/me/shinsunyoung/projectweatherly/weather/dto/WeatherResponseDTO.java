@@ -22,10 +22,13 @@ public class WeatherResponseDTO {
     // 현재 날씨
     private CurrentWeather current;
 
-    // 시간별 예보
+    // 오늘 시간별 예보 (1시간 간격)
     private List<HourlyForecast> hourly;
 
-    // 일별 예보
+    // 내일 시간별 예보 (1시간 간격)
+    private List<HourlyForecast> tomorrowHourly;
+
+    // 주간 예보 (오전/오후 구분)
     private List<DailyForecast> daily;
 
     // 요약 정보
@@ -52,12 +55,13 @@ public class WeatherResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class HourlyForecast {
-        private String time;
+        private String time;                    // "오전 8시", "오후 2시"
         private Double temperature;
         private String weatherCondition;
         private String weatherIcon;
         private Double precipitationProbability;
         private Double humidity;
+        private Double windSpeed;
     }
 
     @Data
@@ -65,14 +69,16 @@ public class WeatherResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DailyForecast {
-        private String date;
-        private String dayOfWeek;
-        private Double maxTemp;
-        private Double minTemp;
-        private String dayWeather;
-        private String nightWeather;
-        private String dayIcon;
-        private String nightIcon;
+        private String date;                    // "MM/dd"
+        private String dayOfWeek;               // "월", "화"
+        private Double maxTemp;                 // 최고기온
+        private Double minTemp;                 // 최저기온
+        private Double amTemp;                  // 오전 기온
+        private Double pmTemp;                  // 오후 기온
+        private String dayWeather;              // 오후 날씨
+        private String nightWeather;            // 오전 날씨
+        private String dayIcon;                 // 오후 아이콘
+        private String nightIcon;               // 오전 아이콘
         private Double precipitationProbability;
     }
 
@@ -81,8 +87,8 @@ public class WeatherResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class WeatherSummary {
-        private String ultraShortSummary;   // 초단기예보 요약
-        private String shortSummary;        // 단기예보 요약
-        private String midSummary;          // 중기예보 요약
+        private String ultraShortSummary;       // 오늘 날씨 추이
+        private String shortSummary;            // 내일 예보
+        private String midSummary;              // 이번 주 예보
     }
 }

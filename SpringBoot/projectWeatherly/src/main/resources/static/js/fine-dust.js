@@ -260,12 +260,7 @@ async function loadFineDustData() {
 async function loadAirQualityDataByGPS(latitude, longitude) {
     try {
         console.log('GPS 기반 대기질 데이터 로드:', latitude, longitude);
-        const response = await fetch(`${API_BASE_URL}/api/air-quality/gps?latitude=${latitude}&longitude=${longitude}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        const response = await fetch(`${API_BASE_URL}/api/air-quality/gps?latitude=${latitude}&longitude=${longitude}`);
         const data = await response.json();
 
         if (data.success) {
@@ -277,6 +272,7 @@ async function loadAirQualityDataByGPS(latitude, longitude) {
     } catch (error) {
         console.error('GPS 대기질 데이터 로드 실패:', error);
         showNotification('위치 기반 대기질 정보를 불러오는데 실패했습니다.', 'error');
+        loadFineDustData(); // 실패 시 기본 데이터 로드
     }
 }
 

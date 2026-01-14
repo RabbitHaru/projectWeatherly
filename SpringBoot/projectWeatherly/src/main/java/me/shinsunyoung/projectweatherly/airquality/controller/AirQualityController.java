@@ -72,4 +72,5 @@ public class AirQualityController {
         AirQualityResponseDTO airQuality = airQualityService.getAirQuality(requestDto);
         return ApiResponse.success(airQuality);
     }
+
 }

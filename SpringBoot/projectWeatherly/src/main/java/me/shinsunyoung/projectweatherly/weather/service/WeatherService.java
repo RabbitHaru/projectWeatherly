@@ -42,18 +42,13 @@ public class WeatherService {
 
     public WeatherResponseDTO getWeatherByRegionCode(String regionCode) {
         try {
-            LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-            WeatherResponseDTO dto = weatherApiService.getShortTermForecast(regionCode);
-            WeatherResponseDTO dto2 = weatherApiService.getUltraShortForecast(regionCode,now.format(formatter),"0600");
-            dto.setCurrent(dto2.getCurrent());
-            dto.setHourly(dto2.getHourly());
-            dto.getSummary().setUltraShortSummary(dto2.getSummary().getUltraShortSummary());
-            return dto;
+            // 모든 데이터를 한 번에 가져오기
+            WeatherResponseDTO weatherData = weatherApiService.getAllWeatherData(regionCode);
+
+            return weatherData;
+
         } catch (Exception e) {
             log.error("날씨 정보 조회 실패: {}", e.getMessage());
-
-            // 에러 시 더미 데이터 반환
             return createFallbackWeatherData(regionCode);
         }
     }
