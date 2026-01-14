@@ -9,4 +9,5 @@ public class WeatherRequestDTO {
     private Double latitude;        // 위도 (GPS용)
     private Double longitude;       // 경도 (GPS용)
     private String forecastType;    // 예보 타입 (current, hourly, daily)
+    private boolean liteMode = false; // 간략 모드 (필수 데이터만)
 }

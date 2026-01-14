@@ -8,9 +8,11 @@ import me.shinsunyoung.projectweatherly.common.service.LocationService;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDTO;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDTO;
 import me.shinsunyoung.projectweatherly.weather.service.WeatherService;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/weather")
@@ -21,24 +23,39 @@ public class WeatherController {
     private final LocationService locationService;
 
     @GetMapping("/current")
-    public ApiResponse<WeatherResponseDTO> getCurrentWeather(HttpServletRequest request) {
-        WeatherResponseDTO weather = weatherService.getWeatherByIp(request);
-        return ApiResponse.success(weather);
+    public CompletableFuture<ApiResponse<WeatherResponseDTO>> getCurrentWeather(HttpServletRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            WeatherResponseDTO weather = weatherService.getWeatherByIp(request);
+            return ApiResponse.success(weather);
+        });
     }
 
     @PostMapping("/gps")
-    public ApiResponse<WeatherResponseDTO> getWeatherByGps(
+    public CompletableFuture<ApiResponse<WeatherResponseDTO>> getWeatherByGps(
             @RequestParam Double latitude,
             @RequestParam Double longitude) {
-        WeatherResponseDTO weather = weatherService.getWeatherByGps(latitude, longitude);
-        return ApiResponse.success("GPS 위치 기반 날씨 정보", weather);
+        return CompletableFuture.supplyAsync(() -> {
+            WeatherResponseDTO weather = weatherService.getWeatherByGps(latitude, longitude);
+            return ApiResponse.success("GPS 위치 기반 날씨 정보", weather);
+        });
     }
 
     @GetMapping("/region/{regionCode}")
-    public ApiResponse<WeatherResponseDTO> getWeatherByRegion(
+    public CompletableFuture<ApiResponse<WeatherResponseDTO>> getWeatherByRegion(
             @PathVariable String regionCode) {
-        WeatherResponseDTO weather = weatherService.getWeatherByRegionCode(regionCode);
-        return ApiResponse.success(weather);
+        return CompletableFuture.supplyAsync(() -> {
+            WeatherResponseDTO weather = weatherService.getWeatherByRegionCode(regionCode);
+            return ApiResponse.success(weather);
+        });
+    }
+
+    @GetMapping("/region/{regionCode}/lite")
+    public CompletableFuture<ApiResponse<WeatherResponseDTO>> getWeatherByRegionLite(
+            @PathVariable String regionCode) {
+        return CompletableFuture.supplyAsync(() -> {
+            WeatherResponseDTO weather = weatherService.getWeatherByRegionCodeLite(regionCode);
+            return ApiResponse.success(weather);
+        });
     }
 
     @PostMapping("/sync-location")
@@ -59,19 +76,29 @@ public class WeatherController {
     }
 
     @PostMapping("/forecast")
-    public ApiResponse<WeatherResponseDTO> getWeatherForecast(
+    public CompletableFuture<ApiResponse<WeatherResponseDTO>> getWeatherForecast(
             @RequestBody WeatherRequestDTO requestDto) {
-        WeatherResponseDTO weather = weatherService.getWeather(requestDto);
-        return ApiResponse.success(weather);
+        return CompletableFuture.supplyAsync(() -> {
+            WeatherResponseDTO weather = weatherService.getWeather(requestDto);
+            return ApiResponse.success(weather);
+        });
     }
 
     @GetMapping("/compare")
-    public ApiResponse<List<WeatherResponseDTO>> compareWeather(
+    public CompletableFuture<ApiResponse<List<WeatherResponseDTO>>> compareWeather(
             @RequestParam List<String> regionCodes) {
-        List<WeatherResponseDTO> results = new java.util.ArrayList<>();
-        for (String regionCode : regionCodes) {
-            results.add(weatherService.getWeatherByRegionCode(regionCode));
-        }
-        return ApiResponse.success(results);
+        return CompletableFuture.supplyAsync(() -> {
+            List<WeatherResponseDTO> results = weatherService.compareWeather(regionCodes);
+            return ApiResponse.success(results);
+        });
+    }
+
+    @GetMapping("/compare/lite")
+    public CompletableFuture<ApiResponse<List<WeatherResponseDTO>>> compareWeatherLite(
+            @RequestParam List<String> regionCodes) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<WeatherResponseDTO> results = weatherService.compareWeatherLite(regionCodes);
+            return ApiResponse.success(results);
+        });
     }
 }

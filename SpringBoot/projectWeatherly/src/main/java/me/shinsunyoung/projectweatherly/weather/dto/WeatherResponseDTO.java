@@ -1,5 +1,6 @@
 package me.shinsunyoung.projectweatherly.weather.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class WeatherResponseDTO {
 
     // 기본 정보
@@ -34,10 +36,22 @@ public class WeatherResponseDTO {
     // 요약 정보
     private WeatherSummary summary;
 
+    // 간략 모드용
+    public static WeatherResponseDTO createLiteVersion(WeatherResponseDTO full) {
+        return WeatherResponseDTO.builder()
+                .regionName(full.getRegionName())
+                .regionCode(full.getRegionCode())
+                .currentTime(full.getCurrentTime())
+                .current(full.getCurrent())
+                .summary(full.getSummary())
+                .build();
+    }
+
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class CurrentWeather {
         private Double temperature;
         private Double feelsLike;
@@ -54,6 +68,7 @@ public class WeatherResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class HourlyForecast {
         private String time;                    // "오전 8시", "오후 2시"
         private Double temperature;
@@ -68,6 +83,7 @@ public class WeatherResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class DailyForecast {
         private String date;                    // "MM/dd"
         private String dayOfWeek;               // "월", "화"
@@ -86,6 +102,7 @@ public class WeatherResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class WeatherSummary {
         private String ultraShortSummary;       // 오늘 날씨 추이
         private String shortSummary;            // 내일 예보
