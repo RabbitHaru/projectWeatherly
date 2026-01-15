@@ -1,8 +1,4 @@
-.secret.properties
-.application.properties
-.gitignore
 
-<<<<<<< HEAD
 # 설정 파일
 config/secret.properties
 config/*secret*
