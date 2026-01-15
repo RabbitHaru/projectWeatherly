@@ -13,68 +13,8 @@
           rel="stylesheet">
 </head>
 <body>
-<!-- 헤더 영역 -->
-<header class="main-header">
-    <div class="header-container">
-        <!-- 왼쪽: 로고 -->
-        <div class="header-left">
-            <a href="/" class="logo">
-                <i class="fas fa-cloud-sun logo-icon"></i>
-                <span class="logo-text">Weatherly</span>
-            </a>
-        </div>
-
-        <!-- 가운데: 메인 메뉴 -->
-        <nav class="header-center">
-            <ul class="main-menu">
-                <li><a href="/" class="menu-item"><i class="fas fa-home"></i> 홈</a></li>
-                <li><a href="/fine-dust" class="menu-item"><i class="fas fa-wind"></i> 미세먼지</a></li>
-                <li><a href="/outfit" class="menu-item active"><i class="fas fa-tshirt"></i> 옷차림</a></li>
-                <li><a href="/community" class="menu-item"><i class="fas fa-comments"></i> 커뮤니티</a></li>
-            </ul>
-        </nav>
-
-        <!-- 오른쪽: 사용자 컨트롤 -->
-        <div class="header-right">
-            <!-- 인사 메시지 -->
-            <div class="user-greeting">
-                <span class="greeting-text">안녕하세요, <strong>홍길동</strong>님!</span>
-            </div>
-
-            <!-- 컨트롤 버튼들 -->
-            <div class="control-buttons">
-                <button class="control-btn notification-btn" title="알림">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
-                </button>
-
-                <button class="control-btn favorites-btn" title="즐겨찾기">
-                    <i class="fas fa-star"></i>
-                </button>
-
-                <!-- 다크모드 토글 버튼 추가 -->
-                <button class="control-btn darkmode-toggle" id="darkmode-toggle" title="다크모드 전환">
-                    <i class="fas fa-moon"></i>
-                </button>
-
-                <div class="dropdown">
-                    <button class="user-menu-btn">
-                        <i class="fas fa-user-circle"></i>
-                        <span>마이페이지</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="dropdown-content">
-                        <a href="/mypage"><i class="fas fa-user"></i> 프로필</a>
-                        <a href="/settings"><i class="fas fa-cog"></i> 설정</a>
-                        <a href="/favorites"><i class="fas fa-star"></i> 즐겨찾기</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="/logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</header>
+<!-- 헤더 포함 -->
+<div th:replace="layout/header :: header"></div>
 
 <!-- 메인 콘텐츠 영역 -->
 <main class="outfit-main">
@@ -371,15 +311,7 @@
 </main>
 
 <!-- 푸터 -->
-<footer class="main-footer">
-    <div class="footer-container">
-        <div class="footer-content">
-            <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
-            <p class="footer-info">기상청 API를 활용한 실시간 날씨 정보 서비스</p>
-            <p class="project-info">Project by GMR</p>
-        </div>
-    </div>
-</footer>
+<div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
 <script>
     // 다크모드 토글 기능

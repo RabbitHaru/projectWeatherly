@@ -12,7 +12,7 @@
 </head>
 <body>
 <!-- 헤더 -->
-<header  th:replace="fragments/header :: header"></header>
+<header  th:replace="layout/header :: header"></header>
 
 <!-- 메인 컨텐츠 -->
 <main class="signup-container">
@@ -267,15 +267,7 @@
 </main>
 
 <!-- 푸터 -->
-<footer class="main-footer">
-    <div class="footer-container">
-        <div class="footer-content">
-            <p class="copyright">© 2025 Weatherly. All rights reserved.</p>
-            <p class="footer-info">날씨 정보 제공 서비스 및 커뮤니티 플랫폼</p>
-            <p class="project-info">본 프로젝트는 학습용으로 제작된 웹사이트입니다.</p>
-        </div>
-    </div>
-</footer>
+<div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="/js/singup.js"></script>
 <script>

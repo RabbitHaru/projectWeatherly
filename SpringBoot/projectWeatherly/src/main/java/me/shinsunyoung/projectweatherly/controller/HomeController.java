@@ -29,7 +29,11 @@ public class HomeController {
     }
     // 추가: 미세먼지 페이지 매핑
     @GetMapping("/fine-dust")
-    public String fineDust() {
+    public String fineDust(Model model, HttpServletRequest request, @AuthenticationPrincipal UserSecurityDTO user) {
+        model.addAttribute("requestURI", request.getRequestURI());
+        if(user != null && user.getUser().getNickname() != null) {
+            model.addAttribute("nickname", user.getUser().getNickname());
+        }
         return "fine-dust";
     }
 
