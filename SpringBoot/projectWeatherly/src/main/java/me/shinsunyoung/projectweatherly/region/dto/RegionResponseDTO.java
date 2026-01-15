@@ -1,6 +1,5 @@
 package me.shinsunyoung.projectweatherly.region.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import me.shinsunyoung.projectweatherly.region.domain.Region;
