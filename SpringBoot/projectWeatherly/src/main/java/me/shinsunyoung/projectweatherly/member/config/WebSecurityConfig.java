@@ -40,8 +40,6 @@ public class WebSecurityConfig {
     @Bean
     public WebSecurityCustomizer configure(){
         return (web)-> web.ignoring()
-                // h2관련 페이지는 스프링시큐리티가 작동하지 않도록 설정
-//                .requestMatchers(PathRequest.toH2Console())
                 // 정적 파일(html, css, js, 이미지파일 등) 스프링 시큐리티 해제
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                 // 특정 폴더 접근의 스프링 시큐리티 해제

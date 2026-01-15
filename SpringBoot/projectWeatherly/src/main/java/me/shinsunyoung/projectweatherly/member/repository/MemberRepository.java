@@ -38,7 +38,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // ==================== 연관 엔티티 조회 ====================
     @Query("SELECT DISTINCT m FROM Member m " +
             "LEFT JOIN FETCH m.agreement " +
-            "LEFT JOIN FETCH m.notificationSetting " +
             "WHERE m.id = :id")
     Optional<Member> findByIdWithAgreementAndNotification(@Param("id") Long id);
 

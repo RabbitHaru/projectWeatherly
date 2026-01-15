@@ -160,42 +160,5 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse2.success("약관 동의가 수정되었습니다.", response));
     }
 
-    @PutMapping("/notifications")
-    @Operation(summary = "알림 설정 수정",
-            description = "게시판 및 기상특보 알림 설정을 수정합니다.")
-    public ResponseEntity<ApiResponse2<MyPageResponse>> updateNotifications(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody UpdateNotificationRequest request) {
 
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse2.error("로그인이 필요합니다."));
-        }
-
-        String email = userDetails.getUsername();
-        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
-                memberService.getMemberByEmail(email);
-        MyPageResponse response = memberService.updateNotificationForMyPage(
-                memberResponse.getMemberId(), request);
-
-        return ResponseEntity.ok(ApiResponse2.success("알림 설정이 수정되었습니다.", response));
-    }
-
-    @DeleteMapping("/deactivate")
-    @Operation(summary = "회원 탈퇴", description = "현재 로그인한 회원을 탈퇴 처리합니다.")
-    public ResponseEntity<ApiResponse2<Void>> deactivateMember(
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse2.error("로그인이 필요합니다."));
-        }
-
-        String email = userDetails.getUsername();
-        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
-                memberService.getMemberByEmail(email);
-        memberService.deactivateMember(memberResponse.getMemberId());
-
-        return ResponseEntity.ok(ApiResponse2.success("회원 탈퇴가 완료되었습니다."));
-    }
 }

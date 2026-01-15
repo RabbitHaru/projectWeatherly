@@ -56,7 +56,7 @@ public class Member {
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Agreement agreement;
-    
+
 
     @PrePersist
     protected void onCreate() {

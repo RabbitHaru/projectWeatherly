@@ -6,7 +6,7 @@ import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Agreement;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
-import me.shinsunyoung.projectweatherly.member.domain.entity.NotificationSetting;
+
 import me.shinsunyoung.projectweatherly.member.dto.request.*;
 import me.shinsunyoung.projectweatherly.member.dto.response.LoginResponse;
 import me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse;
@@ -14,8 +14,8 @@ import me.shinsunyoung.projectweatherly.member.dto.response.MyPageResponse;
 import me.shinsunyoung.projectweatherly.member.exception.MemberException;
 import me.shinsunyoung.projectweatherly.member.repository.AgreementRepository;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
-import me.shinsunyoung.projectweatherly.member.repository.NotificationSettingRepository;
-import me.shinsunyoung.projectweatherly.member.util.FileNameUtil;
+
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -34,7 +34,7 @@ public class MemberService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
     private final AgreementRepository agreementRepository;
-    private final NotificationSettingRepository notificationSettingRepository;
+
     private final PasswordEncoder passwordEncoder;
 
     // ==================== UserDetailsService 구현 ====================
@@ -201,21 +201,7 @@ public class MemberService implements UserDetailsService {
         return getMemberById(memberId);
     }
 
-    @Transactional
-    public MemberResponse updateNotification(Long memberId, UpdateNotificationRequest request) {
-        NotificationSetting setting = notificationSettingRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new MemberException("알림 설정을 찾을 수 없습니다."));
 
-        Optional.ofNullable(request.getBoardNotificationAgree())
-                .ifPresent(setting::setBoardNotificationAgree);
-
-        Optional.ofNullable(request.getWeatherAlertAgree())
-                .ifPresent(setting::setWeatherAlertAgree);
-
-        notificationSettingRepository.save(setting);
-
-        return getMemberById(memberId);
-    }
 
     @Transactional
     public void deactivateMember(Long memberId) {
@@ -228,7 +214,6 @@ public class MemberService implements UserDetailsService {
 
     private MemberResponse convertToResponse(Member member) {
         Agreement agreement = member.getAgreement();
-        NotificationSetting notificationSetting = member.getNotificationSetting();
 
         return MemberResponse.builder()
                 .memberId(member.getId())
@@ -242,8 +227,7 @@ public class MemberService implements UserDetailsService {
                 .updatedAt(member.getUpdatedAt())
                 .termsOfServiceAgree(agreement != null ? agreement.getTermsOfServiceAgree() : null)
                 .privacyPolicyAgree(agreement != null ? agreement.getPrivacyPolicyAgree() : null)
-                .boardNotificationAgree(notificationSetting != null ? notificationSetting.getBoardNotificationAgree() : null)
-                .weatherAlertAgree(notificationSetting != null ? notificationSetting.getWeatherAlertAgree() : null)
+
                 .build();
     }
 
@@ -283,9 +267,5 @@ public class MemberService implements UserDetailsService {
         return getMyPageInfo(memberId);
     }
 
-    @Transactional
-    public MyPageResponse updateNotificationForMyPage(Long memberId, UpdateNotificationRequest request) {
-        updateNotification(memberId, request);
-        return getMyPageInfo(memberId);
-    }
+
 }
