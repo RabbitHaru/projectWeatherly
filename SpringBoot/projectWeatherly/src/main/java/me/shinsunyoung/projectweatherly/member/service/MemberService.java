@@ -6,7 +6,7 @@ import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Agreement;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
-import me.shinsunyoung.projectweatherly.member.domain.entity.NotificationSetting;
+
 import me.shinsunyoung.projectweatherly.member.dto.request.*;
 import me.shinsunyoung.projectweatherly.member.dto.response.LoginResponse;
 import me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse;
@@ -14,7 +14,8 @@ import me.shinsunyoung.projectweatherly.member.dto.response.MyPageResponse;
 import me.shinsunyoung.projectweatherly.member.exception.MemberException;
 import me.shinsunyoung.projectweatherly.member.repository.AgreementRepository;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
-import me.shinsunyoung.projectweatherly.member.repository.NotificationSettingRepository;
+
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -32,7 +34,7 @@ public class MemberService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
     private final AgreementRepository agreementRepository;
-    private final NotificationSettingRepository notificationSettingRepository;
+
     private final PasswordEncoder passwordEncoder;
 
     // ==================== UserDetailsService 구현 ====================
@@ -77,7 +79,8 @@ public class MemberService implements UserDetailsService {
     // ==================== 기존 메서드들 (수정 없음) ====================
 
     @Transactional
-    public Long signup(SignupRequest request) {
+    public Long signup(SignupRequest request, String profileImg) {
+
         // 이메일 중복 체크
         if (memberRepository.existsByEmail(request.getEmail())) {
             throw new MemberException("이미 사용 중인 이메일입니다.");
@@ -87,38 +90,33 @@ public class MemberService implements UserDetailsService {
         if (!request.getTermsOfServiceAgree() || !request.getPrivacyPolicyAgree()) {
             throw new MemberException("필수 약관에 동의해주세요.");
         }
-
         // 회원 생성
         Member member = Member.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
-                .profileImage(request.getProfileImage())
+                .profileImage(profileImg)
                 .role(MemberRole.USER)
                 .authProvider(AuthProvider.local)
                 .isActive(true)
                 .build();
 
+
         Member savedMember = memberRepository.save(member);
 
-        // 약관 동의 생성
+
+// 약관 동의 생성
         Agreement agreement = Agreement.builder()
                 .member(savedMember)
                 .termsOfServiceAgree(request.getTermsOfServiceAgree())
                 .privacyPolicyAgree(request.getPrivacyPolicyAgree())
-                .marketingAgree(request.getMarketingAgree())
-                .build();
-
-        agreementRepository.save(agreement);
-
-        // 알림 설정 생성
-        NotificationSetting notificationSetting = NotificationSetting.builder()
-                .member(savedMember)
                 .boardNotificationAgree(request.getBoardNotificationAgree())
                 .weatherAlertAgree(request.getWeatherAlertAgree())
                 .build();
+        agreementRepository.save(agreement);
 
-        notificationSettingRepository.save(notificationSetting);
+
+
 
         log.info("회원가입 성공: {}", savedMember.getEmail());
         return savedMember.getId();
@@ -196,29 +194,14 @@ public class MemberService implements UserDetailsService {
         Optional.ofNullable(request.getPrivacyPolicyAgree())
                 .ifPresent(agreement::setPrivacyPolicyAgree);
 
-        Optional.ofNullable(request.getMarketingAgree())
-                .ifPresent(agreement::setMarketingAgree);
+
 
         agreementRepository.save(agreement);
 
         return getMemberById(memberId);
     }
 
-    @Transactional
-    public MemberResponse updateNotification(Long memberId, UpdateNotificationRequest request) {
-        NotificationSetting setting = notificationSettingRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new MemberException("알림 설정을 찾을 수 없습니다."));
 
-        Optional.ofNullable(request.getBoardNotificationAgree())
-                .ifPresent(setting::setBoardNotificationAgree);
-
-        Optional.ofNullable(request.getWeatherAlertAgree())
-                .ifPresent(setting::setWeatherAlertAgree);
-
-        notificationSettingRepository.save(setting);
-
-        return getMemberById(memberId);
-    }
 
     @Transactional
     public void deactivateMember(Long memberId) {
@@ -231,7 +214,6 @@ public class MemberService implements UserDetailsService {
 
     private MemberResponse convertToResponse(Member member) {
         Agreement agreement = member.getAgreement();
-        NotificationSetting notificationSetting = member.getNotificationSetting();
 
         return MemberResponse.builder()
                 .memberId(member.getId())
@@ -245,9 +227,7 @@ public class MemberService implements UserDetailsService {
                 .updatedAt(member.getUpdatedAt())
                 .termsOfServiceAgree(agreement != null ? agreement.getTermsOfServiceAgree() : null)
                 .privacyPolicyAgree(agreement != null ? agreement.getPrivacyPolicyAgree() : null)
-                .marketingAgree(agreement != null ? agreement.getMarketingAgree() : null)
-                .boardNotificationAgree(notificationSetting != null ? notificationSetting.getBoardNotificationAgree() : null)
-                .weatherAlertAgree(notificationSetting != null ? notificationSetting.getWeatherAlertAgree() : null)
+
                 .build();
     }
 
@@ -287,9 +267,5 @@ public class MemberService implements UserDetailsService {
         return getMyPageInfo(memberId);
     }
 
-    @Transactional
-    public MyPageResponse updateNotificationForMyPage(Long memberId, UpdateNotificationRequest request) {
-        updateNotification(memberId, request);
-        return getMyPageInfo(memberId);
-    }
+
 }

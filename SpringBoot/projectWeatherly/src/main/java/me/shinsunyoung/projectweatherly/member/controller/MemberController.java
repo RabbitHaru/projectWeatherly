@@ -286,22 +286,6 @@ public class MemberController {
         }
     }
 
-    @PutMapping("/me/notification")
-    @Operation(summary = "알림 설정 수정",
-            description = "현재 사용자의 알림 설정을 수정합니다.")
-    public ResponseEntity<ApiResponse2<MemberResponse>> updateCurrentNotification(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody UpdateNotificationRequest request) {
-
-        try {
-            Long memberId = getCurrentMemberId(userDetails);
-            MemberResponse memberResponse = memberService.updateNotification(memberId, request);
-            return ResponseEntity.ok(ApiResponse2.success("알림 설정이 수정되었습니다.", memberResponse));
-        } catch (me.shinsunyoung.projectweatherly.member.exception.MemberException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse2.badRequest(e.getMessage()));
-        }
-    }
 
     // ==================== 마이페이지 기능 ====================
 

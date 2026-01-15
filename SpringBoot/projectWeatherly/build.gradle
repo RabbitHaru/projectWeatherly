@@ -23,17 +23,12 @@ configurations {
 repositories {
     mavenCentral()
 }
-// QueryDSL 설정을 위한 변수 - 변수명 통일
-def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
 
-sourceSets {
-    main.java.srcDirs += [querydslDir]
-}
 
 dependencies {
     // oauth2(oauth login) maando add
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    // Spring Boot Starters
+    // 필수 Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -43,20 +38,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    // Database
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-
-
-    //    runtimeOnly 'mysql:mysql-connector-java' // 또는 실제 DB 사용시
-    // runtimeOnly 'org.postgresql:postgresql' // PostgreSQL 사용시
-    // 또는 MariaDB 사용 시
-    // runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
-
-
-    // MariaDB 드라이버
-    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
-
-
-    // 타임리프 레이아웃 및 확장
+    // Thymeleaf
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
@@ -68,10 +53,10 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // HTTP 클라이언트
-    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    // implementation 'org.apache.httpcomponents:httpclient:4.5.13'
 
     // 캐시
-    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.1'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
 
     // 파일 업로드
     implementation 'commons-io:commons-io:2.11.0'
@@ -89,21 +74,9 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    // Lombok + add (maando)
-    testCompileOnly 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
-    // QueryDSL 의존성 추가 (필수)
-    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
-    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
-    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
-    // Swagger(maando)add
-    implementation 'io.springfox:springfox-boot-starter:3.0.0'
-    implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+
     // 개발 도구
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    // 이메일
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -119,15 +92,12 @@ sourceSets {
     main.java.srcDirs += [queryDir]
 }
 tasks.withType(JavaCompiler){
-    // options.getGeneratedSourceOutputDirectory().set(file(queryDir))
+    //options.getGeneratedSourceOutputDirectory().set(file(queryDir))
     options.generatedSourceOutputDirectory = file(querydslDir)
     // Java 17 호환성을 위한 설정
     options.encoding = 'UTF-8'
     options.compilerArgs << '-parameters'
 }
-clean {
+clean{
     delete file(queryDir)
-}
-tasks.named('test') {
-    useJUnitPlatform()
 }

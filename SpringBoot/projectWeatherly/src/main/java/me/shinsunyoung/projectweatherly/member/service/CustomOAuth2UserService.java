@@ -1,10 +1,11 @@
-package me.shinsunyoung.projectweatherly.member.service.dto;
+package me.shinsunyoung.projectweatherly.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
+import me.shinsunyoung.projectweatherly.member.dto.UserSecurityDTO;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -28,7 +29,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     @Transactional
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+    public UserSecurityDTO loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
@@ -49,7 +50,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         throw new OAuth2AuthenticationException("지원하지 않는 OAuth2 제공자입니다: " + registrationId);
     }
 
-    private OAuth2User processOAuthUser(Map<String, Object> attributes, AuthProvider provider) {
+    private UserSecurityDTO processOAuthUser(Map<String, Object> attributes, AuthProvider provider) {
         String providerId;
         String email = null;
         String nickname = null;
@@ -120,17 +121,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // JWT 토큰 관련 코드 제거됨
 
         // 프론트엔드로 전달할 추가 정보 저장 (JWT 제외)
-        attributes.put("member_id", member.getId());
-        attributes.put("email", member.getEmail());
-        attributes.put("nickname", member.getNickname());
-        attributes.put("profile_image", member.getProfileImage());
-        attributes.put("auth_provider", provider.name());
+//        attributes.put("member_id", member.getId());
+//        attributes.put("email", member.getEmail());
+//        attributes.put("nickname", member.getNickname());
+//        attributes.put("profile_image", member.getProfileImage());
+//        attributes.put("auth_provider", provider.name());
 
-        return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + member.getRole().name())),
-                attributes,
-                userNameAttributeName
-        );
+        return new UserSecurityDTO(member);
     }
 
     private Member processMember(String providerId, String email, String nickname,

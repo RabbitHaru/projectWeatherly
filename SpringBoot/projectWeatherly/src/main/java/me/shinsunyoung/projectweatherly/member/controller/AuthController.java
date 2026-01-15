@@ -9,9 +9,14 @@ import me.shinsunyoung.projectweatherly.member.dto.request.SignupRequest;
 import me.shinsunyoung.projectweatherly.member.dto.response.ApiResponse2;
 import me.shinsunyoung.projectweatherly.member.dto.response.LoginResponse;
 import me.shinsunyoung.projectweatherly.member.service.MemberService;
+import me.shinsunyoung.projectweatherly.member.util.FileNameUtil;
+import me.shinsunyoung.projectweatherly.member.util.FileUtil;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -20,13 +25,15 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final MemberService memberService;
-
-    @PostMapping("/signup")
+    private final FileUtil fileUtil;
+    @PostMapping(value = "/signup",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "회원가입", description = "새로운 회원을 등록합니다.")
     public ResponseEntity<ApiResponse2<Long>> signup(
-            @Valid @RequestBody SignupRequest request) {
+            @ModelAttribute SignupRequest request) {
+        List<FileNameUtil> fileNames = fileUtil.uploadFile(request.getProfileImage());
+        String profileImg = fileNames != null && !fileNames.isEmpty() ? fileNames.get(0).getNewFileName() : "default.png";
+        Long memberId = memberService.signup(request,profileImg);
 
-        Long memberId = memberService.signup(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse2.success("회원가입이 완료되었습니다.", memberId));
@@ -44,34 +51,5 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse2.success("로그인되었습니다.", response));
     }
 
-    @PostMapping("/logout")
-    @Operation(summary = "로그아웃",
-            description = "로그아웃합니다. 세션을 무효화하고 쿠키를 삭제합니다.")
-    public ResponseEntity<ApiResponse2<Void>> logout() {
-        // Spring Security의 logout()이 처리하므로, 여기서는 성공 메시지만 반환
-        return ResponseEntity.ok(ApiResponse2.success("로그아웃되었습니다."));
-    }
-
-    @GetMapping("/check-email")
-    @Operation(summary = "이메일 중복 체크",
-            description = "이메일이 이미 사용 중인지 확인합니다.")
-    public ResponseEntity<ApiResponse2<Boolean>> checkEmail(
-            @RequestParam String email) {
-
-        boolean exists = memberService.checkEmailExists(email);
-
-        return ResponseEntity.ok(ApiResponse2.success("이메일 중복 체크 완료", exists));
-    }
-
-    @GetMapping("/check-nickname")
-    @Operation(summary = "닉네임 중복 체크",
-            description = "닉네임이 이미 사용 중인지 확인합니다.")
-    public ResponseEntity<ApiResponse2<Boolean>> checkNickname(
-            @RequestParam String nickname) {
-
-        boolean exists = memberService.checkNicknameExists(nickname);
-
-        return ResponseEntity.ok(ApiResponse2.success("닉네임 중복 체크 완료", exists));
-    }
 
 }

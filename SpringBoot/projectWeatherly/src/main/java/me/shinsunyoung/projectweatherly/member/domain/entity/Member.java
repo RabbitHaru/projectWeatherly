@@ -57,8 +57,6 @@ public class Member {
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Agreement agreement;
 
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private NotificationSetting notificationSetting;
 
     @PrePersist
     protected void onCreate() {
