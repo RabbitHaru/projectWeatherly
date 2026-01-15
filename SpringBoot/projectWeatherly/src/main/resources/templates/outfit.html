@@ -27,7 +27,7 @@
         <p class="page-subtitle">현재 날씨와 체감온도를 기반으로 한 간편한 옷차림 결정 도우미</p>
     </section>
 
-    <!-- 현재 날씨 및 추천 -->
+    <!-- 현재 날씨 및 추천 (핵심 영역) -->
     <section class="outfit-current">
         <div class="current-info-card">
             <!-- 위치 및 날씨 정보 -->
@@ -51,7 +51,7 @@
                     </div>
                 </div>
 
-                <!-- 대표 의상 아이콘 -->
+                <!-- 대표 의상 아이콘 (추천 결과) -->
                 <div class="main-outfit-icon">
                     <div class="outfit-icon-wrapper">
                         <i class="fas fa-tshirt"></i>
@@ -63,50 +63,49 @@
             <!-- 옷차림 결정 카드 -->
             <div class="outfit-decision-card">
                 <div class="decision-header">
-                    <h3><i class="fas fa-check-circle"></i> 오늘의 옷차림 결정</h3>
+                    <h3><i class="fas fa-check-circle"></i> 지금 입을 옷 결정</h3>
                     <div class="decision-level">
-                        <span class="level-label">옷차림 레벨:</span>
                         <span class="level-badge level-2">가벼운 겉옷 필요</span>
                     </div>
                 </div>
 
-                <!-- 상세보기 버튼 추가 -->
+                <!-- 상세보기 버튼 -->
                 <div class="header-actions">
                     <a href="/outfit/detail" class="detail-btn">
                         <i class="fas fa-info-circle"></i>
-                        상세보기
+                        상세 기준 보기
                     </a>
                 </div>
 
-                <!-- 간단한 설명 -->
+                <!-- 추천 요약 문구 -->
                 <div class="decision-summary">
-                    <p>현재 체감온도 23°C로, 반팔 티셔츠와 가벼운 겉옷이 적절합니다. 미세먼지가 보통 수준이므로 실외 활동에 큰 지장은 없습니다.</p>
+                    <p>체감온도 23℃로 반팔과 가벼운 겉옷이 적절합니다.</p>
                 </div>
 
-                <!-- 주요 날씨 요인 -->
+                <!-- 날씨 판단 요인 -->
                 <div class="weather-factors">
-                    <div class="factor-item">
+                    <div class="factor-item primary">
                         <div class="factor-icon"><i class="fas fa-thermometer-half"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">체감온도</div>
                             <div class="factor-value">23°C</div>
                         </div>
                     </div>
-                    <div class="factor-item">
+                    <div class="factor-item primary">
                         <div class="factor-icon"><i class="fas fa-wind"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">바람</div>
                             <div class="factor-value">2.5 m/s</div>
                         </div>
                     </div>
-                    <div class="factor-item">
+                    <div class="factor-item secondary">
                         <div class="factor-icon"><i class="fas fa-smog"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">미세먼지</div>
                             <div class="factor-value">보통</div>
                         </div>
                     </div>
-                    <div class="factor-item">
+                    <div class="factor-item secondary">
                         <div class="factor-icon"><i class="fas fa-tint"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">습도</div>
@@ -118,10 +117,73 @@
         </div>
     </section>
 
-    <!-- 4일간 옷차림 추천 -->
+    <!-- 옷차림 레벨 가이드 (설명 영역) -->
+    <section class="level-guide-section">
+        <div class="section-header">
+            <h3><i class="fas fa-layer-group"></i> 추천 로직 시각화</h3>
+            <p class="section-subtitle">옷차림 레벨은 체감온도에 따른 추천 강도를 나타냅니다.</p>
+        </div>
+        <div class="level-guide">
+            <div class="level-items">
+                <div class="level-item">
+                    <div class="level-indicator level-1"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="level-desc">
+                        <strong>레벨 1</strong>
+                        <span>반팔, 민소매</span>
+                    </div>
+                </div>
+                <div class="level-item">
+                    <div class="level-indicator level-2"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="level-desc">
+                        <strong>레벨 2</strong>
+                        <span>반팔 + 겉옷</span>
+                    </div>
+                </div>
+                <div class="level-item">
+                    <div class="level-indicator level-3"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="level-desc">
+                        <strong>레벨 3</strong>
+                        <span>긴팔 + 가디건</span>
+                    </div>
+                </div>
+                <div class="level-item">
+                    <div class="level-indicator level-4"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-vest"></i>
+                    </div>
+                    <div class="level-desc">
+                        <strong>레벨 4</strong>
+                        <span>자켓, 니트</span>
+                    </div>
+                </div>
+                <div class="level-item">
+                    <div class="level-indicator level-5"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="level-desc">
+                        <strong>레벨 5</strong>
+                        <span>코트, 패딩</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4일간 옷차림 추천 (미래 예측 영역) -->
     <section class="outfit-forecast">
         <div class="section-header">
-            <h3><i class="fas fa-calendar-alt"></i> 4일간 옷차림 추천</h3>
+            <h3><i class="fas fa-calendar-alt"></i> 단기 예보 옷차림 경향</h3>
+            <p class="section-subtitle">단기 예보를 기반으로 한 옷차림 경향을 확인해보세요</p>
         </div>
 
         <!-- 날짜별 옷차림 카드 -->
@@ -247,63 +309,6 @@
                     <div class="level-title">옷차림 레벨</div>
                     <div class="level-indicator level-5"></div>
                     <span class="level-text">따뜻한 옷</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 옷차림 레벨 설명 -->
-        <div class="level-guide">
-            <h4>옷차림 레벨 가이드</h4>
-            <div class="level-items">
-                <div class="level-item">
-                    <div class="level-indicator level-1"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
-                    <div class="level-desc">
-                        <strong>레벨 1</strong>
-                        <span>반팔, 민소매</span>
-                    </div>
-                </div>
-                <div class="level-item">
-                    <div class="level-indicator level-2"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
-                    <div class="level-desc">
-                        <strong>레벨 2</strong>
-                        <span>반팔 + 겉옷</span>
-                    </div>
-                </div>
-                <div class="level-item">
-                    <div class="level-indicator level-3"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
-                    <div class="level-desc">
-                        <strong>레벨 3</strong>
-                        <span>긴팔 + 가디건</span>
-                    </div>
-                </div>
-                <div class="level-item">
-                    <div class="level-indicator level-4"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-vest"></i>
-                    </div>
-                    <div class="level-desc">
-                        <strong>레벨 4</strong>
-                        <span>자켓, 니트</span>
-                    </div>
-                </div>
-                <div class="level-item">
-                    <div class="level-indicator level-5"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <div class="level-desc">
-                        <strong>레벨 5</strong>
-                        <span>코트, 패딩</span>
-                    </div>
                 </div>
             </div>
         </div>
