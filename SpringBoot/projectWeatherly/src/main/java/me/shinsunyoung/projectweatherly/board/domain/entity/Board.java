@@ -6,6 +6,8 @@ import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "BOARD")
@@ -32,11 +34,11 @@ public class Board {
     @Column(nullable = false)
     private String content;
 
-    @Column(name = "weather_condition", length = 50)
-    private String weatherCondition;
 
-    @Column(name = "image_url", length = 255)
-    private String imageUrl;
+    // 단일 image_url 대신 다중 이미지 관계
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<BoardImage> images = new ArrayList<>();
 
     @Column(name = "view_count")
     @Builder.Default
@@ -60,6 +62,32 @@ public class Board {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // 이미지 추가 메서드
+    public void addImage(BoardImage image) {
+        images.add(image);
+        image.setBoard(this);
+    }
+
+    // 이미지 제거 메서드
+    public void removeImage(BoardImage image) {
+        images.remove(image);
+        image.setBoard(null);
+    }
+
+    // 모든 이미지 제거 메서드
+    public void clearImages() {
+        images.clear();
+    }
+
+    // 썸네일 URL 가져오기 메서드
+    public String getThumbnailUrl() {
+        return images.stream()
+                .filter(BoardImage::getIsThumbnail)
+                .findFirst()
+                .map(BoardImage::getImageUrl)
+                .orElse(images.isEmpty() ? null : images.get(0).getImageUrl());
+    }
 
     @PrePersist
     protected void onCreate() {

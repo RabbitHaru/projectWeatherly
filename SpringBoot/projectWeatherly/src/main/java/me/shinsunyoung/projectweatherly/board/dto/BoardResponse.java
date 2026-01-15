@@ -1,11 +1,14 @@
-package me.shinsunyoung.projectweatherly.board.domain.dto;
+package me.shinsunyoung.projectweatherly.board.dto;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
 
+
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,7 +21,8 @@ public class BoardResponse {
     private String title;
     private String content;
     private String weatherCondition;
-    private String imageUrl;
+    private String thumbnailUrl; // 대표 이미지 URL
+    private List<BoardImageResponse> images; // 모든 이미지 목록
     private Integer viewCount;
     private Integer likeCount;
     private Boolean isVerified;

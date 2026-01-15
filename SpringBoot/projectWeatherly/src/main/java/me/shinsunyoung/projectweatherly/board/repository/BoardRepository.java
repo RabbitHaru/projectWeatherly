@@ -1,4 +1,4 @@
-package me.shinsunyoung.projectweatherly.board.domain.repository;
+package me.shinsunyoung.projectweatherly.board.repository;
 
 import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
 import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
