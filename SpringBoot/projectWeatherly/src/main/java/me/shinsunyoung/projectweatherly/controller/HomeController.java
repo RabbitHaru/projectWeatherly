@@ -28,4 +28,4 @@ public class HomeController {
     public String community() {
         return "community";
     }
-}
+} 
