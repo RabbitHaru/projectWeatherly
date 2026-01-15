@@ -17,12 +17,6 @@ public class HomeController {
         return "fine-dust";
     }
 
-    // 추가: 옷차림 페이지 매핑
-    @GetMapping("/outfit")
-    public String outfit() {
-        return "outfit";
-    }
-
     // 추가: 커뮤니티 페이지 매핑
     @GetMapping("/community")
     public String community() {

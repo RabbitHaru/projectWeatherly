@@ -19,44 +19,44 @@ public class RegionDataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        if (regionRepository.count() > 0) {
-            return;
-        }
+//        if (regionRepository.count() > 0) {
+//            return;
+//        }
 
-        BufferedReader reader = new BufferedReader(
-                new InputStreamReader(
-                        getClass().getResourceAsStream("/data/legal_dong.txt"),
-                        StandardCharsets.UTF_8
-                )
-        );
-
-        String line;
-        boolean firstLine = true;
-
-        while ((line = reader.readLine()) != null) {
-
-            // 헤더 스킵
-            if (firstLine) {
-                firstLine = false;
-                continue;
-            }
-
-            String[] tokens = line.split("\t");
-            if (tokens.length < 3) continue;
-
-            String code = tokens[0].trim();
-            String name = tokens[1].trim();
-            boolean isActive = tokens[2].trim().equals("존재");
-
-            regionRepository.save(
-                    Region.builder()
-                            .regionCode(code)
-                            .regionName(name)
-                            .active(isActive)
-                            .nx(0)
-                            .ny(0)
-                            .build()
-            );
-        }
+//        BufferedReader reader = new BufferedReader(
+//                new InputStreamReader(
+//                        getClass().getResourceAsStream("/data/legal_dong.txt"),
+//                        StandardCharsets.UTF_8
+//                )
+//        );
+//
+//        String line;
+//        boolean firstLine = true;
+//
+//        while ((line = reader.readLine()) != null) {
+//
+//            // 헤더 스킵
+//            if (firstLine) {
+//                firstLine = false;
+//                continue;
+//            }
+//
+//            String[] tokens = line.split("\t");
+//            if (tokens.length < 3) continue;
+//
+//            String code = tokens[0].trim();
+//            String name = tokens[1].trim();
+//            boolean isActive = tokens[2].trim().equals("존재");
+//
+//            regionRepository.save(
+//                    Region.builder()
+//                            .regionCode(code)
+//                            .regionName(name)
+//                            .active(isActive)
+//                            .nx(0)
+//                            .ny(0)
+//                            .build()
+//            );
+//        }
     }
 }
