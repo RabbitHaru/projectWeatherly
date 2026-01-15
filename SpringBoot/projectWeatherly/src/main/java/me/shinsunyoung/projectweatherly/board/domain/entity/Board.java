@@ -34,7 +34,6 @@ public class Board {
     @Column(nullable = false)
     private String content;
 
-
     // 단일 image_url 대신 다중 이미지 관계
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
