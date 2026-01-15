@@ -3,8 +3,6 @@ package me.shinsunyoung.projectweatherly.weather.controller;
 import com.google.maps.internal.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import me.shinsunyoung.projectweatherly.common.dto.ApiResponse;
-import me.shinsunyoung.projectweatherly.common.dto.LocationDto;
 import me.shinsunyoung.projectweatherly.common.service.LocationService;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDto;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDto;
