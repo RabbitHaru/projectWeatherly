@@ -600,17 +600,45 @@ body.dark-mode .level-indicator {
     background: #4a6278;
 }
 
-.level-1 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 20%, #e9ecef 20%); }
-.level-2 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 40%, #e9ecef 40%); }
-.level-3 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 60%, #e9ecef 60%); }
-.level-4 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 80%, #e9ecef 80%); }
-.level-5 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 100%, #e9ecef 100%); }
+.level-1 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 20%, #e9ecef 20%);
+}
 
-body.dark-mode .level-1 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 20%, #4a6278 20%); }
-body.dark-mode .level-2 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 40%, #4a6278 40%); }
-body.dark-mode .level-3 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 60%, #4a6278 60%); }
-body.dark-mode .level-4 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 80%, #4a6278 80%); }
-body.dark-mode .level-5 { background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 100%, #4a6278 100%); }
+.level-2 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 40%, #e9ecef 40%);
+}
+
+.level-3 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 60%, #e9ecef 60%);
+}
+
+.level-4 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 80%, #e9ecef 80%);
+}
+
+.level-5 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 100%, #e9ecef 100%);
+}
+
+body.dark-mode .level-1 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 20%, #4a6278 20%);
+}
+
+body.dark-mode .level-2 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 40%, #4a6278 40%);
+}
+
+body.dark-mode .level-3 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 60%, #4a6278 60%);
+}
+
+body.dark-mode .level-4 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 80%, #4a6278 80%);
+}
+
+body.dark-mode .level-5 {
+    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 100%, #4a6278 100%);
+}
 
 .level-text {
     font-size: 0.85rem;
@@ -896,4 +924,60 @@ body.dark-mode .level-item {
 .factor-item,
 .level-guide {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 상세 가이드 버튼 */
+.detail-guide-button {
+    margin-top: 30px;
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid var(--light-border);
+}
+
+body.dark-mode .detail-guide-button {
+    border-top-color: var(--dark-border);
+}
+
+.detail-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 25px;
+    background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+    color: white;
+    text-decoration: none;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: var(--shadow-light);
+}
+
+.detail-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-medium);
+    background: linear-gradient(135deg, #29b6f6, #039be5);
+}
+
+body.dark-mode .detail-btn {
+    background: linear-gradient(135deg, #2a3c4a, #1a2a3a);
+}
+
+body.dark-mode .detail-btn:hover {
+    background: linear-gradient(135deg, #1a2a3a, #0a1a2a);
+}
+
+/* 반응형 디자인 추가 */
+@media (max-width: 768px) {
+    .detail-btn {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .detail-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
 }
