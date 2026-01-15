@@ -15,4 +15,11 @@ public class OutfitController {
         logger.info("옷차림 페이지 접속 요청");
         return "outfit"; // templates/outfit.html을 반환
     }
+
+    @GetMapping("/outfit/detail")
+    public String outfitDetailPage() {
+        logger.info("옷차림 상세 페이지 접속 요청");
+        return "outfit-detail";
+    }
+
 }

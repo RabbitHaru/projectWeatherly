@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weatherly - 옷차림 상세 추천</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/outfit-detail.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 영역 -->
+<header class="main-header">
+    <div class="header-container">
+        <!-- 왼쪽: 로고 -->
+        <div class="header-left">
+            <a href="/" class="logo">
+                <i class="fas fa-cloud-sun logo-icon"></i>
+                <span class="logo-text">Weatherly</span>
+            </a>
+        </div>
+
+        <!-- 가운데: 메인 메뉴 -->
+        <nav class="header-center">
+            <ul class="main-menu">
+                <li><a href="/" class="menu-item"><i class="fas fa-home"></i> 홈</a></li>
+                <li><a href="/fine-dust" class="menu-item"><i class="fas fa-wind"></i> 미세먼지</a></li>
+                <li><a href="/outfit" class="menu-item"><i class="fas fa-tshirt"></i> 옷차림</a></li>
+                <li><a href="/community" class="menu-item"><i class="fas fa-comments"></i> 커뮤니티</a></li>
+            </ul>
+        </nav>
+
+        <!-- 오른쪽: 사용자 컨트롤 -->
+        <div class="header-right">
+            <!-- 인사 메시지 -->
+            <div class="user-greeting">
+                <span class="greeting-text">안녕하세요, <strong>홍길동</strong>님!</span>
+            </div>
+
+            <!-- 컨트롤 버튼들 -->
+            <div class="control-buttons">
+                <button class="control-btn notification-btn" title="알림">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+
+                <button class="control-btn favorites-btn" title="즐겨찾기">
+                    <i class="fas fa-star"></i>
+                </button>
+
+                <div class="dropdown">
+                    <button class="user-menu-btn">
+                        <i class="fas fa-user-circle"></i>
+                        <span>마이페이지</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="/mypage"><i class="fas fa-user"></i> 프로필</a>
+                        <a href="/settings"><i class="fas fa-cog"></i> 설정</a>
+                        <a href="/favorites"><i class="fas fa-star"></i> 즐겨찾기</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 메인 콘텐츠 영역 -->
+<main class="outfit-detail-main">
+    <!-- 페이지 헤더 -->
+    <section class="page-header">
+        <div class="page-title">
+            <i class="fas fa-info-circle"></i>
+            옷차림 상세 추천
+        </div>
+        <p class="page-subtitle">오늘의 날씨에 딱 맞는 옷차림을 추천해드려요</p>
+    </section>
+
+    <!-- 섹션 1: 오늘의 추천 코디 -->
+    <section class="todays-outfit-section">
+        <div class="todays-outfit-card">
+            <div class="todays-outfit-header">
+                <div class="todays-outfit-title">
+                    <i class="fas fa-star"></i> 오늘의 추천 코디
+                </div>
+                <span class="outfit-badge">체감온도 23°C 기준</span>
+            </div>
+
+            <div class="outfit-set">
+                <!-- 코디 세트 아이템들 - OUTER, TOP, BOTTOM만 표시 -->
+                <div class="outfit-set-item outer">
+                    <div class="outfit-item-icon">
+                        <i class="fas fa-jacket"></i>
+                    </div>
+                    <div class="outfit-item-content">
+                        <div class="outfit-item-label">OUTER</div>
+                        <div class="outfit-item-name">얇은 가디건</div>
+                    </div>
+                </div>
+
+                <div class="outfit-set-item top">
+                    <div class="outfit-item-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="outfit-item-content">
+                        <div class="outfit-item-label">TOP</div>
+                        <div class="outfit-item-name">반팔 티셔츠</div>
+                    </div>
+                </div>
+
+                <div class="outfit-set-item bottom">
+                    <div class="outfit-item-icon">
+                        <i class="fas fa-jeans"></i>
+                    </div>
+                    <div class="outfit-item-content">
+                        <div class="outfit-item-label">BOTTOM</div>
+                        <div class="outfit-item-name">면바지</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="outfit-description">
+                <p><i class="fas fa-lightbulb"></i> 체감온도 23°C로 낮에는 따뜻하고, 저녁 일교차를 고려해 가벼운 겉옷을 추천합니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 섹션 2: 현재 기준 요약 블럭 -->
+    <section class="summary-section">
+        <div class="summary-card">
+            <div class="summary-header">
+                <div class="summary-header-title">
+                    <i class="fas fa-clipboard-check"></i> 현재 기준 요약
+                </div>
+            </div>
+            <div class="summary-content">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="summary-info">
+                            <div class="summary-label">현재 지역</div>
+                            <div class="summary-value">부산진구</div>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-thermometer-half"></i>
+                        </div>
+                        <div class="summary-info">
+                            <div class="summary-label">체감온도</div>
+                            <div class="summary-value">23°C</div>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="summary-info">
+                            <div class="summary-label">옷차림 레벨</div>
+                            <div class="summary-value">
+                                <span class="level-badge level-2">Level 2</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                        <div class="summary-info">
+                            <div class="summary-label">날씨 조건</div>
+                            <div class="summary-value">맑음, 미세먼지 보통</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-statement">
+                    <p><i class="fas fa-quote-left"></i> 위 추천 코디는 체감온도와 날씨 조건을 종합해서 선정했어요. <i class="fas fa-quote-right"></i></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 섹션 3: 체감온도 구간별 옷차림 가이드 -->
+    <section class="temperature-guide-section">
+        <div class="section-header">
+            <div class="section-header-title">
+                <i class="fas fa-thermometer-three-quarters"></i> 추천 코디의 근거
+            </div>
+            <p class="section-subtitle">체감온도에 따른 옷차림 기준을 확인해보세요. 현재 체감온도 구간은 <strong class="current-range">23~27°C</strong>입니다.</p>
+        </div>
+
+        <div class="temperature-grid">
+            <!-- 28°C 이상 -->
+            <div class="temp-card">
+                <div class="temp-header">
+                    <div class="temp-range">28°C 이상</div>
+                    <div class="temp-label">매우 더움</div>
+                </div>
+                <div class="outfit-categories">
+                    <div class="category-item">
+                        <div class="category-header outer">
+                            <i class="fas fa-jacket"></i>
+                            <div class="category-title">OUTER</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 필요 없음</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header top">
+                            <i class="fas fa-tshirt"></i>
+                            <div class="category-title">TOP</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 민소매</li>
+                            <li><i class="fas fa-check"></i> 반팔</li>
+                            <li><i class="fas fa-check"></i> 얇은 셔츠</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header bottom">
+                            <i class="fas fa-jeans"></i>
+                            <div class="category-title">BOTTOM</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 반바지</li>
+                            <li><i class="fas fa-check"></i> 얇은 면바지</li>
+                            <li><i class="fas fa-check"></i> 린넨 팬츠</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 23~27°C (현재 체감온도 구간) -->
+            <div class="temp-card current">
+                <div class="temp-header">
+                    <div class="temp-range">23~27°C</div>
+                    <div class="temp-label">따뜻함</div>
+                    <div class="current-badge"><i class="fas fa-location-dot"></i> 현재</div>
+                </div>
+                <div class="outfit-categories">
+                    <div class="category-item">
+                        <div class="category-header outer">
+                            <i class="fas fa-jacket"></i>
+                            <div class="category-title">OUTER</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 얇은 가디건</li>
+                            <li><i class="fas fa-check"></i> 바람막이</li>
+                            <li><i class="fas fa-check"></i> 얇은 자켓</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header top">
+                            <i class="fas fa-tshirt"></i>
+                            <div class="category-title">TOP</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 반팔 티셔츠</li>
+                            <li><i class="fas fa-check"></i> 얇은 셔츠</li>
+                            <li><i class="fas fa-check"></i> 린넨 블라우스</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header bottom">
+                            <i class="fas fa-jeans"></i>
+                            <div class="category-title">BOTTOM</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 면바지</li>
+                            <li><i class="fas fa-check"></i> 슬랙스</li>
+                            <li><i class="fas fa-check"></i> 치노 팬츠</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 20~22°C -->
+            <div class="temp-card">
+                <div class="temp-header">
+                    <div class="temp-range">20~22°C</div>
+                    <div class="temp-label">선선함</div>
+                </div>
+                <div class="outfit-categories">
+                    <div class="category-item">
+                        <div class="category-header outer">
+                            <i class="fas fa-jacket"></i>
+                            <div class="category-title">OUTER</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 가디건</li>
+                            <li><i class="fas fa-check"></i> 얇은 자켓</li>
+                            <li><i class="fas fa-check"></i> 후드집업</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header top">
+                            <i class="fas fa-tshirt"></i>
+                            <div class="category-title">TOP</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 긴팔 티셔츠</li>
+                            <li><i class="fas fa-check"></i> 얇은 니트</li>
+                            <li><i class="fas fa-check"></i> 후드티</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header bottom">
+                            <i class="fas fa-jeans"></i>
+                            <div class="category-title">BOTTOM</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 진청바지</li>
+                            <li><i class="fas fa-check"></i> 코튼 팬츠</li>
+                            <li><i class="fas fa-check"></i> 스웨트팬츠</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 17~19°C -->
+            <div class="temp-card">
+                <div class="temp-header">
+                    <div class="temp-range">17~19°C</div>
+                    <div class="temp-label">쌀쌀함</div>
+                </div>
+                <div class="outfit-categories">
+                    <div class="category-item">
+                        <div class="category-header outer">
+                            <i class="fas fa-jacket"></i>
+                            <div class="category-title">OUTER</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 자켓</li>
+                            <li><i class="fas fa-check"></i> 니트 가디건</li>
+                            <li><i class="fas fa-check"></i> 트러커 자켓</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header top">
+                            <i class="fas fa-tshirt"></i>
+                            <div class="category-title">TOP</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 두꺼운 긴팔</li>
+                            <li><i class="fas fa-check"></i> 니트</li>
+                            <li><i class="fas fa-check"></i> 맨투맨</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header bottom">
+                            <i class="fas fa-jeans"></i>
+                            <div class="category-title">BOTTOM</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 청바지</li>
+                            <li><i class="fas fa-check"></i> 코튼 팬츠</li>
+                            <li><i class="fas fa-check"></i> 슬랙스</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 12~16°C -->
+            <div class="temp-card">
+                <div class="temp-header">
+                    <div class="temp-range">12~16°C</div>
+                    <div class="temp-label">추움</div>
+                </div>
+                <div class="outfit-categories">
+                    <div class="category-item">
+                        <div class="category-header outer">
+                            <i class="fas fa-jacket"></i>
+                            <div class="category-title">OUTER</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 코트</li>
+                            <li><i class="fas fa-check"></i> 두꺼운 자켓</li>
+                            <li><i class="fas fa-check"></i> 가죽 자켓</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header top">
+                            <i class="fas fa-tshirt"></i>
+                            <div class="category-title">TOP</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 히트텍 내의</li>
+                            <li><i class="fas fa-check"></i> 두꺼운 니트</li>
+                            <li><i class="fas fa-check"></i> 기모 후드티</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header bottom">
+                            <i class="fas fa-jeans"></i>
+                            <div class="category-title">BOTTOM</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 두꺼운 바지</li>
+                            <li><i class="fas fa-check"></i> 기모 팬츠</li>
+                            <li><i class="fas fa-check"></i> 방한 팬츠</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11°C 이하 -->
+            <div class="temp-card">
+                <div class="temp-header">
+                    <div class="temp-range">11°C 이하</div>
+                    <div class="temp-label">매우 추움</div>
+                </div>
+                <div class="outfit-categories">
+                    <div class="category-item">
+                        <div class="category-header outer">
+                            <i class="fas fa-jacket"></i>
+                            <div class="category-title">OUTER</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 패딩</li>
+                            <li><i class="fas fa-check"></i> 두꺼운 코트</li>
+                            <li><i class="fas fa-check"></i> 롱패딩</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header top">
+                            <i class="fas fa-tshirt"></i>
+                            <div class="category-title">TOP</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 히트텍 + 니트</li>
+                            <li><i class="fas fa-check"></i> 기모 내의</li>
+                            <li><i class="fas fa-check"></i> 울 니트</li>
+                        </ul>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-header bottom">
+                            <i class="fas fa-jeans"></i>
+                            <div class="category-title">BOTTOM</div>
+                        </div>
+                        <ul class="outfit-list">
+                            <li><i class="fas fa-check"></i> 기모 바지</li>
+                            <li><i class="fas fa-check"></i> 방한 팬츠</li>
+                            <li><i class="fas fa-check"></i> 내복</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 섹션 4: 날씨 조건별 추가 고려사항 -->
+    <section class="weather-conditions-section">
+        <div class="section-header">
+            <div class="section-header-title">
+                <i class="fas fa-exclamation-circle"></i> 날씨 조건별 추가 고려사항
+            </div>
+            <p class="section-subtitle">오늘의 날씨 특성에 따라 참고할 만한 사항입니다.</p>
+        </div>
+
+        <div class="conditions-grid">
+            <div class="condition-card">
+                <div class="condition-icon rainy">
+                    <i class="fas fa-cloud-rain"></i>
+                </div>
+                <div class="condition-content">
+                    <div class="condition-title">비 오는 날</div>
+                    <ul>
+                        <li>방수 신발 또는 장화</li>
+                        <li>우산, 우비, 레인코트</li>
+                        <li>어두운 색상의 옷 (젖은 자국 덜 보임)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="condition-card">
+                <div class="condition-icon windy">
+                    <i class="fas fa-wind"></i>
+                </div>
+                <div class="condition-content">
+                    <div class="condition-title">바람 강함</div>
+                    <ul>
+                        <li>바람막이 자켓 필수</li>
+                        <li>모자 (머리 보호용)</li>
+                        <li>두꺼운 옷 한 벌보다 얇은 옷 여러 벌</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="condition-card">
+                <div class="condition-icon dust">
+                    <i class="fas fa-smog"></i>
+                </div>
+                <div class="condition-content">
+                    <div class="condition-title">미세먼지 나쁨</div>
+                    <ul>
+                        <li>마스크 (KF94 이상)</li>
+                        <li>모자 (머리 먼지 방지)</li>
+                        <li>외투는 실내로 들어갈 때 벗기</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="condition-card">
+                <div class="condition-icon humid">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="condition-content">
+                    <div class="condition-title">습도 높음</div>
+                    <ul>
+                        <li>통풍 잘 되는 소재 (면, 린넨)</li>
+                        <li>흡습 속건 기능의 옷</li>
+                        <li>밝은 색상 (햇빛 반사로 더위 덜 느낌)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="condition-card">
+                <div class="condition-icon sunny">
+                    <i class="fas fa-sun"></i>
+                </div>
+                <div class="condition-content">
+                    <div class="condition-title">자외선 강함</div>
+                    <ul>
+                        <li>긴팔 옷 (자외선 차단)</li>
+                        <li>모자, 선글라스</li>
+                        <li>선크림 (피부 노출부위)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="condition-card">
+                <div class="condition-icon dry">
+                    <i class="fas fa-temperature-high"></i>
+                </div>
+                <div class="condition-content">
+                    <div class="condition-title">건조한 날</div>
+                    <ul>
+                        <li>보습 크림 (피부 관리)</li>
+                        <li>코트나 자켓 안에 얇은 옷</li>
+                        <li>정전기 방지 소재의 옷</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 섹션 5: 네비게이션 -->
+    <section class="navigation-section">
+        <div class="navigation-card">
+            <div class="navigation-content">
+                <div class="navigation-title">
+                    <i class="fas fa-arrow-left"></i> 요약 페이지로 돌아가기
+                </div>
+                <p>옷차림 추천 요약이 궁금하시다면 아래 버튼을 클릭하세요.</p>
+                <a href="/outfit" class="nav-button">
+                    <i class="fas fa-clipboard-list"></i>
+                    옷차림 메인 페이지로 이동
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- 푸터 -->
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
+            <p class="footer-info">기상청 API를 활용한 실시간 날씨 정보 서비스</p>
+            <p class="project-info">Project by GMR</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

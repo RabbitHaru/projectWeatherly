@@ -18,12 +18,21 @@ public class HomeController {
         }
         return "index"; // templates/index.html을 반환
     }
-    @GetMapping({"/list"})
-    public String list(Model model, HttpServletRequest request, @AuthenticationPrincipal UserSecurityDTO user) {
+    // 추가: 커뮤니티 페이지 매핑
+    @GetMapping({"/community"})
+    public String community(Model model, HttpServletRequest request, @AuthenticationPrincipal UserSecurityDTO user) {
         model.addAttribute("requestURI", request.getRequestURI());
         if(user != null && user.getUser().getNickname() != null) {
             model.addAttribute("nickname", user.getUser().getNickname());
         }
         return "community";
     }
-}
+    // 추가: 미세먼지 페이지 매핑
+    @GetMapping("/fine-dust")
+    public String fineDust() {
+        return "fine-dust";
+    }
+
+
+
+} 

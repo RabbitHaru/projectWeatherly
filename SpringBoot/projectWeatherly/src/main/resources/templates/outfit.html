@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weatherly - 옷차림 추천</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Thymeleaf로 CSS 파일 경로 수정 -->
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/outfit.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+          rel="stylesheet">
 </head>
 <body>
-<!-- 헤더 영역 (index.html과 동일) -->
+<!-- 헤더 영역 -->
 <header class="main-header">
     <div class="header-container">
         <!-- 왼쪽: 로고 -->
@@ -42,18 +45,13 @@
             <div class="control-buttons">
                 <button class="control-btn notification-btn" title="알림">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge">2</span>
+                    <span class="notification-badge">3</span>
                 </button>
 
                 <button class="control-btn favorites-btn" title="즐겨찾기">
                     <i class="fas fa-star"></i>
                 </button>
 
-                <button class="control-btn darkmode-toggle" id="darkmode-toggle" title="다크모드 전환">
-                    <i class="fas fa-moon"></i>
-                </button>
-
-                <!-- 마이페이지 드롭다운 -->
                 <div class="dropdown">
                     <button class="user-menu-btn">
                         <i class="fas fa-user-circle"></i>
@@ -74,447 +72,295 @@
 </header>
 
 <!-- 메인 콘텐츠 영역 -->
-<main class="main-container outfit-container">
-    <!-- 왼쪽 메인 콘텐츠 -->
-    <div class="main-content">
-        <!-- 현재 날씨 기반 옷차림 추천 -->
-        <section class="outfit-recommendation">
-            <div class="section-header">
-                <h1><i class="fas fa-tshirt"></i> 오늘의 옷차림 추천</h1>
+<main class="outfit-main">
+    <!-- 페이지 헤더 -->
+    <section class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-tshirt"></i>
+            옷차림 추천
+        </h1>
+        <p class="page-subtitle">현재 날씨와 체감온도를 기반으로 한 간편한 옷차림 결정 도우미</p>
+    </section>
+
+    <!-- 현재 날씨 및 추천 -->
+    <section class="outfit-current">
+        <div class="current-info-card">
+            <!-- 위치 및 날씨 정보 -->
+            <div class="location-weather">
                 <div class="location-info">
-                    <span class="current-location"><i class="fas fa-map-marker-alt"></i> 서울특별시</span>
-                    <span class="current-weather">현재 22°C, 맑음</span>
+                    <h2 class="location-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="location-name">부산진구</span>
+                        <button class="location-change-btn" title="위치 변경">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>위치 변경</span>
+                        </button>
+                    </h2>
+                    <div class="weather-brief">
+                        <div class="current-time">2023년 10월 20일 금요일 14:30</div>
+                        <div class="weather-details">
+                            <span class="current-temp">22°C</span>
+                            <span class="weather-desc">맑음</span>
+                            <span class="feels-like">체감온도: 23°C</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 대표 의상 아이콘 -->
+                <div class="main-outfit-icon">
+                    <div class="outfit-icon-wrapper">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="outfit-label">반팔 티셔츠</div>
                 </div>
             </div>
 
-            <!-- 날씨 기반 옷차림 -->
-            <div class="outfit-based-on-weather">
-                <h2><i class="fas fa-cloud-sun"></i> 날씨별 옷차림</h2>
-                <div class="weather-outfit-grid">
-                    <!-- 맑은 날 -->
-                    <div class="weather-outfit-card">
+            <!-- 옷차림 결정 카드 -->
+            <div class="decision-header">
+                <h3><i class="fas fa-check-circle"></i> 오늘의 옷차림 결정</h3>
+                    <a href="/outfit/detail" class="detail-btn">
+                        <i class="fas fa-info-circle"></i>
+                        상세보기
+                    </a>
+                <div class="header-actions">
+                    <div class="decision-level">
+                        <span class="level-label">옷차림 레벨:</span>
+                        <span class="level-badge level-2">가벼운 겉옷 필요</span>
+                    </div>
+                </div>
+            </div>
+
+                <!-- 간단한 설명 -->
+                <div class="decision-summary">
+                    <p>현재 체감온도 23°C로, 반팔 티셔츠와 가벼운 겉옷이 적절합니다. 미세먼지가 보통 수준이므로 실외 활동에 큰 지장은 없습니다.</p>
+                </div>
+
+                <!-- 주요 날씨 요인 -->
+                <div class="weather-factors">
+                    <!-- 기존 weather-factors 내용 -->
+                    <div class="factor-item">
+                        <div class="factor-icon"><i class="fas fa-thermometer-half"></i></div>
+                        <div class="factor-content">
+                            <div class="factor-name">체감온도</div>
+                            <div class="factor-value">23°C</div>
+                        </div>
+                    </div>
+                    <div class="factor-item">
+                        <div class="factor-icon"><i class="fas fa-wind"></i></div>
+                        <div class="factor-content">
+                            <div class="factor-name">바람</div>
+                            <div class="factor-value">2.5 m/s</div>
+                        </div>
+                    </div>
+                    <div class="factor-item">
+                        <div class="factor-icon"><i class="fas fa-smog"></i></div>
+                        <div class="factor-content">
+                            <div class="factor-name">미세먼지</div>
+                            <div class="factor-value">보통</div>
+                        </div>
+                    </div>
+                    <div class="factor-item">
+                        <div class="factor-icon"><i class="fas fa-tint"></i></div>
+                        <div class="factor-content">
+                            <div class="factor-name">습도</div>
+                            <div class="factor-value">45%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4일간 옷차림 추천 -->
+    <section class="outfit-forecast">
+        <div class="section-header">
+            <h3><i class="fas fa-calendar-alt"></i> 4일간 옷차림 추천</h3>
+        </div>
+
+        <!-- 날짜별 옷차림 카드 -->
+        <div class="forecast-days">
+            <!-- 금요일 -->
+            <div class="day-card today">
+                <div class="day-header">
+                    <div class="day-name">금요일</div>
+                    <div class="day-date">10/20</div>
+                </div>
+                <div class="weather-outfit">
+                    <div class="weather-summary">
                         <div class="weather-icon">
                             <i class="fas fa-sun"></i>
-                            <div class="weather-label">맑음</div>
                         </div>
-                        <div class="outfit-details">
-                            <h3>추천 의상</h3>
-                            <ul class="outfit-list">
-                                <li><i class="fas fa-check-circle"></i> 얇은 긴팔 티셔츠</li>
-                                <li><i class="fas fa-check-circle"></i> 면바지 또는 청바지</li>
-                                <li><i class="fas fa-check-circle"></i> 가디건 또는 얇은 자켓</li>
-                                <li><i class="fas fa-check-circle"></i> 스니커즈</li>
-                            </ul>
-                            <div class="outfit-tip">
-                                <strong>팁:</strong> 일교차가 크니 얇은 겉옷을 챙기세요.
-                            </div>
+                        <div class="temp-range">
+                            <span class="temp-high">26°</span>
+                            <span class="temp-low">18°</span>
                         </div>
                     </div>
+                    <div class="outfit-summary">
+                        <div class="outfit-icon">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div class="outfit-name">반팔 티셔츠</div>
+                        <div class="outfit-tip">가벼운 자켓 준비</div>
+                    </div>
+                </div>
+                <div class="outfit-level">
+                    <div class="level-title">옷차림 레벨</div>
+                    <div class="level-indicator level-2"></div>
+                    <span class="level-text">가벼운 겉옷</span>
+                </div>
+            </div>
 
-                    <!-- 흐린 날 -->
-                    <div class="weather-outfit-card">
+            <!-- 토요일 -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-name">토요일</div>
+                    <div class="day-date">10/21</div>
+                </div>
+                <div class="weather-outfit">
+                    <div class="weather-summary">
+                        <div class="weather-icon">
+                            <i class="fas fa-cloud-sun"></i>
+                        </div>
+                        <div class="temp-range">
+                            <span class="temp-high">25°</span>
+                            <span class="temp-low">17°</span>
+                        </div>
+                    </div>
+                    <div class="outfit-summary">
+                        <div class="outfit-icon">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div class="outfit-name">긴팔 티셔츠</div>
+                        <div class="outfit-tip">가디건 추천</div>
+                    </div>
+                </div>
+                <div class="outfit-level">
+                    <div class="level-title">옷차림 레벨</div>
+                    <div class="level-indicator level-3"></div>
+                    <span class="level-text">적당한 옷</span>
+                </div>
+            </div>
+
+            <!-- 일요일 -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-name">일요일</div>
+                    <div class="day-date">10/22</div>
+                </div>
+                <div class="weather-outfit">
+                    <div class="weather-summary">
                         <div class="weather-icon">
                             <i class="fas fa-cloud"></i>
-                            <div class="weather-label">흐림</div>
                         </div>
-                        <div class="outfit-details">
-                            <h3>추천 의상</h3>
-                            <ul class="outfit-list">
-                                <li><i class="fas fa-check-circle"></i> 니트 또는 후드티</li>
-                                <li><i class="fas fa-check-circle"></i> 면바지 또는 슬랙스</li>
-                                <li><i class="fas fa-check-circle"></i> 가벼운 자켓</li>
-                                <li><i class="fas fa-check-circle"></i> 단화 또는 부츠</li>
-                            </ul>
-                            <div class="outfit-tip">
-                                <strong>팁:</strong> 습도가 높을 수 있으니 통기성 좋은 소재를 선택하세요.
-                            </div>
+                        <div class="temp-range">
+                            <span class="temp-high">24°</span>
+                            <span class="temp-low">16°</span>
                         </div>
                     </div>
+                    <div class="outfit-summary">
+                        <div class="outfit-icon">
+                            <i class="fas fa-vest"></i>
+                        </div>
+                        <div class="outfit-name">자켓</div>
+                        <div class="outfit-tip">보온 필요</div>
+                    </div>
+                </div>
+                <div class="outfit-level">
+                    <div class="level-title">옷차림 레벨</div>
+                    <div class="level-indicator level-4"></div>
+                    <span class="level-text">따뜻한 겉옷</span>
+                </div>
+            </div>
 
-                    <!-- 비 오는 날 -->
-                    <div class="weather-outfit-card">
+            <!-- 월요일 -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-name">월요일</div>
+                    <div class="day-date">10/23</div>
+                </div>
+                <div class="weather-outfit">
+                    <div class="weather-summary">
                         <div class="weather-icon">
                             <i class="fas fa-cloud-rain"></i>
-                            <div class="weather-label">비</div>
                         </div>
-                        <div class="outfit-details">
-                            <h3>추천 의상</h3>
-                            <ul class="outfit-list">
-                                <li><i class="fas fa-check-circle"></i> 방수 재킷 또는 우비</li>
-                                <li><i class="fas fa-check-circle"></i> 빠르게 마르는 소재의 옷</li>
-                                <li><i class="fas fa-check-circle"></i> 레인부츠 또는 방수화</li>
-                                <li><i class="fas fa-check-circle"></i> 우산 필수!</li>
-                            </ul>
-                            <div class="outfit-tip">
-                                <strong>팁:</strong> 젖어도 빨리 마르는 신소재 옷이 좋습니다.
-                            </div>
+                        <div class="temp-range">
+                            <span class="temp-high">22°</span>
+                            <span class="temp-low">15°</span>
                         </div>
                     </div>
-
-                    <!-- 추운 날 -->
-                    <div class="weather-outfit-card">
-                        <div class="weather-icon">
-                            <i class="fas fa-snowflake"></i>
-                            <div class="weather-label">추움</div>
+                    <div class="outfit-summary">
+                        <div class="outfit-icon">
+                            <i class="fas fa-user-tie"></i>
                         </div>
-                        <div class="outfit-details">
-                            <h3>추천 의상</h3>
-                            <ul class="outfit-list">
-                                <li><i class="fas fa-check-circle"></i> 두꺼운 코트 또는 패딩</li>
-                                <li><i class="fas fa-check-circle"></i> 니트 또는 맨투맨</li>
-                                <li><i class="fas fa-check-circle"></i> 기모 바지 또는 청바지</li>
-                                <li><i class="fas fa-check-circle"></i> 부츠와 두꺼운 양말</li>
-                            </ul>
-                            <div class="outfit-tip">
-                                <strong>팁:</strong> 레이어링을 통해 체온을 유지하세요.
-                            </div>
-                        </div>
+                        <div class="outfit-name">코트</div>
+                        <div class="outfit-tip">우산 필수</div>
                     </div>
                 </div>
-            </div>
-
-            <!-- 시간대별 옷차림 가이드 -->
-            <div class="time-based-outfit">
-                <h2><i class="fas fa-clock"></i> 시간대별 옷차림 가이드</h2>
-                <div class="time-outfit-tabs">
-                    <button class="time-tab-btn active" data-time="morning">
-                        <i class="fas fa-sunrise"></i> 아침 (6시-10시)
-                    </button>
-                    <button class="time-tab-btn" data-time="daytime">
-                        <i class="fas fa-sun"></i> 낮 (10시-17시)
-                    </button>
-                    <button class="time-tab-btn" data-time="evening">
-                        <i class="fas fa-sunset"></i> 저녁 (17시-22시)
-                    </button>
-                    <button class="time-tab-btn" data-time="night">
-                        <i class="fas fa-moon"></i> 밤 (22시-6시)
-                    </button>
-                </div>
-
-                <div class="time-outfit-content active" id="time-morning">
-                    <div class="time-outfit-info">
-                        <div class="time-weather">
-                            <div class="temp-range">
-                                <span class="label">기온</span>
-                                <span class="value">18°C ~ 21°C</span>
-                            </div>
-                            <div class="weather-condition">
-                                <span class="label">날씨</span>
-                                <span class="value">맑음</span>
-                            </div>
-                        </div>
-                        <div class="outfit-suggestion">
-                            <h3>아침 옷차림 추천</h3>
-                            <div class="outfit-items">
-                                <div class="outfit-item">
-                                    <div class="item-icon"><i class="fas fa-tshirt"></i></div>
-                                    <div class="item-info">
-                                        <div class="item-name">얇은 가디건</div>
-                                        <div class="item-desc">일교차 대비용</div>
-                                    </div>
-                                </div>
-                                <div class="outfit-item">
-                                    <div class="item-icon"><i class="fas fa-tshirt"></i></div>
-                                    <div class="item-info">
-                                        <div class="item-name">긴팔 티셔츠</div>
-                                        <div class="item-desc">면 소재가 좋음</div>
-                                    </div>
-                                </div>
-                                <div class="outfit-item">
-                                    <div class="item-icon"><i class="fas fa-tshirt"></i></div>
-                                    <div class="item-info">
-                                        <div class="item-name">면바지</div>
-                                        <div class="item-desc">편안한 핏으로</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="time-outfit-content" id="time-daytime">
-                    <div class="time-outfit-info">
-                        <div class="time-weather">
-                            <div class="temp-range">
-                                <span class="label">기온</span>
-                                <span class="value">22°C ~ 24°C</span>
-                            </div>
-                            <div class="weather-condition">
-                                <span class="label">날씨</span>
-                                <span class="value">맑음</span>
-                            </div>
-                        </div>
-                        <div class="outfit-suggestion">
-                            <h3>낮 옷차림 추천</h3>
-                            <div class="outfit-items">
-                                <div class="outfit-item">
-                                    <div class="item-icon"><i class="fas fa-tshirt"></i></div>
-                                    <div class="item-info">
-                                        <div class="item-name">반팔 티셔츠</div>
-                                        <div class="item-desc">가볍고 시원한 소재</div>
-                                    </div>
-                                </div>
-                                <div class="outfit-item">
-                                    <div class="item-icon"><i class="fas fa-tshirt"></i></div>
-                                    <div class="item-info">
-                                        <div class="item-name">반바지 또는 청바지</div>
-                                        <div class="item-desc">편안한 활동을 위해</div>
-                                    </div>
-                                </div>
-                                <div class="outfit-item">
-                                    <div class="item-icon"><i class="fas fa-tshirt"></i></div>
-                                    <div class="item-info">
-                                        <div class="item-name">썬캡 또는 모자</div>
-                                        <div class="item-desc">자외선 차단용</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 활동별 옷차림 추천 -->
-            <div class="activity-based-outfit">
-                <h2><i class="fas fa-running"></i> 활동별 옷차림 추천</h2>
-                <div class="activity-grid">
-                    <div class="activity-card">
-                        <div class="activity-icon">
-                            <i class="fas fa-briefcase"></i>
-                            <div class="activity-label">출근/회의</div>
-                        </div>
-                        <div class="activity-outfit">
-                            <h4>추천 의상</h4>
-                            <ul>
-                                <li>정장 또는 캐주얼 정장</li>
-                                <li>블라우스/와이셔츠</li>
-                                <li>구두 또는 로퍼</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="activity-card">
-                        <div class="activity-icon">
-                            <i class="fas fa-hiking"></i>
-                            <div class="activity-label">등산/트래킹</div>
-                        </div>
-                        <div class="activity-outfit">
-                            <h4>추천 의상</h4>
-                            <ul>
-                                <li>기능성 등산복</li>
-                                <li>통기성 좋은 내의</li>
-                                <li>등산화와 두꺼운 양말</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="activity-card">
-                        <div class="activity-icon">
-                            <i class="fas fa-utensils"></i>
-                            <div class="activity-label">데이트/외식</div>
-                        </div>
-                        <div class="activity-outfit">
-                            <h4>추천 의상</h4>
-                            <ul>
-                                <li>스마트 캐주얼</li>
-                                <li>깔끔한 상의</li>
-                                <li>구두 또는 단화</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="activity-card">
-                        <div class="activity-icon">
-                            <i class="fas fa-shopping-bag"></i>
-                            <div class="activity-label">쇼핑/산책</div>
-                        </div>
-                        <div class="activity-outfit">
-                            <h4>추천 의상</h4>
-                            <ul>
-                                <li>편안한 캐주얼</li>
-                                <li>스니커즈</li>
-                                <li>가볍고 넉넉한 옷</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 옷차림 팁 -->
-            <div class="outfit-tips">
-                <h2><i class="fas fa-lightbulb"></i> 옷차림 팁 & 노하우</h2>
-                <div class="tips-grid">
-                    <div class="tip-card">
-                        <div class="tip-icon"><i class="fas fa-layer-group"></i></div>
-                        <div class="tip-content">
-                            <h3>레이어링의 기술</h3>
-                            <p>얇은 옷을 여러 겹 껴입는 것이 두꺼운 옷 한 벌보다 체온 조절에 효과적입니다. 추울 때는 입고, 더울 때는 벗을 수 있어 일교차가 큰 날에 특히 유용합니다.</p>
-                        </div>
-                    </div>
-
-                    <div class="tip-card">
-                        <div class="tip-icon"><i class="fas fa-wind"></i></div>
-                        <div class="tip-content">
-                            <h3>바람 대비하기</h3>
-                            <p>기온이 낮지 않아도 바람이 강하면 체감 온도가 크게 떨어집니다. 방풍 기능이 있는 자켓이나 코트를 준비하는 것이 좋습니다.</p>
-                        </div>
-                    </div>
-
-                    <div class="tip-card">
-                        <div class="tip-icon"><i class="fas fa-tint"></i></div>
-                        <div class="tip-content">
-                            <h3>습도에 따른 소재 선택</h3>
-                            <p>습도가 높은 날에는 면, 린넨 등 통기성이 좋은 소재를 선택하세요. 합성섬유는 땀을 잘 흡수하지 못해 불쾌감을 줄 수 있습니다.</p>
-                        </div>
-                    </div>
-
-                    <div class="tip-card">
-                        <div class="tip-icon"><i class="fas fa-sun"></i></div>
-                        <div class="tip-content">
-                            <h3>자외선 차단</h3>
-                            <p>맑은 날에는 옷차림으로도 자외선을 차단할 수 있습니다. 긴팔, 긴바지, 모자 등을 활용하고, UPF(자외선차단지수)가 표기된 의류를 선택하세요.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- 오른쪽 사이드바 -->
-    <aside class="sidebar">
-        <!-- 개인화된 옷차림 추천 -->
-        <div class="sidebar-card personalized-outfit">
-            <div class="card-header">
-                <h3><i class="fas fa-user-check"></i> 맞춤형 추천</h3>
-            </div>
-            <div class="card-content">
-                <div class="personalized-info">
-                    <div class="user-preference">
-                        <h4>선호 스타일</h4>
-                        <div class="preference-tags">
-                            <span class="tag">캐주얼</span>
-                            <span class="tag">편안함</span>
-                            <span class="tag">미니멀</span>
-                        </div>
-                    </div>
-                    <div class="today-outfit">
-                        <h4>오늘의 맞춤 추천</h4>
-                        <div class="recommended-outfit">
-                            <div class="outfit-item">
-                                <i class="fas fa-tshirt"></i>
-                                <span>얇은 가디건</span>
-                            </div>
-                            <div class="outfit-item">
-                                <i class="fas fa-tshirt"></i>
-                                <span>면 긴팔티</span>
-                            </div>
-                            <div class="outfit-item">
-                                <i class="fas fa-tshirt"></i>
-                                <span>청바지</span>
-                            </div>
-                            <div class="outfit-item">
-                                <i class="fas fa-shoe-prints"></i>
-                                <span>스니커즈</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="customize-btn"><i class="fas fa-cog"></i> 맞춤 설정하기</button>
+                <div class="outfit-level">
+                    <div class="level-title">옷차림 레벨</div>
+                    <div class="level-indicator level-5"></div>
+                    <span class="level-text">따뜻한 옷</span>
                 </div>
             </div>
         </div>
 
-        <!-- 옷장 추천 -->
-        <div class="sidebar-card wardrobe-suggestion">
-            <div class="card-header">
-                <h3><i class="fas fa-warehouse"></i> 옷장 점검</h3>
-            </div>
-            <div class="card-content">
-                <div class="wardrobe-status">
-                    <div class="status-item">
-                        <span class="label">필요한 아이템</span>
-                        <span class="value">가벼운 자켓</span>
+        <!-- 옷차림 레벨 설명 -->
+        <div class="level-guide">
+            <h4>옷차림 레벨 가이드</h4>
+            <div class="level-items">
+                <div class="level-item">
+                    <div class="level-indicator level-1"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-tshirt"></i>
                     </div>
-                    <div class="status-item">
-                        <span class="label">충분한 아이템</span>
-                        <span class="value">티셔츠</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="label">다음 계절 준비</span>
-                        <span class="value">패딩/코트</span>
+                    <div class="level-desc">
+                        <strong>레벨 1</strong>
+                        <span>반팔, 민소매</span>
                     </div>
                 </div>
-                <div class="wardrobe-tip">
-                    <p><strong>팁:</strong> 다음 주 날씨를 보니 가벼운 자켓이 필요할 것 같아요.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 날씨 변화 대비 -->
-        <div class="sidebar-card weather-change">
-            <div class="card-header">
-                <h3><i class="fas fa-exchange-alt"></i> 날씨 변화 대비</h3>
-            </div>
-            <div class="card-content">
-                <div class="weather-change-info">
-                    <div class="change-item">
-                        <div class="change-time">오후 3시</div>
-                        <div class="change-detail">
-                            <div class="from-to">
-                                <span class="from">22°C 맑음</span>
-                                <i class="fas fa-arrow-right"></i>
-                                <span class="to">24°C 구름</span>
-                            </div>
-                            <div class="change-suggestion">가디건 벗어도 됨</div>
-                        </div>
+                <div class="level-item">
+                    <div class="level-indicator level-2"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-tshirt"></i>
                     </div>
-                    <div class="change-item">
-                        <div class="change-time">저녁 7시</div>
-                        <div class="change-detail">
-                            <div class="from-to">
-                                <span class="from">21°C 구름</span>
-                                <i class="fas fa-arrow-right"></i>
-                                <span class="to">19°C 흐림</span>
-                            </div>
-                            <div class="change-suggestion">얇은 겉옷 필요</div>
-                        </div>
+                    <div class="level-desc">
+                        <strong>레벨 2</strong>
+                        <span>반팔 + 겉옷</span>
+                    </div>
+                </div>
+                <div class="level-item">
+                    <div class="level-indicator level-3"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="level-desc">
+                        <strong>레벨 3</strong>
+                        <span>긴팔 + 가디건</span>
+                    </div>
+                </div>
+                <div class="level-item">
+                    <div class="level-indicator level-4"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-vest"></i>
+                    </div>
+                    <div class="level-desc">
+                        <strong>레벨 4</strong>
+                        <span>자켓, 니트</span>
+                    </div>
+                </div>
+                <div class="level-item">
+                    <div class="level-indicator level-5"></div>
+                    <div class="outfit-icon-small">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="level-desc">
+                        <strong>레벨 5</strong>
+                        <span>코트, 패딩</span>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- 인기 옷차림 게시글 -->
-        <div class="sidebar-card popular-outfit-posts">
-            <div class="card-header">
-                <h3><i class="fas fa-fire"></i> 인기 옷차림 글</h3>
-            </div>
-            <div class="card-content">
-                <div class="popular-posts">
-                    <div class="post-item">
-                        <div class="post-title">가을에 딱! 트렌치코트 코디법</div>
-                        <div class="post-meta">
-                            <span class="author">패션왕</span>
-                            <span class="likes"><i class="fas fa-heart"></i> 124</span>
-                        </div>
-                    </div>
-                    <div class="post-item">
-                        <div class="post-title">비오는 날 완벽 대비 의상</div>
-                        <div class="post-meta">
-                            <span class="author">우산챙기자</span>
-                            <span class="likes"><i class="fas fa-heart"></i> 89</span>
-                        </div>
-                    </div>
-                    <div class="post-item">
-                        <div class="post-title">일교차 10도 이상 대비법</div>
-                        <div class="post-meta">
-                            <span class="author">계절관리사</span>
-                            <span class="likes"><i class="fas fa-heart"></i> 76</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="/community/outfit" class="view-more-btn">더보기 <i class="fas fa-arrow-right"></i></a>
-            </div>
-        </div>
-    </aside>
+    </section>
 </main>
 
 <!-- 푸터 -->
@@ -522,97 +368,10 @@
     <div class="footer-container">
         <div class="footer-content">
             <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
-            <p class="footer-info">날씨 기반 옷차림 추천 서비스</p>
+            <p class="footer-info">기상청 API를 활용한 실시간 날씨 정보 서비스</p>
             <p class="project-info">Project by GMR</p>
         </div>
     </div>
 </footer>
-
-<script>
-    // 다크모드 토글 기능 (index.html과 동일)
-    document.addEventListener('DOMContentLoaded', function() {
-        const darkModeToggle = document.getElementById('darkmode-toggle');
-        const body = document.body;
-
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-
-        if (isDarkMode) {
-            body.classList.add('dark-mode');
-            updateDarkModeIcon(true);
-        }
-
-        darkModeToggle.addEventListener('click', function() {
-            const isCurrentlyDark = body.classList.contains('dark-mode');
-
-            if (isCurrentlyDark) {
-                body.classList.remove('dark-mode');
-                localStorage.setItem('darkMode', 'false');
-                updateDarkModeIcon(false);
-            } else {
-                body.classList.add('dark-mode');
-                localStorage.setItem('darkMode', 'true');
-                updateDarkModeIcon(true);
-            }
-        });
-
-        // 시간대별 탭 전환
-        setupTimeTabs();
-
-        // 현재 날씨 정보 표시
-        updateWeatherInfo();
-    });
-
-    function updateDarkModeIcon(isDarkMode) {
-        const icon = document.querySelector('#darkmode-toggle i');
-        const button = document.getElementById('darkmode-toggle');
-
-        if (isDarkMode) {
-            icon.className = 'fas fa-sun';
-            button.title = '라이트모드';
-        } else {
-            icon.className = 'fas fa-moon';
-            button.title = '다크모드';
-        }
-    }
-
-    function setupTimeTabs() {
-        const timeTabBtns = document.querySelectorAll('.time-tab-btn');
-        const timeContents = document.querySelectorAll('.time-outfit-content');
-
-        timeTabBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const timeId = this.getAttribute('data-time');
-
-                // 모든 탭 버튼 비활성화
-                timeTabBtns.forEach(b => b.classList.remove('active'));
-                // 모든 콘텐츠 숨기기
-                timeContents.forEach(c => c.classList.remove('active'));
-
-                // 현재 탭 활성화
-                this.classList.add('active');
-                // 해당 콘텐츠 표시
-                const targetContent = document.getElementById(`time-${timeId}`);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                }
-            });
-        });
-    }
-
-    function updateWeatherInfo() {
-        // 실제 구현 시에는 API에서 현재 날씨 정보를 가져와서 표시
-        const now = new Date();
-        const options = {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            weekday: 'long'
-        };
-        const dateString = now.toLocaleDateString('ko-KR', options);
-
-        // 날짜 정보를 필요한 곳에 표시할 수 있음
-        console.log('현재 날짜:', dateString);
-    }
-</script>
 </body>
 </html>
