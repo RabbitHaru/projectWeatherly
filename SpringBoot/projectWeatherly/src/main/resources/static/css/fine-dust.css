@@ -495,6 +495,82 @@ body.dark-mode .aqi-moderate {
     animation: fadeIn 0.5s ease-out;
 }
 
+/* 로딩 상태 */
+#fine-dust-loading .loading-content {
+    background: rgba(0, 0, 0, 0.9);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+
+/* 동기화 버튼 상태 */
+.gps-sync-btn.sync-success {
+    background-color: var(--success-color, #2ecc71) !important;
+    color: white !important;
+}
+
+.gps-sync-btn.sync-error {
+    background-color: var(--error-color, #e74c3c) !important;
+    color: white !important;
+}
+
+/* AQI 등급별 색상 */
+.aqi-good {
+    background-color: #2ecc71 !important;
+    color: white !important;
+}
+
+.aqi-moderate {
+    background-color: #f39c12 !important;
+    color: white !important;
+}
+
+.aqi-bad {
+    background-color: #e74c3c !important;
+    color: white !important;
+}
+
+.aqi-very-bad {
+    background-color: #8e44ad !important;
+    color: white !important;
+}
+
+/* 대기질 상세 카드 스타일 */
+.aqi-detail-card {
+    transition: transform 0.3s ease;
+}
+
+.aqi-detail-card:hover {
+    transform: translateY(-5px);
+}
+
+/* 탭 콘텐츠 애니메이션 */
+.tab-content {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 반응형 조정 */
+@media (max-width: 768px) {
+    .aqi-detailed-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .aqi-forecast-container {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 .aqi-detail-card:nth-child(2) { animation-delay: 0.1s; }
 .aqi-detail-card:nth-child(3) { animation-delay: 0.2s; }
 .aqi-detail-card:nth-child(4) { animation-delay: 0.3s; }

@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadInitialData();
 
     // 5분마다 날씨 데이터 새로고침
-    setInterval(loadWeatherData, 300000);
+    setInterval(loadWeatherData, 1000*60*5);
 });
 
 // 다크모드 설정 함수
@@ -73,11 +73,36 @@ function updateCurrentTime() {
         minute: '2-digit',
         hour12: false
     };
-    const formattedTime = now.toLocaleDateString('ko-KR', options)
-        .replace('년', '년 ')
-        .replace('월', '월 ')
-        .replace('일', '일 ');
-    document.getElementById('current-time').textContent = formattedTime;
+
+    try {
+        const formattedTime = now.toLocaleDateString('ko-KR', options)
+            .replace('년', '년 ')
+            .replace('월', '월 ')
+            .replace('일', '일 ');
+
+        // 두 개의 시간 요소 모두 업데이트
+        const currentTimeElement = document.getElementById('current-time');
+        const fineDustTimeElement = document.getElementById('fine-dust-current-time');
+
+        if (currentTimeElement) {
+            currentTimeElement.textContent = formattedTime;
+        }
+
+        if (fineDustTimeElement) {
+            // fine-dust 페이지용 시간 형식
+            const fineDustOptions = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            fineDustTimeElement.textContent = now.toLocaleDateString('ko-KR', fineDustOptions);
+        }
+    } catch (error) {
+        console.error('시간 업데이트 오류:', error);
+    }
 }
 
 // 탭 전환 설정
@@ -235,30 +260,33 @@ async function loadInitialData() {
 }
 
 // 로딩 상태 표시
-function showLoadingState() {
-    const loadingEl = document.createElement('div');
-    loadingEl.id = 'loading-overlay';
-    loadingEl.innerHTML = `
-        <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin fa-3x"></i>
-            <p>날씨 정보를 불러오는 중...</p>
-        </div>
-    `;
-    loadingEl.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        color: white;
-        text-align: center;
-    `;
-    document.body.appendChild(loadingEl);
+function showLoadingState(message = '데이터를 불러오는 중...') {
+    let loadingEl = document.getElementById('loading-overlay');
+    if (!loadingEl) {
+        loadingEl = document.createElement('div');
+        loadingEl.id = 'loading-overlay';
+        loadingEl.innerHTML = `
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                <p>${message}</p>
+            </div>
+        `;
+        loadingEl.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+            text-align: center;
+        `;
+        document.body.appendChild(loadingEl);
+    }
 }
 
 // 로딩 상태 숨기기
@@ -292,6 +320,16 @@ function showErrorMessage(message) {
     }, 5000);
 }
 
+function getAqiStatusText(grade) {
+    switch(grade) {
+        case '1': return '좋음';
+        case '2': return '보통';
+        case '3': return '나쁨';
+        case '4': return '매우나쁨';
+        default: return '보통';
+    }
+}
+
 // 날씨 데이터 로드
 async function loadWeatherData() {
     try {
@@ -312,6 +350,8 @@ async function loadWeatherData() {
 // GPS로 날씨 데이터 로드
 async function loadWeatherDataByGPS(latitude, longitude) {
     try {
+        showLoadingState('위치 기반 날씨 정보를 불러오는 중...');
+
         const response = await fetch(`${API_BASE_URL}/api/weather/gps?latitude=${latitude}&longitude=${longitude}`, {
             method: 'POST',
             headers: {
@@ -323,30 +363,100 @@ async function loadWeatherDataByGPS(latitude, longitude) {
 
         if (data.success) {
             updateWeatherUI(data.data);
+
+            // 대기질 데이터도 함께 로드
+            await loadAirQualityDataByGPS(latitude, longitude);
+
+            console.log('GPS 기반 데이터 로드 성공');
         } else {
             throw new Error(data.message || 'GPS 기반 날씨 데이터를 불러올 수 없습니다.');
         }
     } catch (error) {
         console.error('GPS 날씨 데이터 로드 실패:', error);
         showErrorMessage('위치 기반 날씨 정보를 불러올 수 없습니다.');
+
+        // 실패 시 기본 데이터 로드
+        await loadWeatherData();
+        await loadAirQualityData();
+    } finally {
+        hideLoadingState();
     }
 }
 
 // 대기질 데이터 로드
 async function loadAirQualityData() {
     try {
+        showLoadingState('대기질 정보를 불러오는 중...');
+
         const response = await fetch(`${API_BASE_URL}/api/air-quality/current`);
         const data = await response.json();
 
-        if (data.success) {
+        if (data.success && data.data) {
             updateAirQualityUI(data.data);
+
+            // 대기질 예보도 함께 로드
+            const sidoName = data.data.sidoName || '서울';
+            await loadAirQualityForecast(sidoName);
+
+            console.log('대기질 데이터 로드 성공:', data.data.sidoName);
         } else {
             console.warn('대기질 API 실패:', data.message);
             showFallbackAirQualityData();
+            showErrorMessage('대기질 정보를 불러오는데 실패했습니다.');
         }
     } catch (error) {
         console.error('대기질 데이터 로드 실패:', error);
         showFallbackAirQualityData();
+        showErrorMessage('대기질 정보를 불러올 수 없습니다.');
+    } finally {
+        hideLoadingState();
+    }
+}
+
+async function loadAirQualityForecast(sidoName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/air-quality/forecast/${encodeURIComponent(sidoName)}`);
+        const data = await response.json();
+
+        if (data.success && data.data) {
+            updateAirQualityForecast(data.data);
+        }
+    } catch (error) {
+        console.error('대기질 예보 데이터 로드 실패:', error);
+    }
+}
+
+async function loadAirQualityDataByGPS(latitude, longitude) {
+    try {
+        showLoadingState('위치 기반 대기질 정보를 불러오는 중...');
+
+        const response = await fetch(`${API_BASE_URL}/api/air-quality/gps?latitude=${latitude}&longitude=${longitude}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+
+        if (data.success && data.data) {
+            updateAirQualityUI(data.data);
+
+            // 대기질 예보도 함께 로드
+            const sidoName = data.data.sidoName || '서울';
+            await loadAirQualityForecast(sidoName);
+
+            console.log('GPS 기반 대기질 데이터 로드 성공:', data.data.sidoName);
+            return true;
+        } else {
+            throw new Error(data.message || 'GPS 기반 대기질 데이터를 불러올 수 없습니다.');
+        }
+    } catch (error) {
+        console.error('GPS 기반 대기질 데이터 로드 실패:', error);
+        showFallbackAirQualityData();
+        showErrorMessage('위치 기반 대기질 정보를 불러올 수 없습니다.');
+        return false;
+    } finally {
+        hideLoadingState();
     }
 }
 
@@ -468,6 +578,8 @@ function updateWeatherUI(weather) {
     if (weather.summary) {
         const summary = weather.summary;
         document.getElementById('ultra-short-summary').textContent = summary.ultraShortSummary || '--';
+        document.getElementById("ultra-short-temp").textContent = weather.current.temperature || '--';
+        document.getElementById("ultra-short-humidity").textContent = weather.current.humidity || '--';
         document.getElementById('short-term-summary').textContent = summary.shortSummary || '--';
         document.getElementById('mid-term-summary').textContent = summary.midSummary || '--';
     }
@@ -563,13 +675,88 @@ function updateTodayHourlyForecast(hourlyData) {
     // 스크롤 가능 여부 표시
     showScrollHint(container.parentElement);
 }
-
+// 시간별 예보 업데이트 함수 수정
+// function updateTodayHourlyForecast(hourlyData) {
+//     const containers = {
+//         morning: document.querySelector('#period-morning .compact-hourly-forecast'),
+//         afternoon: document.querySelector('#period-afternoon .compact-hourly-forecast'),
+//         evening: document.querySelector('#period-evening .compact-hourly-forecast'),
+//         dawn: document.querySelector('#period-dawn .compact-hourly-forecast')
+//     };
+//
+//     // 각 컨테이너 초기화
+//     Object.values(containers).forEach(container => {
+//         if (container) container.innerHTML = '';
+//     });
+//
+//     if (!hourlyData || hourlyData.length === 0) {
+//         Object.values(containers).forEach(container => {
+//             if (container) {
+//                 container.innerHTML = '<div class="no-data">예보 데이터 없음</div>';
+//             }
+//         });
+//         return;
+//     }
+//
+//     // 현재 시간 확인
+//     const now = new Date();
+//     const currentHour = now.getHours();
+//
+//     // 시간대별로 데이터 분류
+//     hourlyData.forEach(forecast => {
+//         const hour = parseHourFromDisplay(forecast.time);
+//         let period = '';
+//
+//         // 시간대 분류
+//         if (hour >= 6 && hour < 12) period = 'morning';
+//         else if (hour >= 12 && hour < 18) period = 'afternoon';
+//         else if (hour >= 18 && hour < 24) period = 'evening';
+//         else period = 'dawn';
+//
+//         const container = containers[period];
+//         if (!container) return;
+//
+//         const timeSlot = document.createElement('div');
+//         timeSlot.className = 'time-slot';
+//
+//         // 현재 시간인 경우 강조 표시
+//         if (hour === currentHour) {
+//             timeSlot.classList.add('current');
+//         }
+//
+//         // 아이콘 매핑 (간소화된 버전)
+//         const iconClass = getWeatherIconClass(forecast.weatherCondition, hour);
+//
+//         let popHtml = '';
+//         if (forecast.precipitationProbability > 0) {
+//             popHtml = `<div class="precip"><i class="fas fa-tint"></i> ${Math.round(forecast.precipitationProbability)}%</div>`;
+//         }
+//
+//         timeSlot.innerHTML = `
+//             <div class="time">${formatHourTo24(hour)}</div>
+//             <div class="weather-icon"><i class="${iconClass}"></i></div>
+//             <div class="temp">${Math.round(forecast.temperature)}°</div>
+//             ${popHtml}
+//         `;
+//
+//         container.appendChild(timeSlot);
+//     });
+//
+//     // 각 컨테이너에 데이터가 없는 경우 처리
+//     Object.entries(containers).forEach(([period, container]) => {
+//         if (container && container.children.length === 0) {
+//             container.innerHTML = '<div class="no-data">해당 시간대 데이터 없음</div>';
+//         }
+//     });
+// }
 // 스크롤 힌트 표시 함수 추가
-function showScrollHint(container) {
-    if (container.scrollWidth > container.clientWidth) {
-        container.classList.add('has-scroll');
+function showScrollHint(containerElement) {  // 매개변수 이름 변경
+    if (containerElement && containerElement.scrollWidth > containerElement.clientWidth) {
+        containerElement.classList.add('has-scroll');
     } else {
-        container.classList.remove('has-scroll');
+        if (containerElement) {
+            containerElement.classList.remove('has-scroll');
+        }
     }
 }
 
@@ -660,44 +847,37 @@ function updateWeeklyForecast(dailyData) {
 }
 
 // 미세먼지 예보 업데이트 (가로 스크롤)
-function updateAirQualityForecast(airQualityData) {
+function updateAirQualityForecast(forecasts) {
     const container = document.getElementById('aqi-forecast-details');
     if (!container) return;
 
     container.innerHTML = '';
 
-    // 더미 데이터 생성 (실제 API 연동 시 수정 필요)
-    const regions = [
-        { name: '서울', value: 35, status: '좋음', grade: '1' },
-        { name: '인천', value: 45, status: '보통', grade: '2' },
-        { name: '경기', value: 52, status: '나쁨', grade: '3' },
-        { name: '강원', value: 28, status: '좋음', grade: '1' },
-        { name: '충북', value: 40, status: '보통', grade: '2' },
-        { name: '충남', value: 48, status: '보통', grade: '2' },
-        { name: '전북', value: 38, status: '보통', grade: '2' },
-        { name: '전남', value: 42, status: '보통', grade: '2' },
-        { name: '경북', value: 55, status: '나쁨', grade: '3' },
-        { name: '경남', value: 50, status: '보통', grade: '2' },
-        { name: '제주', value: 25, status: '좋음', grade: '1' }
-    ];
+    if (!forecasts || !Array.isArray(forecasts) || forecasts.length === 0) {
+        container.innerHTML = '<div class="no-data">미세먼지 예보 데이터가 없습니다.</div>';
+        return;
+    }
 
-    regions.forEach(region => {
-        const aqiElement = document.createElement('div');
-        aqiElement.className = 'aqi-forecast-item';
+    forecasts.forEach(forecast => {
+        const forecastElement = document.createElement('div');
+        forecastElement.className = 'aqi-forecast-item';
 
-        const gradeClass = getAqiClass(region.grade);
+        const gradeClass = getAqiClass(forecast.overallGrade || '2');
+        const statusText = getAqiStatusText(forecast.overallGrade || '2');
 
-        aqiElement.innerHTML = `
+        forecastElement.innerHTML = `
             <div class="aqi-forecast-header">
-                <h5>${region.name}</h5>
-                <div class="aqi-forecast-region">PM10</div>
+                <h5>${forecast.date || '--'}</h5>
+                <div class="aqi-forecast-region">대기질 예보</div>
             </div>
-            <div class="aqi-forecast-value">${region.value}</div>
-            <div class="aqi-forecast-status ${gradeClass}">${region.status}</div>
+            <div class="aqi-forecast-value">${statusText}</div>
+            <div class="aqi-forecast-status ${gradeClass}">${forecast.advice || '예보 정보 없음'}</div>
         `;
-        container.appendChild(aqiElement);
+        container.appendChild(forecastElement);
     });
 }
+    container.innerHTML = '';
+
 
 // 지역별 날씨 요소 생성
 function createRegionalWeatherElement(regionName, weather) {
@@ -1035,80 +1215,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 기존 코드...
 });
 
-// 시간별 예보 업데이트 함수 수정
-function updateTodayHourlyForecast(hourlyData) {
-    const containers = {
-        morning: document.querySelector('#period-morning .compact-hourly-forecast'),
-        afternoon: document.querySelector('#period-afternoon .compact-hourly-forecast'),
-        evening: document.querySelector('#period-evening .compact-hourly-forecast'),
-        dawn: document.querySelector('#period-dawn .compact-hourly-forecast')
-    };
-
-    // 각 컨테이너 초기화
-    Object.values(containers).forEach(container => {
-        if (container) container.innerHTML = '';
-    });
-
-    if (!hourlyData || hourlyData.length === 0) {
-        Object.values(containers).forEach(container => {
-            if (container) {
-                container.innerHTML = '<div class="no-data">예보 데이터 없음</div>';
-            }
-        });
-        return;
-    }
-
-    // 현재 시간 확인
-    const now = new Date();
-    const currentHour = now.getHours();
-
-    // 시간대별로 데이터 분류
-    hourlyData.forEach(forecast => {
-        const hour = parseHourFromDisplay(forecast.time);
-        let period = '';
-
-        // 시간대 분류
-        if (hour >= 6 && hour < 12) period = 'morning';
-        else if (hour >= 12 && hour < 18) period = 'afternoon';
-        else if (hour >= 18 && hour < 24) period = 'evening';
-        else period = 'dawn';
-
-        const container = containers[period];
-        if (!container) return;
-
-        const timeSlot = document.createElement('div');
-        timeSlot.className = 'time-slot';
-
-        // 현재 시간인 경우 강조 표시
-        if (hour === currentHour) {
-            timeSlot.classList.add('current');
-        }
-
-        // 아이콘 매핑 (간소화된 버전)
-        const iconClass = getWeatherIconClass(forecast.weatherCondition, hour);
-
-        let popHtml = '';
-        if (forecast.precipitationProbability > 0) {
-            popHtml = `<div class="precip"><i class="fas fa-tint"></i> ${Math.round(forecast.precipitationProbability)}%</div>`;
-        }
-
-        timeSlot.innerHTML = `
-            <div class="time">${formatHourTo24(hour)}</div>
-            <div class="weather-icon"><i class="${iconClass}"></i></div>
-            <div class="temp">${Math.round(forecast.temperature)}°</div>
-            ${popHtml}
-        `;
-
-        container.appendChild(timeSlot);
-    });
-
-    // 각 컨테이너에 데이터가 없는 경우 처리
-    Object.entries(containers).forEach(([period, container]) => {
-        if (container && container.children.length === 0) {
-            container.innerHTML = '<div class="no-data">해당 시간대 데이터 없음</div>';
-        }
-    });
-}
 
 // 24시간제 포맷팅
 function formatHourTo24(hour) {
@@ -1181,27 +1287,4 @@ function setupScrollHints() {
         // 데이터 로드 후 다시 확인
         setTimeout(checkScroll, 500);
     });
-}
-
-// DOMContentLoaded 이벤트에 추가
-document.addEventListener('DOMContentLoaded', function() {
-    // 기존 코드...
-
-    // 스크롤 힌트 설정
-    setupScrollHints();
-
-    // 데이터 로드 후 스크롤 힌트 업데이트
-    setTimeout(setupScrollHints, 1000);
-});
-
-// 날씨 데이터 로드 함수에서 스크롤 힌트 업데이트 호출
-async function loadWeatherData() {
-    try {
-        // 기존 코드...
-
-        // 데이터 업데이트 후 스크롤 힌트 재설정
-        setTimeout(setupScrollHints, 100);
-    } catch (error) {
-        // 기존 코드...
-    }
 }

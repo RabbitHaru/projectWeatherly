@@ -8,7 +8,10 @@ import me.shinsunyoung.projectweatherly.common.dto.ApiResponse;
 import me.shinsunyoung.projectweatherly.airquality.service.AirQualityService;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/air-quality")
@@ -73,4 +76,31 @@ public class AirQualityController {
         return ApiResponse.success(airQuality);
     }
 
+    @GetMapping("/health-check")
+    public ApiResponse<String> healthCheck() {
+        return ApiResponse.success("대기질 API 서비스 정상 작동 중");
+    }
+
+    @GetMapping("/test")
+    public ApiResponse<Map<String, Object>> testApiConnection() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("status", "active");
+        result.put("timestamp", LocalDateTime.now());
+        result.put("service", "Air Quality API");
+
+        try {
+            // 에어코리아 API 테스트 호출
+            List<AirQualityResponseDTO> testData = airQualityService.getAirQualityBySido("서울");
+            result.put("apiConnected", !testData.isEmpty());
+            result.put("dataCount", testData.size());
+            if (!testData.isEmpty()) {
+                result.put("sampleStation", testData.get(0).getStationName());
+            }
+        } catch (Exception e) {
+            result.put("apiConnected", false);
+            result.put("error", e.getMessage());
+        }
+
+        return ApiResponse.success("API 연결 테스트 결과", result);
+    }
 }
