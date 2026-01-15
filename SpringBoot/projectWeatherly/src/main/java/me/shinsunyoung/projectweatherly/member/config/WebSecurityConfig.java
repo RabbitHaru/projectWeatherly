@@ -33,7 +33,7 @@ public class WebSecurityConfig {
         JdbcTokenRepositoryImpl repo = new JdbcTokenRepositoryImpl();
         repo.setDataSource(dataSource);
 //        persistent_logins 테이블 생성 SQL 실행 => 이미 테이블 있으면 에러를 발생시킴
-        repo.setCreateTableOnStartup(false);
+        repo.setCreateTableOnStartup(true);
         return repo;
     }
 

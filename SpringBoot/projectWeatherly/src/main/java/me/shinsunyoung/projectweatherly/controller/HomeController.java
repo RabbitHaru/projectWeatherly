@@ -18,4 +18,12 @@ public class HomeController {
         }
         return "index"; // templates/index.html을 반환
     }
-} 
+    @GetMapping({"/list"})
+    public String list(Model model, HttpServletRequest request, @AuthenticationPrincipal UserSecurityDTO user) {
+        model.addAttribute("requestURI", request.getRequestURI());
+        if(user != null && user.getUser().getNickname() != null) {
+            model.addAttribute("nickname", user.getUser().getNickname());
+        }
+        return "community";
+    }
+}
