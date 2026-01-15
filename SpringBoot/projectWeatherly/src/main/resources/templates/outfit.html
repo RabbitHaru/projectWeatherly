@@ -124,19 +124,19 @@
             <div class="outfit-decision-card">
                 <div class="decision-header">
                     <h3><i class="fas fa-check-circle"></i> 오늘의 옷차림 결정</h3>
+                    <!-- 상세보기 버튼 추가 -->
+                    <div class="header-actions">
+                        <a href="/outfit/detail" class="detail-btn">
+                            <i class="fas fa-info-circle"></i>
+                            상세보기
+                        </a>
+                    </div>
                     <div class="decision-level">
                         <span class="level-label">옷차림 레벨:</span>
                         <span class="level-badge level-2">가벼운 겉옷 필요</span>
                     </div>
                 </div>
 
-                <!-- 상세보기 버튼 추가 -->
-                <div class="header-actions">
-                    <a href="/outfit/detail" class="detail-btn">
-                        <i class="fas fa-info-circle"></i>
-                        상세보기
-                    </a>
-                </div>
 
                 <!-- 간단한 설명 -->
                 <div class="decision-summary">
@@ -383,7 +383,7 @@
 
 <script>
     // 다크모드 토글 기능
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const darkModeToggle = document.getElementById('darkmode-toggle');
         const body = document.body;
 
@@ -397,7 +397,7 @@
         }
 
         // 다크모드 토글 버튼 클릭 이벤트
-        darkModeToggle.addEventListener('click', function() {
+        darkModeToggle.addEventListener('click', function () {
             const isCurrentlyDark = body.classList.contains('dark-mode');
 
             if (isCurrentlyDark) {
@@ -456,7 +456,7 @@
         const gpsBtn = document.querySelector('.gps-sync-btn');
 
         if (gpsBtn) {
-            gpsBtn.addEventListener('click', function() {
+            gpsBtn.addEventListener('click', function () {
                 // GPS 동기화 중 표시
                 const originalHTML = this.innerHTML;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 동기화 중...';
@@ -466,7 +466,7 @@
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         // 성공 시
-                        function(position) {
+                        function (position) {
                             const lat = position.coords.latitude;
                             const lng = position.coords.longitude;
 
@@ -488,7 +488,7 @@
                             // updateWeatherData(lat, lng);
                         },
                         // 실패 시
-                        function(error) {
+                        function (error) {
                             console.error('GPS 오류:', error);
 
                             // 버튼 상태 복원 (실패)
@@ -521,11 +521,11 @@
     }
 
     // 옷차림 레벨 카드 클릭 이벤트
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const dayCards = document.querySelectorAll('.day-card');
 
         dayCards.forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function () {
                 // 카드 클릭 시 상세 정보 표시
                 const dayName = this.querySelector('.day-name').textContent;
                 const outfitName = this.querySelector('.outfit-name').textContent;
