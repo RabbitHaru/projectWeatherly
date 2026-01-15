@@ -3,8 +3,10 @@ package me.shinsunyoung.projectweatherly.common.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
+
+import java.time.Duration;
 
 @Configuration
 public class ApiConfig {
@@ -18,30 +20,44 @@ public class ApiConfig {
     @Value("${weatherly.api.kakao.url}")
     private String kakaoApiUrl;
 
+    @Value("${weatherly.api.ipinfo.url}")
+    private String ipInfoUrl;
+
+    @Value("${api.kakao.key}")
+    private String kakaoApiKey;
+
+    @Value("${api.kma.key}")
+    private String kmaApiKey;
+
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(10000);
+        return new RestTemplate(factory);
     }
 
-    @Bean
-    public WebClient kmaWebClient() {
-        return WebClient.builder()
-                .baseUrl(kmaApiUrl)
-                .build();
+    public String getKmaApiKey() {
+        return kmaApiKey;
     }
 
-    @Bean
-    public WebClient airKoreaWebClient() {
-        return WebClient.builder()
-                .baseUrl(airKoreaApiUrl)
-                .build();
+    public String getKakaoApiKey() {
+        return kakaoApiKey;
     }
 
-    @Bean
-    public WebClient kakaoWebClient() {
-        return WebClient.builder()
-                .baseUrl(kakaoApiUrl)
-                .defaultHeader("Authorization", "KakaoAK ${api.kakao.key}")
-                .build();
+    public String getKmaApiUrl() {
+        return kmaApiUrl;
+    }
+
+    public String getAirKoreaApiUrl() {
+        return airKoreaApiUrl;
+    }
+
+    public String getKakaoApiUrl() {
+        return kakaoApiUrl;
+    }
+
+    public String getIpInfoUrl() {
+        return ipInfoUrl;
     }
 }

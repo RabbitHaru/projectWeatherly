@@ -51,6 +51,11 @@
                     <i class="fas fa-star"></i>
                 </button>
 
+                <!-- 다크모드 토글 버튼 추가 -->
+                <button class="control-btn darkmode-toggle" id="darkmode-toggle" title="다크모드 전환">
+                    <i class="fas fa-moon"></i>
+                </button>
+
                 <div class="dropdown">
                     <button class="user-menu-btn">
                         <i class="fas fa-user-circle"></i>
@@ -578,5 +583,90 @@
         </div>
     </div>
 </footer>
+
+<script>
+    // 다크모드 토글 기능
+    document.addEventListener('DOMContentLoaded', function() {
+        const darkModeToggle = document.getElementById('darkmode-toggle');
+        const body = document.body;
+
+        // 로컬스토리지에서 다크모드 상태 확인
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+        // 초기 다크모드 상태 설정
+        if (isDarkMode) {
+            body.classList.add('dark-mode');
+            updateDarkModeIcon(true);
+        }
+
+        // 다크모드 토글 버튼 클릭 이벤트
+        darkModeToggle.addEventListener('click', function() {
+            const isCurrentlyDark = body.classList.contains('dark-mode');
+
+            if (isCurrentlyDark) {
+                body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+                updateDarkModeIcon(false);
+            } else {
+                body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+                updateDarkModeIcon(true);
+            }
+        });
+    });
+
+    // 다크모드 아이콘 업데이트 함수
+    function updateDarkModeIcon(isDarkMode) {
+        const icon = document.querySelector('#darkmode-toggle i');
+        const button = document.getElementById('darkmode-toggle');
+
+        if (isDarkMode) {
+            icon.className = 'fas fa-sun';
+            button.title = '라이트모드';
+        } else {
+            icon.className = 'fas fa-moon';
+            button.title = '다크모드';
+        }
+    }
+
+    // 온도 카드 호버 효과
+    document.addEventListener('DOMContentLoaded', function() {
+        const tempCards = document.querySelectorAll('.temp-card');
+
+        tempCards.forEach(card => {
+            // 현재 온도 카드는 기본적으로 확대되어 있음
+            if (!card.classList.contains('current')) {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px)';
+                    this.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.2)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'var(--shadow-light)';
+                });
+            }
+        });
+    });
+
+    // 조건 카드 클릭 시 상세 정보 표시
+    document.addEventListener('DOMContentLoaded', function() {
+        const conditionCards = document.querySelectorAll('.condition-card');
+
+        conditionCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const conditionTitle = this.querySelector('.condition-title').textContent;
+                const conditionItems = this.querySelectorAll('li');
+                let itemsText = '';
+
+                conditionItems.forEach(item => {
+                    itemsText += `• ${item.textContent}\n`;
+                });
+
+                alert(`[${conditionTitle}]\n\n${itemsText}`);
+            });
+        });
+    });
+</script>
 </body>
 </html>

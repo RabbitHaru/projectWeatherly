@@ -6,6 +6,8 @@
     <title>Weatherly - 실시간 날씨 정보 포털</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/main.css}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 </head>
 <body>
 <!-- 헤더 영역 -->
@@ -33,14 +35,14 @@
         <div class="header-right">
             <!-- 인사 메시지 -->
             <div class="user-greeting">
-                <span class="greeting-text">안녕하세요, <strong>홍길동</strong>님!</span>
+                <span class="greeting-text">안녕하세요, <strong id="username">방문자</strong>님!</span>
             </div>
 
             <!-- 컨트롤 버튼들 -->
             <div class="control-buttons">
                 <button class="control-btn notification-btn" title="알림">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
+                    <span class="notification-badge">0</span>
                 </button>
 
                 <button class="control-btn favorites-btn" title="즐겨찾기">
@@ -63,7 +65,7 @@
                         <a href="/settings"><i class="fas fa-cog"></i> 설정</a>
                         <a href="/favorites"><i class="fas fa-star"></i> 즐겨찾기</a>
                         <div class="dropdown-divider"></div>
-                        <a href="/logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</a>
+                        <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> 로그아웃</a>
                     </div>
                 </div>
             </div>
@@ -81,19 +83,19 @@
                 <div class="location-info">
                     <h1 class="location-title">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span class="location-name">서울특별시</span>
-                        <button class="location-control-btn gps-sync-btn" title="현재 위치로 동기화">
+                        <span class="location-name" id="current-location">서울특별시</span>
+                        <button class="location-control-btn gps-sync-btn" title="현재 위치로 동기화" id="gps-sync-btn">
                             <i class="fas fa-satellite"></i>
                             <span class="btn-text">위치 동기화</span>
                         </button>
                         <div class="location-meta">
-                            <span class="current-time" id="current-time">2023년 10월 20일 금요일 14:30</span>
+                            <span class="current-time" id="current-time"></span>
                         </div>
                     </h1>
                 </div>
                 <div class="weather-status">
-                    <div class="current-temp">22<span class="temp-unit">°C</span></div>
-                    <div class="weather-condition">맑음</div>
+                    <div class="current-temp" id="current-temp">--<span class="temp-unit">°C</span></div>
+                    <div class="weather-condition" id="weather-condition">데이터 로딩 중...</div>
                 </div>
             </div>
 
@@ -103,28 +105,28 @@
                     <div class="detail-icon"><i class="fas fa-thermometer-half"></i></div>
                     <div class="detail-content">
                         <div class="detail-label">체감온도</div>
-                        <div class="detail-value">23°C</div>
+                        <div class="detail-value" id="feels-like">--°C</div>
                     </div>
                 </div>
                 <div class="detail-card">
                     <div class="detail-icon"><i class="fas fa-wind"></i></div>
                     <div class="detail-content">
                         <div class="detail-label">바람</div>
-                        <div class="detail-value">2.5 m/s</div>
+                        <div class="detail-value" id="wind-speed">-- m/s</div>
                     </div>
                 </div>
                 <div class="detail-card">
                     <div class="detail-icon"><i class="fas fa-tint"></i></div>
                     <div class="detail-content">
                         <div class="detail-label">습도</div>
-                        <div class="detail-value">45%</div>
+                        <div class="detail-value" id="humidity">--%</div>
                     </div>
                 </div>
                 <div class="detail-card">
                     <div class="detail-icon"><i class="fas fa-cloud-rain"></i></div>
                     <div class="detail-content">
                         <div class="detail-label">강수량</div>
-                        <div class="detail-value">0 mm</div>
+                        <div class="detail-value" id="precipitation">-- mm</div>
                     </div>
                 </div>
             </div>
@@ -133,139 +135,70 @@
             <div class="air-quality-summary">
                 <div class="aqi-header">
                     <h3><i class="fas fa-lungs"></i> 실시간 대기질</h3>
-                    <div class="aqi-badge aqi-good">좋음</div>
+                    <div class="aqi-badge" id="aqi-overall">--</div>
                 </div>
                 <div class="aqi-details">
                     <div class="aqi-item">
                         <span class="aqi-label">미세먼지 (PM10)</span>
-                        <span class="aqi-value">35 ㎍/㎥</span>
-                        <span class="aqi-status aqi-good">좋음</span>
+                        <span class="aqi-value" id="pm10-value">--</span>
+                        <span class="aqi-status" id="pm10-status">--</span>
                     </div>
                     <div class="aqi-item">
                         <span class="aqi-label">초미세먼지 (PM2.5)</span>
-                        <span class="aqi-value">15 ㎍/㎥</span>
-                        <span class="aqi-status aqi-good">좋음</span>
+                        <span class="aqi-value" id="pm25-value">--</span>
+                        <span class="aqi-status" id="pm25-status">--</span>
                     </div>
                     <div class="aqi-item">
                         <span class="aqi-label">오존 (O3)</span>
-                        <span class="aqi-value">0.025 ppm</span>
-                        <span class="aqi-status aqi-good">좋음</span>
+                        <span class="aqi-value" id="o3-value">--</span>
+                        <span class="aqi-status" id="o3-status">--</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 예보 탭 메뉴 -->
+        <!-- 예보 탭 메뉴 (가로 스크롤 카드 형식) -->
         <section class="forecast-section">
             <div class="forecast-tabs">
                 <button class="tab-btn active" data-tab="hourly">
-                    <i class="fas fa-clock"></i> 오늘 시간별
+                    <i class="fas fa-clock"></i> 시간별
                 </button>
                 <button class="tab-btn" data-tab="tomorrow">
-                    <i class="fas fa-sun"></i> 내일 예보
+                    <i class="fas fa-sun"></i> 내일
                 </button>
                 <button class="tab-btn" data-tab="weekly">
-                    <i class="fas fa-calendar-week"></i> 이번 주
+                    <i class="fas fa-calendar-week"></i> 이번주
                 </button>
                 <button class="tab-btn" data-tab="air-quality">
-                    <i class="fas fa-wind"></i> 미세먼지 예보
+                    <i class="fas fa-wind"></i> 미세먼지
                 </button>
             </div>
 
             <!-- 시간별 예보 -->
             <div class="tab-content active" id="tab-hourly">
-                <div class="hourly-forecast-container">
-                    <div class="hour-item">
-                        <div class="hour-time">현재</div>
-                        <div class="hour-icon"><i class="fas fa-sun"></i></div>
-                        <div class="hour-temp">22°</div>
+                <div class="horizontal-forecast-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-clock"></i> 오늘 시간별 예보</h4>
+                        <span class="card-subtitle">24시간 예측</span>
                     </div>
-                    <div class="hour-item">
-                        <div class="hour-time">15시</div>
-                        <div class="hour-icon"><i class="fas fa-sun"></i></div>
-                        <div class="hour-temp">23°</div>
-                    </div>
-                    <div class="hour-item">
-                        <div class="hour-time">16시</div>
-                        <div class="hour-icon"><i class="fas fa-cloud-sun"></i></div>
-                        <div class="hour-temp">24°</div>
-                    </div>
-                    <div class="hour-item">
-                        <div class="hour-time">17시</div>
-                        <div class="hour-icon"><i class="fas fa-cloud-sun"></i></div>
-                        <div class="hour-temp">24°</div>
-                    </div>
-                    <div class="hour-item">
-                        <div class="hour-time">18시</div>
-                        <div class="hour-icon"><i class="fas fa-cloud"></i></div>
-                        <div class="hour-temp">23°</div>
-                    </div>
-                    <div class="hour-item">
-                        <div class="hour-time">19시</div>
-                        <div class="hour-icon"><i class="fas fa-cloud"></i></div>
-                        <div class="hour-temp">22°</div>
-                    </div>
-                    <div class="hour-item">
-                        <div class="hour-time">20시</div>
-                        <div class="hour-icon"><i class="fas fa-cloud-moon"></i></div>
-                        <div class="hour-temp">21°</div>
-                    </div>
-                    <div class="hour-item">
-                        <div class="hour-time">21시</div>
-                        <div class="hour-icon"><i class="fas fa-moon"></i></div>
-                        <div class="hour-temp">20°</div>
+                    <div class="horizontal-scroll-container">
+                        <div class="hourly-forecast-items" id="hourly-forecast">
+                            <!-- JavaScript로 동적 생성 -->
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- 내일 예보 -->
             <div class="tab-content" id="tab-tomorrow">
-                <div class="weekly-forecast-container">
-                    <div class="day-item">
-                        <div class="day-name">오전</div>
-                        <div class="day-icon"><i class="fas fa-sun"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">24°</span>
-                            <span class="temp-min">18°</span>
-                        </div>
-                        <div class="day-aqi aqi-good">좋음</div>
+                <div class="horizontal-forecast-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-sun"></i> 내일 예보</h4>
+                        <span class="card-subtitle">24시간 시간별</span>
                     </div>
-                    <div class="day-item">
-                        <div class="day-name">오후</div>
-                        <div class="day-icon"><i class="fas fa-cloud-sun"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">26°</span>
-                            <span class="temp-min">20°</span>
-                        </div>
-                        <div class="day-aqi aqi-moderate">보통</div>
-                    </div>
-                    <div class="day-item">
-                        <div class="day-name">저녁</div>
-                        <div class="day-icon"><i class="fas fa-cloud-moon"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">22°</span>
-                            <span class="temp-min">17°</span>
-                        </div>
-                        <div class="day-aqi aqi-good">좋음</div>
-                    </div>
-                </div>
-                <div class="forecast-summary mt-20">
-                    <div class="summary-card short-term">
-                        <div class="summary-header">
-                            <h3><i class="fas fa-info-circle"></i> 내일 날씨 요약</h3>
-                        </div>
-                        <div class="summary-content">
-                            <p class="summary-text">내일은 오전에 맑다가 오후에 구름이 조금 증가할 예정입니다. 기온은 18°C에서 26°C 사이로 포근한 날씨가 예상됩니다.</p>
-                            <div class="summary-details">
-                                <div class="detail">
-                                    <span class="label">강수확률</span>
-                                    <span class="value">20%</span>
-                                </div>
-                                <div class="detail">
-                                    <span class="label">습도</span>
-                                    <span class="value">40-60%</span>
-                                </div>
-                            </div>
+                    <div class="horizontal-scroll-container">
+                        <div class="tomorrow-forecast-items" id="tomorrow-forecast">
+                            <!-- JavaScript로 동적 생성 -->
                         </div>
                     </div>
                 </div>
@@ -273,117 +206,30 @@
 
             <!-- 주간 예보 -->
             <div class="tab-content" id="tab-weekly">
-                <div class="weekly-forecast-container">
-                    <div class="day-item">
-                        <div class="day-name">금</div>
-                        <div class="day-icon"><i class="fas fa-sun"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">26°</span>
-                            <span class="temp-min">18°</span>
-                        </div>
-                        <div class="day-aqi aqi-good">좋음</div>
+                <div class="horizontal-forecast-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-calendar-week"></i> 이번 주 예보</h4>
+                        <span class="card-subtitle">7일간 일별</span>
                     </div>
-                    <div class="day-item">
-                        <div class="day-name">토</div>
-                        <div class="day-icon"><i class="fas fa-cloud-sun"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">25°</span>
-                            <span class="temp-min">17°</span>
+                    <div class="horizontal-scroll-container">
+                        <div class="weekly-forecast-items" id="weekly-forecast">
+                            <!-- JavaScript로 동적 생성 -->
                         </div>
-                        <div class="day-aqi aqi-moderate">보통</div>
-                    </div>
-                    <div class="day-item">
-                        <div class="day-name">일</div>
-                        <div class="day-icon"><i class="fas fa-cloud"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">24°</span>
-                            <span class="temp-min">16°</span>
-                        </div>
-                        <div class="day-aqi aqi-moderate">보통</div>
-                    </div>
-                    <div class="day-item">
-                        <div class="day-name">월</div>
-                        <div class="day-icon"><i class="fas fa-cloud-rain"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">22°</span>
-                            <span class="temp-min">15°</span>
-                        </div>
-                        <div class="day-aqi aqi-bad">나쁨</div>
-                    </div>
-                    <div class="day-item">
-                        <div class="day-name">화</div>
-                        <div class="day-icon"><i class="fas fa-cloud-rain"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">23°</span>
-                            <span class="temp-min">16°</span>
-                        </div>
-                        <div class="day-aqi aqi-moderate">보통</div>
-                    </div>
-                    <div class="day-item">
-                        <div class="day-name">수</div>
-                        <div class="day-icon"><i class="fas fa-cloud-sun"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">24°</span>
-                            <span class="temp-min">17°</span>
-                        </div>
-                        <div class="day-aqi aqi-good">좋음</div>
                     </div>
                 </div>
             </div>
 
             <!-- 미세먼지 예보 -->
             <div class="tab-content" id="tab-air-quality">
-                <div class="air-quality-summary">
-                    <div class="aqi-header">
-                        <h3><i class="fas fa-wind"></i> 미세먼지 예보</h3>
-                        <div class="aqi-badge aqi-moderate">보통</div>
+                <div class="horizontal-forecast-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-wind"></i> 미세먼지 예보</h4>
+                        <span class="card-subtitle">주요 지역별</span>
                     </div>
-                    <div class="aqi-details">
-                        <div class="aqi-item">
-                            <span class="aqi-label">오늘</span>
-                            <span class="aqi-value">좋음</span>
-                            <span class="aqi-status aqi-good">35 ㎍/㎥</span>
+                    <div class="horizontal-scroll-container">
+                        <div class="aqi-forecast-items" id="aqi-forecast-details">
+                            <!-- JavaScript로 동적 생성 -->
                         </div>
-                        <div class="aqi-item">
-                            <span class="aqi-label">내일</span>
-                            <span class="aqi-value">보통</span>
-                            <span class="aqi-status aqi-moderate">55 ㎍/㎥</span>
-                        </div>
-                        <div class="aqi-item">
-                            <span class="aqi-label">모레</span>
-                            <span class="aqi-value">보통</span>
-                            <span class="aqi-status aqi-moderate">60 ㎍/㎥</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="weekly-forecast-container mt-20">
-                    <div class="day-item">
-                        <div class="day-name">금</div>
-                        <div class="day-icon"><i class="fas fa-smog"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">PM10: 35</span>
-                            <span class="temp-min">PM2.5: 15</span>
-                        </div>
-                        <div class="day-aqi aqi-good">좋음</div>
-                    </div>
-                    <div class="day-item">
-                        <div class="day-name">토</div>
-                        <div class="day-icon"><i class="fas fa-smog"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">PM10: 55</span>
-                            <span class="temp-min">PM2.5: 25</span>
-                        </div>
-                        <div class="day-aqi aqi-moderate">보통</div>
-                    </div>
-                    <div class="day-item">
-                        <div class="day-name">일</div>
-                        <div class="day-icon"><i class="fas fa-smog"></i></div>
-                        <div class="day-temp-range">
-                            <span class="temp-max">PM10: 60</span>
-                            <span class="temp-min">PM2.5: 30</span>
-                        </div>
-                        <div class="day-aqi aqi-moderate">보통</div>
                     </div>
                 </div>
             </div>
@@ -397,15 +243,15 @@
                     <span class="summary-range">6시간 후까지</span>
                 </div>
                 <div class="summary-content">
-                    <p class="summary-text">현재부터 6시간 후까지 맑은 날씨가 이어집니다. 강수확률 0%</p>
+                    <p class="summary-text" id="ultra-short-summary">데이터를 불러오는 중...</p>
                     <div class="summary-details">
                         <div class="detail">
                             <span class="label">기온</span>
-                            <span class="value">22°C → 18°C</span>
+                            <span class="value" id="ultra-short-temp">--</span>
                         </div>
                         <div class="detail">
                             <span class="label">습도</span>
-                            <span class="value">45% → 60%</span>
+                            <span class="value" id="ultra-short-humidity">--</span>
                         </div>
                     </div>
                 </div>
@@ -417,15 +263,15 @@
                     <span class="summary-range">3일 후까지</span>
                 </div>
                 <div class="summary-content">
-                    <p class="summary-text">금요일 맑음 → 토요일 구름 조금 → 일요일 흐림</p>
+                    <p class="summary-text" id="short-term-summary">데이터를 불러오는 중...</p>
                     <div class="summary-details">
                         <div class="detail">
                             <span class="label">최고기온</span>
-                            <span class="value">26°C</span>
+                            <span class="value" id="short-term-max-temp">--</span>
                         </div>
                         <div class="detail">
                             <span class="label">최저기온</span>
-                            <span class="value">15°C</span>
+                            <span class="value" id="short-term-min-temp">--</span>
                         </div>
                     </div>
                 </div>
@@ -437,105 +283,29 @@
                     <span class="summary-range">10일 후까지</span>
                 </div>
                 <div class="summary-content">
-                    <p class="summary-text">월요일 비 예상 후, 점차 개면서 기온 상승. 주말 다시 맑음</p>
+                    <p class="summary-text" id="mid-term-summary">데이터를 불러오는 중...</p>
                     <div class="summary-details">
                         <div class="detail">
                             <span class="label">주간강수</span>
-                            <span class="value">30-40mm</span>
+                            <span class="value" id="weekly-precipitation">--</span>
                         </div>
                         <div class="detail">
                             <span class="label">기온변화</span>
-                            <span class="value">상승 추세</span>
+                            <span class="value" id="temp-trend">--</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 커뮤니티 게시물 미리보기 (6개만 표시) -->
+        <!-- 커뮤니티 게시물 미리보기 -->
         <section class="community-preview">
             <div class="community-header">
                 <h3><i class="fas fa-comments"></i> 커뮤니티 인기글</h3>
                 <a href="/community" class="view-all-btn">더보기 <i class="fas fa-arrow-right"></i></a>
             </div>
-            <div class="community-posts">
-                <!-- 게시물 1 -->
-                <div class="post-item">
-                    <div class="post-header">
-                        <span class="post-category weather-talk">날씨톡</span>
-                        <span class="post-time">10분 전</span>
-                    </div>
-                    <h4 class="post-title">오늘 날씨 정말 좋네요! 산책하기 딱 좋아요</h4>
-                    <div class="post-meta">
-                        <span class="post-author"><i class="fas fa-user"></i> 날씨매니아</span>
-                        <span class="post-likes"><i class="fas fa-heart"></i> 24</span>
-                    </div>
-                </div>
-
-                <!-- 게시물 2 -->
-                <div class="post-item">
-                    <div class="post-header">
-                        <span class="post-category outfit">옷차림</span>
-                        <span class="post-time">30분 전</span>
-                    </div>
-                    <h4 class="post-title">이번 주말에 캠핑 갈 건데 옷차림 조언 부탁드려요</h4>
-                    <div class="post-meta">
-                        <span class="post-author"><i class="fas fa-user"></i> 캠핑러버</span>
-                        <span class="post-likes"><i class="fas fa-heart"></i> 18</span>
-                    </div>
-                </div>
-
-                <!-- 게시물 3 -->
-                <div class="post-item">
-                    <div class="post-header">
-                        <span class="post-category dust">미세먼지</span>
-                        <span class="post-time">1시간 전</span>
-                    </div>
-                    <h4 class="post-title">미세먼지 심한 날 실내 운동 추천합니다</h4>
-                    <div class="post-meta">
-                        <span class="post-author"><i class="fas fa-user"></i> 건강관리</span>
-                        <span class="post-likes"><i class="fas fa-heart"></i> 32</span>
-                    </div>
-                </div>
-
-                <!-- 게시물 4 -->
-                <div class="post-item">
-                    <div class="post-header">
-                        <span class="post-category weather-talk">날씨톡</span>
-                        <span class="post-time">2시간 전</span>
-                    </div>
-                    <h4 class="post-title">내일 비온다는데 우산 꼭 챙기세요!</h4>
-                    <div class="post-meta">
-                        <span class="post-author"><i class="fas fa-user"></i> 우산챙기자</span>
-                        <span class="post-likes"><i class="fas fa-heart"></i> 45</span>
-                    </div>
-                </div>
-
-                <!-- 게시물 5 -->
-                <div class="post-item">
-                    <div class="post-header">
-                        <span class="post-category outfit">옷차림</span>
-                        <span class="post-time">3시간 전</span>
-                    </div>
-                    <h4 class="post-title">가을철 아침저녁 쌀쌀할 때 패딩 입어야 할까요?</h4>
-                    <div class="post-meta">
-                        <span class="post-author"><i class="fas fa-user"></i> 패션왕</span>
-                        <span class="post-likes"><i class="fas fa-heart"></i> 21</span>
-                    </div>
-                </div>
-
-                <!-- 게시물 6 -->
-                <div class="post-item">
-                    <div class="post-header">
-                        <span class="post-category weather-talk">날씨톡</span>
-                        <span class="post-time">5시간 전</span>
-                    </div>
-                    <h4 class="post-title">단풍 구경 가기 좋은 날씨 언제까지일까요?</h4>
-                    <div class="post-meta">
-                        <span class="post-author"><i class="fas fa-user"></i> 자연사랑</span>
-                        <span class="post-likes"><i class="fas fa-heart"></i> 38</span>
-                    </div>
-                </div>
+            <div class="community-posts" id="community-posts">
+                <!-- JavaScript로 동적 생성 -->
             </div>
         </section>
     </div>
@@ -551,8 +321,8 @@
                 <div class="warning-status">
                     <i class="fas fa-check-circle status-icon safe"></i>
                     <div class="warning-text">
-                        <strong>현재 발표된 기상특보가 없습니다.</strong>
-                        <p>안전한 날씨가 예상됩니다.</p>
+                        <strong id="weather-alert-title">발표된 기상특보 없음</strong>
+                        <p id="weather-alert-desc">안전한 날씨가 예상됩니다.</p>
                     </div>
                 </div>
             </div>
@@ -564,45 +334,14 @@
                 <h3><i class="fas fa-map"></i> 날씨 지도</h3>
             </div>
             <div class="card-content">
-                <div class="map-placeholder">
+                <div class="map-placeholder" id="weather-map">
                     <i class="fas fa-map-marked-alt"></i>
                     <p>실시간 날씨 지도</p>
                 </div>
                 <div class="map-controls">
-                    <button class="map-control-btn"><i class="fas fa-search-plus"></i></button>
-                    <button class="map-control-btn"><i class="fas fa-search-minus"></i></button>
-                    <button class="map-control-btn"><i class="fas fa-sync-alt"></i></button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 미세먼지 레이더 -->
-        <div class="sidebar-card radar-card">
-            <div class="card-header">
-                <h3><i class="fas fa-wind"></i> 미세먼지 현황</h3>
-            </div>
-            <div class="card-content">
-                <div class="radar-placeholder">
-                    <i class="fas fa-pollution"></i>
-                    <p>미세먼지 분포 레이더</p>
-                </div>
-                <div class="regional-aqi">
-                    <div class="region-item">
-                        <span class="region-name">서울</span>
-                        <span class="region-aqi aqi-good">좋음</span>
-                    </div>
-                    <div class="region-item">
-                        <span class="region-name">인천</span>
-                        <span class="region-aqi aqi-good">좋음</span>
-                    </div>
-                    <div class="region-item">
-                        <span class="region-name">경기</span>
-                        <span class="region-aqi aqi-moderate">보통</span>
-                    </div>
-                    <div class="region-item">
-                        <span class="region-name">강원</span>
-                        <span class="region-aqi aqi-good">좋음</span>
-                    </div>
+                    <button class="map-control-btn" onclick="zoomInMap()"><i class="fas fa-search-plus"></i></button>
+                    <button class="map-control-btn" onclick="zoomOutMap()"><i class="fas fa-search-minus"></i></button>
+                    <button class="map-control-btn" onclick="refreshMap()"><i class="fas fa-sync-alt"></i></button>
                 </div>
             </div>
         </div>
@@ -613,53 +352,8 @@
                 <h3><i class="fas fa-city"></i> 지역별 날씨</h3>
             </div>
             <div class="card-content">
-                <div class="regional-weather-list">
-                    <div class="region-weather">
-                        <div class="region-info">
-                            <span class="region-name">부산</span>
-                            <span class="region-weather-desc">맑음</span>
-                        </div>
-                        <div class="region-temp">24°C</div>
-                    </div>
-                    <div class="region-weather">
-                        <div class="region-info">
-                            <span class="region-name">대구</span>
-                            <span class="region-weather-desc">맑음</span>
-                        </div>
-                        <div class="region-temp">23°C</div>
-                    </div>
-                    <div class="region-weather">
-                        <div class="region-info">
-                            <span class="region-name">인천</span>
-                            <span class="region-weather-desc">구름조금</span>
-                        </div>
-                        <div class="region-temp">21°C</div>
-                    </div>
-                    <div class="region-weather">
-                        <div class="region-info">
-                            <span class="region-name">광주</span>
-                            <span class="region-weather-desc">맑음</span>
-                        </div>
-                        <div class="region-temp">23°C</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 레이더 이미지 -->
-        <div class="sidebar-card radar-image-card">
-            <div class="card-header">
-                <h3><i class="fas fa-satellite"></i> 기상 레이더</h3>
-            </div>
-            <div class="card-content">
-                <div class="radar-image">
-                    <div class="radar-placeholder">
-                        <i class="fas fa-satellite-dish"></i>
-                        <p>실시간 기상 레이더</p>
-                    </div>
-                </div>
-                <div class="radar-update-time">
-                    <i class="fas fa-clock"></i> 최근 업데이트: 14:30
+                <div class="regional-weather-list" id="regional-weather">
+                    <!-- JavaScript로 동적 생성 -->
                 </div>
             </div>
         </div>
@@ -676,173 +370,6 @@
         </div>
     </div>
 </footer>
-
-<script>
-    // 다크모드 토글 기능
-    document.addEventListener('DOMContentLoaded', function() {
-        const darkModeToggle = document.getElementById('darkmode-toggle');
-        const body = document.body;
-
-        // 로컬스토리지에서 다크모드 상태 확인
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-
-        // 초기 다크모드 상태 설정
-        if (isDarkMode) {
-            body.classList.add('dark-mode');
-            updateDarkModeIcon(true);
-        }
-
-        // 다크모드 토글 버튼 클릭 이벤트
-        darkModeToggle.addEventListener('click', function() {
-            const isCurrentlyDark = body.classList.contains('dark-mode');
-
-            if (isCurrentlyDark) {
-                body.classList.remove('dark-mode');
-                localStorage.setItem('darkMode', 'false');
-                updateDarkModeIcon(false);
-            } else {
-                body.classList.add('dark-mode');
-                localStorage.setItem('darkMode', 'true');
-                updateDarkModeIcon(true);
-            }
-        });
-
-        // 현재 시간 업데이트
-        updateCurrentTime();
-        setInterval(updateCurrentTime, 60000);
-
-        // 탭 전환 기능
-        setupTabSwitching();
-
-        // GPS 동기화 기능
-        setupGpsSync();
-    });
-
-    // 다크모드 아이콘 업데이트 함수
-    function updateDarkModeIcon(isDarkMode) {
-        const icon = document.querySelector('#darkmode-toggle i');
-        const button = document.getElementById('darkmode-toggle');
-
-        if (isDarkMode) {
-            icon.className = 'fas fa-sun';
-            button.title = '라이트모드';
-        } else {
-            icon.className = 'fas fa-moon';
-            button.title = '다크모드';
-        }
-    }
-
-    // 현재 시간 업데이트 함수
-    function updateCurrentTime() {
-        const now = new Date();
-        const options = {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            weekday: 'long',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        };
-        const timeElements = document.querySelectorAll('.current-time');
-        timeElements.forEach(el => {
-            el.textContent = now.toLocaleDateString('ko-KR', options);
-        });
-    }
-
-    // 탭 전환 설정 함수
-    function setupTabSwitching() {
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tabId = this.getAttribute('data-tab');
-
-                // 모든 탭 버튼 비활성화
-                tabBtns.forEach(b => b.classList.remove('active'));
-                // 모든 탭 콘텐츠 숨기기
-                tabContents.forEach(c => c.classList.remove('active'));
-
-                // 현재 탭 활성화
-                this.classList.add('active');
-                // 해당 탭 콘텐츠 표시
-                const targetTab = document.getElementById(`tab-${tabId}`);
-                if (targetTab) {
-                    targetTab.classList.add('active');
-                }
-            });
-        });
-    }
-
-    // GPS 동기화 기능
-    function setupGpsSync() {
-        const gpsBtn = document.querySelector('.gps-sync-btn');
-
-        if (gpsBtn) {
-            gpsBtn.addEventListener('click', function() {
-                // GPS 동기화 중 표시
-                const originalHTML = this.innerHTML;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 동기화 중...';
-                this.disabled = true;
-
-                // GPS 위치 정보 가져오기
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        // 성공 시
-                        function(position) {
-                            const lat = position.coords.latitude;
-                            const lng = position.coords.longitude;
-
-                            // 위치 정보를 사용하여 날씨 데이터 업데이트
-                            console.log('GPS 위치 동기화 완료:', lat, lng);
-
-                            // 버튼 상태 복원 (성공)
-                            gpsBtn.innerHTML = '<i class="fas fa-check-circle"></i> 동기화 완료';
-                            gpsBtn.classList.add('sync-success');
-
-                            // 2초 후 원래 상태로 복구
-                            setTimeout(() => {
-                                gpsBtn.innerHTML = originalHTML;
-                                gpsBtn.disabled = false;
-                                gpsBtn.classList.remove('sync-success');
-                            }, 2000);
-
-                            // 실제 구현 시: 여기서 API 호출하여 날씨 정보 업데이트
-                            // updateWeatherData(lat, lng);
-                        },
-                        // 실패 시
-                        function(error) {
-                            console.error('GPS 오류:', error);
-
-                            // 버튼 상태 복원 (실패)
-                            gpsBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> 실패';
-                            gpsBtn.classList.add('sync-error');
-
-                            setTimeout(() => {
-                                gpsBtn.innerHTML = originalHTML;
-                                gpsBtn.disabled = false;
-                                gpsBtn.classList.remove('sync-error');
-                            }, 2000);
-                        },
-                        // 옵션
-                        {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
-                            maximumAge: 0
-                        }
-                    );
-                } else {
-                    // GPS 미지원 브라우저
-                    gpsBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> 미지원';
-                    setTimeout(() => {
-                        gpsBtn.innerHTML = originalHTML;
-                        gpsBtn.disabled = false;
-                    }, 2000);
-                }
-            });
-        }
-    }
-</script>
+<script th:src="@{/js/main.js}"></script>
 </body>
 </html>

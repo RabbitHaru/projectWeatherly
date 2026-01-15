@@ -19,6 +19,8 @@
     --light-text: #333333;
     --light-card: #ffffff;
     --light-border: #e9ecef;
+    --card-bg: #ffffff;  /* 추가 */
+    --text-color: #333333;  /* 추가 */
 
     --dark-bg: #1a1a2e;
     --dark-secondary: #16213e;
@@ -43,11 +45,16 @@ body {
     min-height: 100vh;
     line-height: 1.6;
     transition: var(--transition);
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
 }
 
 body.dark-mode {
-    background: linear-gradient(135deg, var(--dark-bg) 0%, var(--dark-secondary) 100%);
-    color: var(--dark-text);
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%) !important;
+    color: #e0e0e0 !important;
+    --card-bg: var(--dark-card);
+    --text-color: var(--dark-text);
 }
 
 .container {
@@ -68,9 +75,9 @@ body.dark-mode {
 }
 
 body.dark-mode .main-header {
-    background: var(--dark-card);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid var(--dark-border);
+    background: #1e1e2e !important;
+    border-bottom: 1px solid #2d2d44 !important;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 .header-container {
@@ -98,12 +105,8 @@ body.dark-mode .main-header {
 }
 
 @keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.1);
-    }
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 .logo-text {
@@ -114,6 +117,12 @@ body.dark-mode .main-header {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.5px;
+}
+
+body.dark-mode .logo-text {
+    background: linear-gradient(135deg, #4fc3f7, #29b6f6) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
 }
 
 /* 메인 메뉴 스타일 */
@@ -140,7 +149,8 @@ body.dark-mode .main-header {
 }
 
 body.dark-mode .menu-item {
-    color: var(--dark-text);
+    color: #b0b0c0 !important;
+    background: transparent !important;
 }
 
 .menu-item::before {
@@ -157,6 +167,10 @@ body.dark-mode .menu-item {
     border-radius: 30px;
 }
 
+body.dark-mode .menu-item::before {
+    background: linear-gradient(135deg, #3a3a5d, #2d2d44) !important;
+}
+
 .menu-item:hover::before,
 .menu-item.active::before {
     opacity: 1;
@@ -167,6 +181,12 @@ body.dark-mode .menu-item {
     color: white;
     transform: translateY(-2px);
     box-shadow: var(--shadow-medium);
+}
+
+body.dark-mode .menu-item:hover,
+body.dark-mode .menu-item.active {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #3a3a5d, #2d2d44) !important;
 }
 
 .menu-item i {
@@ -192,12 +212,16 @@ body.dark-mode .menu-item {
 }
 
 body.dark-mode .user-greeting .greeting-text {
-    color: var(--dark-text);
+    color: #b0b0c0 !important;
 }
 
 .greeting-text strong {
     color: var(--primary-color);
     font-weight: 700;
+}
+
+body.dark-mode .greeting-text strong {
+    color: #4fc3f7 !important;
 }
 
 .control-buttons {
@@ -224,8 +248,9 @@ body.dark-mode .user-greeting .greeting-text {
 }
 
 body.dark-mode .control-btn {
-    color: var(--dark-text);
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #b0b0c0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 .control-btn:hover {
@@ -233,6 +258,12 @@ body.dark-mode .control-btn {
     color: white;
     transform: translateY(-2px);
     box-shadow: var(--shadow-medium);
+}
+
+body.dark-mode .control-btn:hover {
+    background: #2196f3 !important;
+    color: white !important;
+    border-color: #2196f3 !important;
 }
 
 .notification-badge {
@@ -272,9 +303,18 @@ body.dark-mode .control-btn {
     transition: var(--transition);
 }
 
+body.dark-mode .user-menu-btn {
+    background: linear-gradient(135deg, #3a3a5d, #2d2d44) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
 .user-menu-btn:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-medium);
+}
+
+body.dark-mode .user-menu-btn:hover {
+    background: linear-gradient(135deg, #4a4a6d, #3d3d54) !important;
 }
 
 .dropdown-content {
@@ -292,8 +332,9 @@ body.dark-mode .control-btn {
 }
 
 body.dark-mode .dropdown-content {
-    background: var(--dark-card);
-    border: 1px solid var(--dark-border);
+    background: #25253d !important;
+    border: 1px solid #3a3a5d !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
 }
 
 .dropdown:hover .dropdown-content {
@@ -312,8 +353,8 @@ body.dark-mode .dropdown-content {
 }
 
 body.dark-mode .dropdown-content a {
-    color: var(--dark-text);
-    border-bottom: 1px solid var(--dark-border);
+    color: #d0d0e0 !important;
+    border-bottom: 1px solid #3a3a5d !important;
 }
 
 .dropdown-content a:last-child {
@@ -325,6 +366,11 @@ body.dark-mode .dropdown-content a {
     color: var(--primary-color);
 }
 
+body.dark-mode .dropdown-content a:hover {
+    background: #3a3a5d !important;
+    color: #ffffff !important;
+}
+
 .dropdown-divider {
     height: 1px;
     background: var(--light-border);
@@ -332,7 +378,7 @@ body.dark-mode .dropdown-content a {
 }
 
 body.dark-mode .dropdown-divider {
-    background: var(--dark-border);
+    background: #3a3a5d !important;
 }
 
 /* ===== MAIN CONTENT STYLES ===== */
@@ -343,6 +389,8 @@ body.dark-mode .dropdown-divider {
     max-width: 1600px;
     margin: 30px auto;
     padding: 0 20px;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 @media (max-width: 1200px) {
@@ -363,6 +411,10 @@ body.dark-mode .dropdown-divider {
     overflow: hidden;
 }
 
+body.dark-mode .weather-summary {
+    background: linear-gradient(135deg, #2a2a4a 0%, #1e1e3a 100%) !important;
+}
+
 .weather-summary::before {
     content: '';
     position: absolute;
@@ -375,7 +427,7 @@ body.dark-mode .dropdown-divider {
     opacity: 0.1;
 }
 
-/* 위치 정보 및 컨트롤 스타일 - 수정됨 */
+/* 위치 정보 및 컨트롤 스타일 */
 .location-info {
     flex: 1;
 }
@@ -387,7 +439,6 @@ body.dark-mode .dropdown-divider {
     margin-bottom: 30px;
 }
 
-/* 수정된 위치 제목 스타일 */
 .location-title {
     display: flex;
     align-items: center;
@@ -398,14 +449,12 @@ body.dark-mode .dropdown-divider {
     width: 100%;
 }
 
-/* 위치 이름 스타일 */
 .location-name {
     font-weight: 700;
     color: white;
     margin-right: 0;
 }
 
-/* GPS 동기화 버튼 스타일 */
 .location-control-btn.gps-sync-btn {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -422,6 +471,12 @@ body.dark-mode .dropdown-divider {
     white-space: nowrap;
     margin-left: 10px;
     height: 36px;
+}
+
+body.dark-mode .location-control-btn.gps-sync-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
 }
 
 .location-control-btn.gps-sync-btn:hover {
@@ -453,15 +508,9 @@ body.dark-mode .dropdown-divider {
 
 /* GPS 버튼 애니메이션 */
 @keyframes pulse-gps {
-    0% {
-        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
-    }
+    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
 }
 
 .gps-sync-btn {
@@ -501,6 +550,18 @@ body.dark-mode .dropdown-divider {
     margin: 30px 0;
 }
 
+@media (max-width: 1400px) {
+    .weather-details-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .weather-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .detail-card {
     background: rgba(255, 255, 255, 0.1);
     border-radius: var(--border-radius-sm);
@@ -512,9 +573,19 @@ body.dark-mode .dropdown-divider {
     transition: var(--transition);
 }
 
+body.dark-mode .detail-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
 .detail-card:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: translateY(-3px);
+}
+
+body.dark-mode .detail-card:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 .detail-icon {
@@ -546,6 +617,11 @@ body.dark-mode .dropdown-divider {
     backdrop-filter: blur(10px);
 }
 
+body.dark-mode .air-quality-summary {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
 .aqi-header {
     display: flex;
     justify-content: space-between;
@@ -568,23 +644,26 @@ body.dark-mode .dropdown-divider {
     font-size: 1rem;
 }
 
-.aqi-good {
-    background: var(--success-color);
-}
-
-.aqi-moderate {
-    background: var(--warning-color);
-    color: #333;
-}
-
-.aqi-bad {
-    background: var(--danger-color);
-}
+.aqi-good { background: var(--success-color); }
+.aqi-moderate { background: var(--warning-color); color: #333; }
+.aqi-bad { background: var(--danger-color); }
 
 .aqi-details {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
+}
+
+@media (max-width: 1400px) {
+    .aqi-details {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .aqi-details {
+        grid-template-columns: 1fr;
+    }
 }
 
 .aqi-item {
@@ -594,6 +673,11 @@ body.dark-mode .dropdown-divider {
     padding: 15px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: var(--border-radius-sm);
+}
+
+body.dark-mode .aqi-item {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
 .aqi-label {
@@ -621,10 +705,14 @@ body.dark-mode .dropdown-divider {
     box-shadow: var(--shadow-light);
     overflow: hidden;
     margin-bottom: 30px;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 body.dark-mode .forecast-section {
-    background: var(--dark-card);
+    background: #25253d !important;
+    border: 1px solid #3a3a5d !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
 }
 
 .forecast-tabs {
@@ -634,9 +722,21 @@ body.dark-mode .forecast-section {
     border-bottom: 1px solid var(--light-border);
 }
 
+@media (max-width: 1024px) {
+    .forecast-tabs {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .forecast-tabs {
+        grid-template-columns: 1fr;
+    }
+}
+
 body.dark-mode .forecast-tabs {
-    background: #34495e;
-    border-bottom: 1px solid var(--dark-border);
+    background: #2a2a4a !important;
+    border-bottom: 1px solid #3a3a5d !important;
 }
 
 .tab-btn {
@@ -656,8 +756,17 @@ body.dark-mode .forecast-tabs {
     overflow: hidden;
 }
 
+@media (max-width: 480px) {
+    .tab-btn {
+        padding: 15px;
+        justify-content: flex-start;
+        font-size: 0.9rem;
+    }
+}
+
 body.dark-mode .tab-btn {
-    color: #bdc3c7;
+    color: #a0a0b0 !important;
+    background: transparent !important;
 }
 
 .tab-btn::before {
@@ -677,8 +786,22 @@ body.dark-mode .tab-btn {
     color: var(--primary-color);
 }
 
+body.dark-mode .tab-btn:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-mode .tab-btn.active {
+    color: #4fc3f7 !important;
+    background: rgba(79, 195, 247, 0.1) !important;
+}
+
 .tab-btn.active::before {
     transform: translateY(0);
+}
+
+body.dark-mode .tab-btn.active::before {
+    background: #4fc3f7 !important;
 }
 
 .tab-content {
@@ -690,124 +813,494 @@ body.dark-mode .tab-btn {
     display: block;
 }
 
-/* 시간별 예보 */
-.hourly-forecast-container {
+/* 가로 스크롤 카드 공통 스타일 */
+.horizontal-forecast-card {
+    background: var(--light-card);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    overflow: hidden;
+    min-height: 280px;
     display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 20px 0;
+    flex-direction: column;
+    max-width: 100%;
+    width: 100%;
+    /* 아래 속성 추가 */
+    overflow: hidden; /* 카드 자체는 넘치지 않도록 */
 }
 
-.hour-item {
-    min-width: 100px;
-    text-align: center;
-    padding: 20px 15px;
-    background: #f8f9fa;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition);
-    flex-shrink: 0;
+body.dark-mode .horizontal-forecast-card {
+    background: #25253d !important;
+    border: 1px solid #3a3a5d !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
-body.dark-mode .hour-item {
-    background: #34495e;
-}
-
-.hour-item:hover {
+.horizontal-forecast-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-medium);
 }
 
-.hour-time {
+body.dark-mode .horizontal-forecast-card:hover {
+    background: #2a2a4a !important;
+    border-color: #4a4a6d !important;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
+}
+
+.horizontal-forecast-card .card-header {
+    padding: 20px 25px;
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--light-border);
+    flex-shrink: 0;
+}
+
+body.dark-mode .horizontal-forecast-card .card-header {
+    background: #2a2a4a !important;
+    border-bottom: 1px solid #3a3a5d !important;
+    color: #ffffff !important;
+}
+
+.horizontal-forecast-card .card-header h4 {
+    margin: 0 0 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+    color: var(--secondary-color);
+}
+
+body.dark-mode .horizontal-forecast-card .card-header h4 {
+    color: #ffffff !important;
+}
+
+.card-subtitle {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+body.dark-mode .card-subtitle {
+    color: #bdc3c7;
+}
+
+/* 가로 스크롤 컨테이너 */
+.horizontal-scroll-container {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 20px 25px;
+    position: relative;
+    min-height: 200px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) #f0f0f0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    /* 아래 속성 추가 - 스크롤이 발생해도 레이아웃을 벗어나지 않도록 */
+    max-width: calc(100% - 50px); /* 패딩 고려 */
+}
+
+.horizontal-scroll-container::-webkit-scrollbar {
+    height: 6px;
+    border-radius: 3px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+    margin: 0 10px;
+}
+
+body.dark-mode .horizontal-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .horizontal-scroll-container::-webkit-scrollbar-thumb {
+    background: var(--info-color);
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+    opacity: 0.7;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+    opacity: 1;
+}
+
+/* 스크롤 힌트 */
+.horizontal-scroll-container::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 30px;
+    height: 100%;
+    background: linear-gradient(to right, transparent, var(--light-card) 90%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1;
+}
+
+body.dark-mode .horizontal-scroll-container::after {
+    background: linear-gradient(to right, transparent, var(--dark-card));
+}
+
+.horizontal-scroll-container::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30px;
+    height: 100%;
+    background: linear-gradient(to left, transparent, var(--light-card) 90%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1;
+}
+
+.horizontal-scroll-container.scrolling::after,
+.horizontal-scroll-container.scrolling::before {
+    opacity: 1;
+}
+
+/* ===== 스크롤 가능 표시를 위한 클래스 ===== */
+.has-scroll {
+    position: relative;
+}
+
+/* ===== 메인 컨테이너 그리드 안정화 ===== */
+.main-container {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 30px;
+    max-width: 1600px;
+    margin: 30px auto;
+    padding: 0 20px;
+    /* 아래 속성 추가 - 내부 요소가 그리드를 벗어나지 않도록 */
+    min-width: 0; /* 중요: 그리드 아이템 내부에서 넘치지 않도록 */
+}
+
+/* 메인 콘텐츠 영역에도 min-width: 0 추가 */
+.main-content {
+    min-width: 0; /* 중요: 플렉스/그리드 아이템 내부 오버플로우 방지 */
+}
+
+body.dark-mode .horizontal-scroll-container::before {
+    background: linear-gradient(to left, transparent, var(--dark-card));
+}
+
+.horizontal-scroll-container:hover::after,
+.horizontal-scroll-container:hover::before {
+    opacity: 1;
+}
+
+/* 아이템 컨테이너 */
+.hourly-forecast-items,
+.tomorrow-forecast-items,
+.weekly-forecast-items,
+.aqi-forecast-items {
+    display: inline-flex;
+    gap: 20px;
+    min-width: min-content;
+    align-items: stretch;
+    height: 100%;
+    box-sizing: border-box;
+    /* 아래 속성 추가 - 플렉스 아이템이 줄바꿈되지 않도록 */
+    flex-wrap: nowrap;
+}
+
+/* ===== 시간별 아이템 스타일 ===== */
+.hour-item, .tomorrow-hour-item {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    padding: 20px 15px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    text-align: center;
+    position: relative;
+    height: 160px;
+    box-sizing: border-box;
+    max-width: 180px;
+    width: auto;
+}
+
+body.dark-mode .hour-item,
+body.dark-mode .tomorrow-hour-item {
+    background: #2a2a4a !important;
+    border: 1px solid #3a3a5d !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+.hour-item:hover,
+.tomorrow-hour-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+body.dark-mode .hour-item:hover,
+body.dark-mode .tomorrow-hour-item:hover {
+    background: #3a3a5d !important;
+    border-color: #4a4a6d !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+.hour-time, .tomorrow-time {
+    font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 10px;
     color: var(--secondary-color);
 }
 
-body.dark-mode .hour-time {
-    color: var(--dark-text);
+body.dark-mode .hour-time,
+body.dark-mode .tomorrow-time {
+    color: #b0b0c0 !important;
 }
 
-.hour-icon {
-    font-size: 2rem;
+.hour-icon, .tomorrow-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
     color: var(--primary-color);
-    margin: 10px 0;
-}
-
-.hour-temp {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--accent-color);
-}
-
-/* 주간 예보 */
-.weekly-forecast-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.day-item {
+    height: 40px;
     display: flex;
     align-items: center;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition);
-}
-
-body.dark-mode .day-item {
-    background: #34495e;
-}
-
-.day-item:hover {
-    transform: translateX(5px);
-    box-shadow: var(--shadow-light);
-}
-
-.day-name {
-    font-weight: 700;
-    width: 40px;
-    font-size: 1.2rem;
-    color: var(--secondary-color);
-}
-
-body.dark-mode .day-name {
-    color: var(--dark-text);
-}
-
-.day-icon {
-    font-size: 1.5rem;
-    width: 50px;
-    color: var(--primary-color);
-}
-
-.day-temp-range {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
     justify-content: center;
 }
 
-.temp-max {
-    font-size: 1.3rem;
+.hour-temp, .tomorrow-temp {
+    font-size: 1.8rem;
     font-weight: 700;
+    margin-bottom: 8px;
     color: var(--accent-color);
 }
 
-.temp-min {
-    font-size: 1.1rem;
-    color: var(--primary-color);
+.hour-pop, .tomorrow-pop {
+    font-size: 0.9rem;
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.1);
+    padding: 4px 10px;
+    border-radius: 15px;
+    margin-top: 5px;
+}
+
+.hour-humidity, .tomorrow-wind {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    margin-top: 5px;
     opacity: 0.8;
 }
 
-.day-aqi {
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    min-width: 70px;
+body.dark-mode .hour-humidity,
+body.dark-mode .tomorrow-wind {
+    color: #bdc3c7;
+}
+
+/* ===== 주간 아이템 스타일 ===== */
+.day-item {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 160px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
     text-align: center;
+    height: 200px;
+    justify-content: space-between;
+    box-sizing: border-box;
+    max-width: 180px;
+    width: auto;
+}
+
+body.dark-mode .day-item {
+    background: #2a2a4a !important;
+    border: 1px solid #3a3a5d !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+.day-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+body.dark-mode .day-item:hover {
+    background: #3a3a5d !important;
+    border-color: #4a4a6d !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+.day-header {
+    margin-bottom: 15px;
+}
+
+.day-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+}
+
+body.dark-mode .day-name {
+    color: #ffffff !important;
+}
+
+.day-date {
+    font-size: 1rem;
+    color: var(--secondary-color);
+    opacity: 0.8;
+}
+
+.day-temps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.temp-am, .temp-pm {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.dark-mode .temp-am,
+body.dark-mode .temp-pm {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.temp-label {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.temp-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.temp-icon {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    color: var(--primary-color);
+}
+
+.temp-condition {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    text-align: center;
+}
+
+.day-pop {
+    font-size: 0.9rem;
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.1);
+    padding: 6px 12px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* ===== 미세먼지 아이템 스타일 ===== */
+.aqi-forecast-item {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 180px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    text-align: center;
+    height: 180px;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    max-width: 180px;
+    width: auto;
+}
+
+body.dark-mode .aqi-forecast-item {
+    background: #2a2a4a !important;
+    border: 1px solid #3a3a5d !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+.aqi-forecast-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.aqi-forecast-header {
+    margin-bottom: 15px;
+}
+
+.aqi-forecast-header h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+}
+
+body.dark-mode .aqi-forecast-header h5 {
+    color: #ffffff !important;
+}
+
+.aqi-forecast-region {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    opacity: 0.8;
+}
+
+.aqi-forecast-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.aqi-forecast-status {
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* 데이터 없음 표시 */
+.no-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100%;
+    height: 150px;
+    color: var(--secondary-color);
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+body.dark-mode .no-data {
+    color: var(--dark-text);
+    opacity: 0.7;
 }
 
 /* 예보 요약 카드 */
@@ -824,9 +1317,18 @@ body.dark-mode .day-name {
     }
 }
 
+/* 반응형 조정 - 작은 화면에서 가로 스크롤 컨테이너 최적화 */
 @media (max-width: 768px) {
-    .forecast-summary {
-        grid-template-columns: 1fr;
+    .horizontal-scroll-container {
+        padding: 15px;
+        max-width: calc(100% - 30px);
+    }
+
+    .hourly-forecast-items,
+    .tomorrow-forecast-items,
+    .weekly-forecast-items,
+    .aqi-forecast-items {
+        gap: 15px;
     }
 }
 
@@ -837,15 +1339,24 @@ body.dark-mode .day-name {
     box-shadow: var(--shadow-light);
     transition: var(--transition);
     border-top: 4px solid;
+    width: 100%;
 }
 
 body.dark-mode .summary-card {
-    background: var(--dark-card);
+    background: #25253d !important;
+    border: 1px solid #3a3a5d !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
 .summary-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-medium);
+}
+
+body.dark-mode .summary-card:hover {
+    background: #2a2a4a !important;
+    border-color: #4a4a6d !important;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
 }
 
 .summary-card.ultra-short {
@@ -895,7 +1406,7 @@ body.dark-mode .summary-card {
 }
 
 body.dark-mode .summary-range {
-    color: #bdc3c7;
+    color: #a0a0b0 !important;
 }
 
 .summary-content {
@@ -910,7 +1421,7 @@ body.dark-mode .summary-range {
 }
 
 body.dark-mode .summary-text {
-    color: #ddd;
+    color: #c0c0d0 !important;
 }
 
 .summary-details {
@@ -930,7 +1441,9 @@ body.dark-mode .summary-text {
 }
 
 body.dark-mode .detail {
-    background: #34495e;
+    background: #2a2a4a !important;
+    border: 1px solid #3a3a5d !important;
+    color: #d0d0e0 !important;
 }
 
 .detail .label {
@@ -939,7 +1452,7 @@ body.dark-mode .detail {
 }
 
 body.dark-mode .detail .label {
-    color: #bdc3c7;
+    color: #a0a0b0 !important;
 }
 
 .detail .value {
@@ -947,7 +1460,11 @@ body.dark-mode .detail .label {
     color: var(--primary-color);
 }
 
-/* ===== 커뮤니티 게시물 미리보기 (6개만 표시) ===== */
+body.dark-mode .detail .value {
+    color: #4fc3f7 !important;
+}
+
+/* ===== 커뮤니티 게시물 미리보기 ===== */
 .community-preview {
     background: var(--light-card);
     border-radius: var(--border-radius);
@@ -955,15 +1472,24 @@ body.dark-mode .detail .label {
     padding: 25px;
     margin-bottom: 30px;
     transition: var(--transition);
+    width: 100%;
 }
 
 body.dark-mode .community-preview {
-    background: var(--dark-card);
+    background: #25253d !important;
+    border: 1px solid #3a3a5d !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
 .community-preview:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-medium);
+}
+
+body.dark-mode .community-preview:hover {
+    background: #2a2a4a !important;
+    border-color: #4a4a6d !important;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
 }
 
 .community-header {
@@ -973,6 +1499,10 @@ body.dark-mode .community-preview {
     margin-bottom: 25px;
     padding-bottom: 15px;
     border-bottom: 2px solid rgba(52, 152, 219, 0.2);
+}
+
+body.dark-mode .community-header {
+    border-bottom: 2px solid rgba(79, 195, 247, 0.2) !important;
 }
 
 .community-header h3 {
@@ -985,7 +1515,7 @@ body.dark-mode .community-preview {
 }
 
 body.dark-mode .community-header h3 {
-    color: var(--dark-text);
+    color: #ffffff !important;
 }
 
 .view-all-btn {
@@ -1028,12 +1558,17 @@ body.dark-mode .community-header h3 {
 }
 
 body.dark-mode .post-item {
-    background: #34495e;
+    background: #2a2a4a !important;
+    border-left: 4px solid #4fc3f7 !important;
 }
 
 .post-item:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-light);
+}
+
+body.dark-mode .post-item:hover {
+    background: #3a3a5d !important;
 }
 
 .post-header {
@@ -1084,7 +1619,7 @@ body.dark-mode .post-time {
 }
 
 body.dark-mode .post-title {
-    color: var(--dark-text);
+    color: #ffffff !important;
 }
 
 .post-meta {
@@ -1126,15 +1661,24 @@ body.dark-mode .post-author {
     box-shadow: var(--shadow-light);
     overflow: hidden;
     transition: var(--transition);
+    width: 100%;
 }
 
 body.dark-mode .sidebar-card {
-    background: var(--dark-card);
+    background: #25253d !important;
+    border: 1px solid #3a3a5d !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
 .sidebar-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-medium);
+}
+
+body.dark-mode .sidebar-card:hover {
+    background: #2a2a4a !important;
+    border-color: #4a4a6d !important;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
 }
 
 .card-header {
@@ -1144,8 +1688,9 @@ body.dark-mode .sidebar-card {
 }
 
 body.dark-mode .card-header {
-    background: #34495e;
-    border-bottom: 1px solid var(--dark-border);
+    background: #2a2a4a !important;
+    border-bottom: 1px solid #3a3a5d !important;
+    color: #ffffff !important;
 }
 
 .card-header h3 {
@@ -1158,7 +1703,7 @@ body.dark-mode .card-header {
 }
 
 body.dark-mode .card-header h3 {
-    color: var(--dark-text);
+    color: #ffffff !important;
 }
 
 .card-content {
@@ -1180,7 +1725,9 @@ body.dark-mode .card-header h3 {
 }
 
 body.dark-mode .warning-status {
-    background: #34495e;
+    background: #2a2a4a !important;
+    border: 1px solid #3a3a5d !important;
+    color: #d0d0e0 !important;
 }
 
 .status-icon {
@@ -1201,6 +1748,10 @@ body.dark-mode .warning-status {
     font-size: 1.1rem;
 }
 
+body.dark-mode .warning-text strong {
+    color: #ffffff !important;
+}
+
 .warning-text p {
     color: #7f8c8d;
     font-size: 0.9rem;
@@ -1208,7 +1759,7 @@ body.dark-mode .warning-status {
 }
 
 body.dark-mode .warning-text p {
-    color: #bdc3c7;
+    color: #a0a0b0 !important;
 }
 
 /* 지도 카드 */
@@ -1223,6 +1774,13 @@ body.dark-mode .warning-text p {
     border-radius: var(--border-radius-sm);
     color: white;
     margin-bottom: 15px;
+}
+
+body.dark-mode .map-placeholder,
+body.dark-mode .radar-placeholder {
+    background: linear-gradient(135deg, #3a3a5d 0%, #2a2a4a 100%) !important;
+    color: #b0b0c0 !important;
+    border: 1px solid #4a4a6d !important;
 }
 
 .map-placeholder i,
@@ -1253,9 +1811,21 @@ body.dark-mode .warning-text p {
     transition: var(--transition);
 }
 
+body.dark-mode .map-control-btn {
+    background: #3a3a5d !important;
+    color: #b0b0c0 !important;
+    border: 1px solid #4a4a6d !important;
+}
+
 .map-control-btn:hover {
     background: var(--primary-dark);
     transform: translateY(-2px);
+}
+
+body.dark-mode .map-control-btn:hover {
+    background: #4fc3f7 !important;
+    color: white !important;
+    border-color: #4fc3f7 !important;
 }
 
 /* 지역별 AQI */
@@ -1277,15 +1847,26 @@ body.dark-mode .warning-text p {
 }
 
 body.dark-mode .region-item {
-    background: #34495e;
+    background: #2a2a4a !important;
+    border: 1px solid #3a3a5d !important;
+    color: #d0d0e0 !important;
 }
 
 .region-item:hover {
     transform: translateX(3px);
 }
 
+body.dark-mode .region-item:hover {
+    background: #3a3a5d !important;
+    border-color: #4a4a6d !important;
+}
+
 .region-name {
     font-weight: 500;
+}
+
+body.dark-mode .region-name {
+    color: #ffffff !important;
 }
 
 .region-aqi {
@@ -1312,14 +1893,22 @@ body.dark-mode .region-item {
     background: #f8f9fa;
     border-radius: var(--border-radius-sm);
     transition: var(--transition);
+    cursor: pointer;
 }
 
 body.dark-mode .region-weather {
-    background: #34495e;
+    background: #2a2a4a !important;
+    border: 1px solid #3a3a5d !important;
+    color: #d0d0e0 !important;
 }
 
 .region-weather:hover {
     transform: translateX(3px);
+}
+
+body.dark-mode .region-weather:hover {
+    background: #3a3a5d !important;
+    border-color: #4a4a6d !important;
 }
 
 .region-info {
@@ -1332,13 +1921,17 @@ body.dark-mode .region-weather {
     margin-bottom: 3px;
 }
 
+body.dark-mode .region-name {
+    color: #ffffff !important;
+}
+
 .region-weather-desc {
     font-size: 0.9rem;
     color: #7f8c8d;
 }
 
 body.dark-mode .region-weather-desc {
-    color: #bdc3c7;
+    color: #a0a0b0 !important;
 }
 
 .region-temp {
@@ -1365,8 +1958,9 @@ body.dark-mode .region-weather-desc {
 }
 
 body.dark-mode .radar-update-time {
-    background: #34495e;
-    color: #bdc3c7;
+    background: #2a2a4a !important;
+    border: 1px solid #3a3a5d !important;
+    color: #a0a0b0 !important;
 }
 
 /* ===== FOOTER STYLES ===== */
@@ -1378,7 +1972,8 @@ body.dark-mode .radar-update-time {
 }
 
 body.dark-mode .main-footer {
-    background: #1a252f;
+    background: #1a252f !important;
+    border-top: 1px solid #2d2d44 !important;
 }
 
 .footer-container {
@@ -1395,6 +1990,12 @@ body.dark-mode .main-footer {
     font-size: 1.1rem;
     margin-bottom: 10px;
     opacity: 0.9;
+}
+
+body.dark-mode .copyright,
+body.dark-mode .footer-info,
+body.dark-mode .project-info {
+    color: #a0a0b0 !important;
 }
 
 .footer-info {
@@ -1414,24 +2015,12 @@ body.dark-mode .main-footer {
     .main-container {
         grid-template-columns: 2fr 1fr;
     }
-
-    .weather-details-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .aqi-details {
-        grid-template-columns: repeat(2, 1fr);
-    }
 }
 
 @media (max-width: 1024px) {
     .main-container {
         grid-template-columns: 1fr;
         gap: 20px;
-    }
-
-    .forecast-tabs {
-        grid-template-columns: repeat(2, 1fr);
     }
 
     .location-header {
@@ -1443,7 +2032,6 @@ body.dark-mode .main-footer {
         text-align: left;
     }
 
-    /* 위치 제목 및 컨트롤 반응형 조정 */
     .location-title {
         flex-direction: row;
         align-items: center;
@@ -1477,32 +2065,10 @@ body.dark-mode .main-footer {
         padding: 20px;
     }
 
-    .weather-details-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .aqi-details {
-        grid-template-columns: 1fr;
-    }
-
     .tab-content {
         padding: 20px;
     }
 
-    .hourly-forecast-container {
-        padding: 15px 0;
-    }
-
-    .hour-item {
-        min-width: 80px;
-        padding: 15px 10px;
-    }
-
-    .forecast-summary {
-        grid-template-columns: 1fr;
-    }
-
-    /* 위치 제목 및 버튼 반응형 조정 */
     .location-title {
         align-items: flex-start;
         flex-direction: column;
@@ -1518,12 +2084,7 @@ body.dark-mode .main-footer {
         margin-top: 10px;
     }
 
-    .community-posts {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 480px) {
+    /* 메뉴 아이템 텍스트 숨김 */
     .menu-item span {
         display: none;
     }
@@ -1542,15 +2103,6 @@ body.dark-mode .main-footer {
 
     .current-temp {
         font-size: 3.5rem;
-    }
-
-    .forecast-tabs {
-        grid-template-columns: 1fr;
-    }
-
-    .tab-btn {
-        padding: 15px;
-        justify-content: flex-start;
     }
 
     /* 위치 컨트롤 버튼 작은 화면에서 아이콘만 표시 */
@@ -1608,7 +2160,7 @@ body.dark-mode .main-footer {
 }
 
 body.dark-mode ::-webkit-scrollbar-track {
-    background: #34495e;
+    background: #34495e !important;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -1617,7 +2169,7 @@ body.dark-mode ::-webkit-scrollbar-track {
 }
 
 body.dark-mode ::-webkit-scrollbar-thumb {
-    background: #7f8c8d;
+    background: #7f8c8d !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -1625,7 +2177,7 @@ body.dark-mode ::-webkit-scrollbar-thumb {
 }
 
 body.dark-mode ::-webkit-scrollbar-thumb:hover {
-    background: #95a5a6;
+    background: #95a5a6 !important;
 }
 
 /* ===== GPS 동기화 상태 표시 ===== */
@@ -1639,152 +2191,6 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
     border-color: rgba(231, 76, 60, 0.5) !important;
 }
 
-/* ===== 다크모드 스타일 개선 ===== */
-
-/* 다크모드 배경 및 텍스트 색상 */
-body.dark-mode {
-    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%) !important;
-    color: #e0e0e0 !important;
-}
-
-/* 다크모드 헤더 */
-body.dark-mode .main-header {
-    background: #1e1e2e !important;
-    border-bottom: 1px solid #2d2d44 !important;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3) !important;
-}
-
-body.dark-mode .header-container {
-    background: transparent !important;
-}
-
-/* 다크모드 로고 */
-body.dark-mode .logo-text {
-    background: linear-gradient(135deg, #4fc3f7, #29b6f6) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
-}
-
-/* 다크모드 메뉴 */
-body.dark-mode .menu-item {
-    color: #b0b0c0 !important;
-    background: transparent !important;
-}
-
-body.dark-mode .menu-item::before {
-    background: linear-gradient(135deg, #3a3a5d, #2d2d44) !important;
-}
-
-body.dark-mode .menu-item:hover,
-body.dark-mode .menu-item.active {
-    color: #ffffff !important;
-    background: linear-gradient(135deg, #3a3a5d, #2d2d44) !important;
-}
-
-body.dark-mode .menu-item.active::before {
-    opacity: 1 !important;
-    background: linear-gradient(135deg, #2196f3, #1976d2) !important;
-}
-
-/* 다크모드 컨트롤 버튼 */
-body.dark-mode .control-btn {
-    background: rgba(255, 255, 255, 0.08) !important;
-    color: #b0b0c0 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-body.dark-mode .control-btn:hover {
-    background: #2196f3 !important;
-    color: white !important;
-    border-color: #2196f3 !important;
-}
-
-/* 다크모드 유저 메뉴 버튼 */
-body.dark-mode .user-menu-btn {
-    background: linear-gradient(135deg, #3a3a5d, #2d2d44) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-body.dark-mode .user-menu-btn:hover {
-    background: linear-gradient(135deg, #4a4a6d, #3d3d54) !important;
-}
-
-/* 다크모드 드롭다운 */
-body.dark-mode .dropdown-content {
-    background: #25253d !important;
-    border: 1px solid #3a3a5d !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-}
-
-body.dark-mode .dropdown-content a {
-    color: #d0d0e0 !important;
-    border-bottom: 1px solid #3a3a5d !important;
-}
-
-body.dark-mode .dropdown-content a:hover {
-    background: #3a3a5d !important;
-    color: #ffffff !important;
-}
-
-body.dark-mode .dropdown-divider {
-    background: #3a3a5d !important;
-}
-
-/* 다크모드 인사말 */
-body.dark-mode .greeting-text {
-    color: #b0b0c0 !important;
-}
-
-body.dark-mode .greeting-text strong {
-    color: #4fc3f7 !important;
-}
-
-/* 다크모드 날씨 요약 카드 */
-body.dark-mode .weather-summary {
-    background: linear-gradient(135deg, #2a2a4a 0%, #1e1e3a 100%) !important;
-    color: #ffffff !important;
-}
-
-body.dark-mode .weather-summary::before {
-    background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px) !important;
-    background-size: 20px 20px !important;
-}
-
-/* 다크모드 날씨 상세 카드 */
-body.dark-mode .detail-card {
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-body.dark-mode .detail-card:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-/* 다크모드 대기질 요약 */
-body.dark-mode .air-quality-summary {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-body.dark-mode .aqi-item {
-    background: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-}
-
-/* 다크모드 GPS 동기화 버튼 */
-body.dark-mode .location-control-btn.gps-sync-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-}
-
-body.dark-mode .location-control-btn.gps-sync-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
 body.dark-mode .sync-success {
     background: rgba(46, 204, 113, 0.2) !important;
     border-color: rgba(46, 204, 113, 0.4) !important;
@@ -1795,317 +2201,7 @@ body.dark-mode .sync-error {
     border-color: rgba(231, 76, 60, 0.4) !important;
 }
 
-/* 다크모드 예보 섹션 */
-body.dark-mode .forecast-section {
-    background: #25253d !important;
-    border: 1px solid #3a3a5d !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* 다크모드 탭 버튼 */
-body.dark-mode .forecast-tabs {
-    background: #2a2a4a !important;
-    border-bottom: 1px solid #3a3a5d !important;
-}
-
-body.dark-mode .tab-btn {
-    color: #a0a0b0 !important;
-    background: transparent !important;
-}
-
-body.dark-mode .tab-btn:hover {
-    color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-}
-
-body.dark-mode .tab-btn.active {
-    color: #4fc3f7 !important;
-    background: rgba(79, 195, 247, 0.1) !important;
-}
-
-body.dark-mode .tab-btn.active::before {
-    background: #4fc3f7 !important;
-}
-
-/* 다크모드 시간별 예보 */
-body.dark-mode .hour-item {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    color: #d0d0e0 !important;
-}
-
-body.dark-mode .hour-item:hover {
-    background: #3a3a5d !important;
-    border-color: #4a4a6d !important;
-    transform: translateY(-5px) !important;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
-}
-
-body.dark-mode .hour-time {
-    color: #b0b0c0 !important;
-}
-
-body.dark-mode .hour-icon {
-    color: #4fc3f7 !important;
-}
-
-/* 다크모드 주간 예보 */
-body.dark-mode .day-item {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    color: #d0d0e0 !important;
-}
-
-body.dark-mode .day-item:hover {
-    background: #3a3a5d !important;
-    border-color: #4a4a6d !important;
-    transform: translateX(5px) !important;
-}
-
-body.dark-mode .day-name {
-    color: #ffffff !important;
-}
-
-body.dark-mode .day-icon {
-    color: #4fc3f7 !important;
-}
-
-/* 다크모드 예보 요약 카드 */
-body.dark-mode .summary-card {
-    background: #25253d !important;
-    border: 1px solid #3a3a5d !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-}
-
-body.dark-mode .summary-card:hover {
-    background: #2a2a4a !important;
-    border-color: #4a4a6d !important;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
-}
-
-body.dark-mode .summary-text {
-    color: #c0c0d0 !important;
-}
-
-body.dark-mode .summary-range {
-    color: #a0a0b0 !important;
-}
-
-body.dark-mode .detail {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    color: #d0d0e0 !important;
-}
-
-body.dark-mode .detail .label {
-    color: #a0a0b0 !important;
-}
-
-body.dark-mode .detail .value {
-    color: #4fc3f7 !important;
-}
-
-/* 다크모드 커뮤니티 미리보기 */
-body.dark-mode .community-preview {
-    background: #25253d !important;
-    border: 1px solid #3a3a5d !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-}
-
-body.dark-mode .community-preview:hover {
-    background: #2a2a4a !important;
-    border-color: #4a4a6d !important;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
-}
-
-body.dark-mode .community-header h3 {
-    color: #ffffff !important;
-}
-
-body.dark-mode .community-header {
-    border-bottom: 2px solid rgba(79, 195, 247, 0.2) !important;
-}
-
-body.dark-mode .post-item {
-    background: #2a2a4a !important;
-    border-left: 4px solid #4fc3f7 !important;
-}
-
-body.dark-mode .post-item:hover {
-    background: #3a3a5d !important;
-}
-
-body.dark-mode .post-title {
-    color: #ffffff !important;
-}
-
-body.dark-mode .post-time {
-    color: #b0b0c0 !important;
-}
-
-body.dark-mode .post-author {
-    color: #b0b0c0 !important;
-}
-
-/* 다크모드 사이드바 카드 */
-body.dark-mode .sidebar-card {
-    background: #25253d !important;
-    border: 1px solid #3a3a5d !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-}
-
-body.dark-mode .sidebar-card:hover {
-    background: #2a2a4a !important;
-    border-color: #4a4a6d !important;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
-}
-
-body.dark-mode .card-header {
-    background: #2a2a4a !important;
-    border-bottom: 1px solid #3a3a5d !important;
-    color: #ffffff !important;
-}
-
-body.dark-mode .card-header h3 {
-    color: #ffffff !important;
-}
-
-body.dark-mode .card-content {
-    background: transparent !important;
-}
-
-/* 다크모드 경고 상태 */
-body.dark-mode .warning-status {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    color: #d0d0e0 !important;
-}
-
-body.dark-mode .warning-text strong {
-    color: #ffffff !important;
-}
-
-body.dark-mode .warning-text p {
-    color: #a0a0b0 !important;
-}
-
-/* 다크모드 지도 및 레이더 플레이스홀더 */
-body.dark-mode .map-placeholder,
-body.dark-mode .radar-placeholder {
-    background: linear-gradient(135deg, #3a3a5d 0%, #2a2a4a 100%) !important;
-    color: #b0b0c0 !important;
-    border: 1px solid #4a4a6d !important;
-}
-
-/* 다크모드 맵 컨트롤 버튼 */
-body.dark-mode .map-control-btn {
-    background: #3a3a5d !important;
-    color: #b0b0c0 !important;
-    border: 1px solid #4a4a6d !important;
-}
-
-body.dark-mode .map-control-btn:hover {
-    background: #4fc3f7 !important;
-    color: white !important;
-    border-color: #4fc3f7 !important;
-}
-
-/* 다크모드 지역별 AQI */
-body.dark-mode .region-item {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    color: #d0d0e0 !important;
-}
-
-body.dark-mode .region-item:hover {
-    background: #3a3a5d !important;
-    border-color: #4a4a6d !important;
-}
-
-body.dark-mode .region-name {
-    color: #ffffff !important;
-}
-
-/* 다크모드 지역별 날씨 */
-body.dark-mode .region-weather {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    color: #d0d0e0 !important;
-}
-
-body.dark-mode .region-weather:hover {
-    background: #3a3a5d !important;
-    border-color: #4a4a6d !important;
-}
-
-body.dark-mode .region-weather-desc {
-    color: #a0a0b0 !important;
-}
-
-/* 다크모드 레이더 업데이트 시간 */
-body.dark-mode .radar-update-time {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    color: #a0a0b0 !important;
-}
-
-/* 다크모드 푸터 */
-body.dark-mode .main-footer {
-    background: #1a1a2e !important;
-    border-top: 1px solid #2d2d44 !important;
-}
-
-body.dark-mode .copyright,
-body.dark-mode .footer-info,
-body.dark-mode .project-info {
-    color: #a0a0b0 !important;
-}
-
-/* 다크모드 스크롤바 */
-body.dark-mode::-webkit-scrollbar-track {
-    background: #2a2a4a !important;
-}
-
-body.dark-mode::-webkit-scrollbar-thumb {
-    background: #3a3a5d !important;
-}
-
-body.dark-mode::-webkit-scrollbar-thumb:hover {
-    background: #4a4a6d !important;
-}
-
-/* 다크모드 입력 필드 및 버튼 */
-body.dark-mode input,
-body.dark-mode select,
-body.dark-mode textarea {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    color: #ffffff !important;
-}
-
-body.dark-mode input::placeholder,
-body.dark-mode textarea::placeholder {
-    color: #a0a0b0 !important;
-}
-
-body.dark-mode button:not(.control-btn):not(.user-menu-btn):not(.tab-btn):not(.location-control-btn):not(.map-control-btn):not(.view-all-btn) {
-    background: #3a3a5d !important;
-    color: #ffffff !important;
-    border: 1px solid #4a4a6d !important;
-}
-
-body.dark-mode button:hover:not(.control-btn):not(.user-menu-btn):not(.tab-btn):not(.location-control-btn):not(.map-control-btn):not(.view-all-btn) {
-    background: #4a4a6d !important;
-    border-color: #5a5a7d !important;
-}
-
-/* 다크모드 강제 적용을 위한 !important */
-body.dark-mode {
-    background-color: #0f0f23 !important;
-    color: #e0e0e0 !important;
-}
-
-/* 다크모드 전환 애니메이션 */
+/* ===== 다크모드 전환 애니메이션 ===== */
 body,
 .main-header,
 .weather-summary,
@@ -2134,4 +2230,115 @@ body,
     color 0.3s ease,
     transform 0.3s ease,
     box-shadow 0.3s ease;
+}
+
+/* ===== 반응형 추가 조정 ===== */
+@media (max-width: 1200px) {
+    .hour-item, .tomorrow-hour-item {
+        min-width: 110px;
+        padding: 15px 10px;
+        height: 150px;
+    }
+
+    .day-item {
+        min-width: 140px;
+        height: 180px;
+        padding: 15px;
+    }
+
+    .aqi-forecast-item {
+        min-width: 160px;
+        height: 160px;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .horizontal-forecast-card {
+        min-height: 250px;
+    }
+
+    .horizontal-scroll-container {
+        padding: 15px 20px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .hour-item, .tomorrow-hour-item {
+        min-width: 100px;
+        padding: 12px 8px;
+        height: 140px;
+    }
+
+    .hour-icon, .tomorrow-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .hour-temp, .tomorrow-temp {
+        font-size: 1.5rem;
+    }
+
+    .day-item {
+        min-width: 130px;
+        height: 170px;
+        padding: 12px;
+    }
+
+    .temp-value {
+        font-size: 1.2rem;
+    }
+
+    .aqi-forecast-item {
+        min-width: 140px;
+        height: 150px;
+        padding: 12px;
+    }
+
+    .aqi-forecast-value {
+        font-size: 1.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hour-item, .tomorrow-hour-item {
+        min-width: 90px;
+        padding: 10px 6px;
+        height: 130px;
+    }
+
+    .hour-time, .tomorrow-time {
+        font-size: 0.9rem;
+    }
+
+    .hour-icon, .tomorrow-icon {
+        font-size: 1.8rem;
+    }
+
+    .hour-temp, .tomorrow-temp {
+        font-size: 1.3rem;
+    }
+
+    .day-item {
+        min-width: 120px;
+        height: 160px;
+        padding: 10px;
+    }
+
+    .aqi-forecast-item {
+        min-width: 130px;
+        height: 140px;
+        padding: 10px;
+    }
+
+    .horizontal-scroll-container {
+        padding: 12px;
+        max-width: calc(100% - 24px);
+    }
+
+    .hourly-forecast-items,
+    .tomorrow-forecast-items,
+    .weekly-forecast-items,
+    .aqi-forecast-items {
+        gap: 12px;
+    }
 }

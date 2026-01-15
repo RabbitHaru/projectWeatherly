@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.shinsunyoung.projectweatherly.common.config.ApiConfig;
 import me.shinsunyoung.projectweatherly.common.dto.LocationDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,9 +22,7 @@ public class LocationService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-
-    @Value("${weatherly.api.ipinfo.url}")
-    private String ipInfoUrl;
+    private final ApiConfig apiConfig;
 
     @Value("${weatherly.service.default-region}")
     private String defaultRegion;
@@ -30,41 +30,60 @@ public class LocationService {
     @Value("${weatherly.service.default-region-code}")
     private String defaultRegionCode;
 
-    /**
-     * IP 주소로부터 위치 정보 조회
-     */
     @Cacheable(value = "locationCache", key = "#ipAddress")
     public LocationDTO getLocationByIp(String ipAddress) {
         try {
-            String url = ipInfoUrl;
+            String url = apiConfig.getIpInfoUrl();
             if (!ipAddress.equals("127.0.0.1") && !ipAddress.equals("0:0:0:0:0:0:0:1")) {
-                url = ipInfoUrl + "/" + ipAddress;
+                url = apiConfig.getIpInfoUrl() + "/" + ipAddress + "/json";
             }
 
-            String response = restTemplate.getForObject(url, String.class);
-            JsonNode node = objectMapper.readTree(response);
+            log.info("IP 기반 위치 조회 URL: {}", url);
 
-            LocationDTO location = new LocationDTO();
-            location.setIpAddress(ipAddress);
-            location.setCity(node.get("city").asText());
-            location.setCountry(node.get("country").asText());
-            location.setRegionName(node.get("regionName").asText());
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
-            // 도시명을 기반으로 지역 코드 매핑 (간단한 예시)
-            location.setRegionCode(mapCityToRegionCode(location.getCity()));
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                JsonNode node = objectMapper.readTree(response.getBody());
 
-            log.info("IP 기반 위치 정보 조회 성공: {}", location);
-            return location;
+                LocationDTO location = new LocationDTO();
+                location.setIpAddress(ipAddress);
+
+                if (node.has("city") && !node.get("city").isNull()) {
+                    String city = node.get("city").asText();
+                    location.setCity(city);
+                    location.setRegionName(city + "시");
+                } else if (node.has("region") && !node.get("region").isNull()) {
+                    location.setRegionName(node.get("region").asText());
+                } else {
+                    location.setRegionName(defaultRegion);
+                }
+
+                if (node.has("loc") && !node.get("loc").isNull()) {
+                    String[] loc = node.get("loc").asText().split(",");
+                    if (loc.length == 2) {
+                        try {
+                            location.setLatitude(Double.parseDouble(loc[0]));
+                            location.setLongitude(Double.parseDouble(loc[1]));
+                        } catch (NumberFormatException e) {
+                            log.warn("위치 좌표 파싱 실패: {}", e.getMessage());
+                        }
+                    }
+                }
+
+                location.setCountry(node.has("country") ? node.get("country").asText() : "South Korea");
+                location.setRegionCode(mapCityToRegionCode(location.getRegionName()));
+
+                log.info("IP 기반 위치 정보 조회 성공: {}, {}", location.getRegionName(), location.getCountry());
+                return location;
+            }
 
         } catch (Exception e) {
             log.warn("IP 기반 위치 정보 조회 실패, 기본 위치 사용: {}", e.getMessage());
-            return getDefaultLocation();
         }
+
+        return getDefaultLocation();
     }
 
-    /**
-     * 클라이언트 IP 주소 추출
-     */
     public String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
 
@@ -84,7 +103,6 @@ public class LocationService {
             ip = request.getRemoteAddr();
         }
 
-        // 로컬호스트 IP 변환
         if ("127.0.0.1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip)) {
             try {
                 ip = InetAddress.getLocalHost().getHostAddress();
@@ -93,65 +111,127 @@ public class LocationService {
             }
         }
 
-        return ip.split(",")[0].trim(); // 첫 번째 IP 반환
+        return ip != null ? ip.split(",")[0].trim() : "127.0.0.1";
     }
 
-    /**
-     * GPS 좌표로부터 위치 정보 조회 (카카오 API 사용)
-     */
     @Cacheable(value = "gpsLocationCache", key = "#latitude + ',' + #longitude")
     public LocationDTO getLocationByGps(Double latitude, Double longitude) {
         try {
-            // 카카오 로컬 API로 좌표 → 주소 변환
-            String url = "https://dapi.kakao.com/v2/local/geo/coord2address.json" +
-                    "?x=" + longitude + "&y=" + latitude + "&input_coord=WGS84";
+            String url = apiConfig.getKakaoApiUrl() + "/v2/local/geo/coord2address.json" +
+                    "?x=" + longitude +
+                    "&y=" + latitude +
+                    "&input_coord=WGS84";
 
-            // 실제 구현 시에는 API 키 헤더 추가 필요
-            // String response = restTemplate.exchange(url, HttpMethod.GET,
-            //     new HttpEntity<>(createHeaders(apiKey)), String.class).getBody();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "KakaoAK " + apiConfig.getKakaoApiKey());
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // 임시 더미 데이터 반환 (실제 구현 시 API 연동)
-            LocationDTO location = new LocationDTO();
-            location.setLatitude(latitude);
-            location.setLongitude(longitude);
-            location.setRegionName("서울특별시");
-            location.setRegionCode("1100000000");
-            location.setAddress("서울특별시 중구");
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url, HttpMethod.GET, entity, String.class);
 
-            log.info("GPS 기반 위치 정보 조회 성공: {}", location);
-            return location;
+            log.info("GPS 기반 위치 조회 응답 상태: {}", response.getStatusCode());
 
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                JsonNode root = objectMapper.readTree(response.getBody());
+                JsonNode documents = root.path("documents");
+
+                if (documents.isArray() && documents.size() > 0) {
+                    JsonNode firstDoc = documents.get(0);
+                    JsonNode address = firstDoc.path("address");
+
+                    LocationDTO location = new LocationDTO();
+                    location.setLatitude(latitude);
+                    location.setLongitude(longitude);
+
+                    String region1 = address.path("region_1depth_name").asText();
+                    String region2 = address.path("region_2depth_name").asText();
+                    String region3 = address.path("region_3depth_name").asText();
+
+                    location.setRegionName(region1);
+                    location.setCity(region2);
+
+                    // 상세 주소 구성
+                    StringBuilder addressBuilder = new StringBuilder();
+                    if (region3 != null && !region3.isEmpty()) {
+                        addressBuilder.append(region3);
+                    }
+                    if (firstDoc.has("road_address")) {
+                        JsonNode roadAddress = firstDoc.path("road_address");
+                        if (roadAddress.has("building_name") && !roadAddress.path("building_name").isNull()) {
+                            if (addressBuilder.length() > 0) addressBuilder.append(" ");
+                            addressBuilder.append(roadAddress.path("building_name").asText());
+                        }
+                    }
+
+                    location.setAddress(addressBuilder.length() > 0 ? addressBuilder.toString() : region2);
+                    location.setRegionCode(mapRegionToRegionCode(region1, region2));
+
+                    log.info("GPS 기반 위치 정보 조회 성공: {} {}", location.getRegionName(), location.getAddress());
+                    return location;
+                }
+            }
         } catch (Exception e) {
-            log.error("GPS 기반 위치 정보 조회 실패", e);
-            throw new RuntimeException("위치 정보를 가져올 수 없습니다.");
+            log.warn("GPS 기반 위치 정보 조회 실패: {}", e.getMessage());
         }
+
+        return getDefaultLocation();
     }
 
-    /**
-     * 기본 위치 정보 반환
-     */
     private LocationDTO getDefaultLocation() {
         LocationDTO location = new LocationDTO();
         location.setRegionName(defaultRegion);
         location.setRegionCode(defaultRegionCode);
         location.setCity(defaultRegion);
         location.setCountry("South Korea");
+        location.setAddress("기본 위치");
         return location;
     }
 
-    /**
-     * 도시명을 지역 코드로 매핑 (간단한 예시)
-     */
-    private String mapCityToRegionCode(String city) {
-        return switch (city) {
-            case "Seoul" -> "1100000000";
-            case "Busan" -> "2600000000";
-            case "Incheon" -> "2800000000";
-            case "Daegu" -> "2700000000";
-            case "Daejeon" -> "3000000000";
-            case "Gwangju" -> "2900000000";
-            case "Ulsan" -> "3100000000";
-            default -> defaultRegionCode;
-        };
+    private String mapCityToRegionCode(String regionName) {
+        if (regionName == null) return defaultRegionCode;
+
+        if (regionName.contains("서울")) return "1100000000";
+        if (regionName.contains("부산")) return "2600000000";
+        if (regionName.contains("인천")) return "2800000000";
+        if (regionName.contains("대구")) return "2700000000";
+        if (regionName.contains("대전")) return "3000000000";
+        if (regionName.contains("광주")) return "2900000000";
+        if (regionName.contains("울산")) return "3100000000";
+        if (regionName.contains("경기")) return "4100000000";
+        if (regionName.contains("강원")) return "4200000000";
+        if (regionName.contains("충북")) return "4300000000";
+        if (regionName.contains("충남")) return "4400000000";
+        if (regionName.contains("전북")) return "4500000000";
+        if (regionName.contains("전남")) return "4600000000";
+        if (regionName.contains("경북")) return "4700000000";
+        if (regionName.contains("경남")) return "4800000000";
+        if (regionName.contains("제주")) return "5000000000";
+
+        return defaultRegionCode;
+    }
+
+    private String mapRegionToRegionCode(String regionName, String region2depthName) {
+        if (regionName == null) return defaultRegionCode;
+
+        switch (regionName) {
+            case "서울특별시": return "1100000000";
+            case "부산광역시": return "2600000000";
+            case "인천광역시": return "2800000000";
+            case "대구광역시": return "2700000000";
+            case "대전광역시": return "3000000000";
+            case "광주광역시": return "2900000000";
+            case "울산광역시": return "3100000000";
+            case "경기도": return "4100000000";
+            case "강원도": return "4200000000";
+            case "충청북도": return "4300000000";
+            case "충청남도": return "4400000000";
+            case "전라북도": return "4500000000";
+            case "전라남도": return "4600000000";
+            case "경상북도": return "4700000000";
+            case "경상남도": return "4800000000";
+            case "제주특별자치도": return "5000000000";
+            default: return defaultRegionCode;
+        }
     }
 }

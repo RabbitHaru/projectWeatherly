@@ -27,5 +27,12 @@ public interface WeatherRepository extends JpaRepository<Weather, Long> {
             @Param("regionCode") String regionCode,
             @Param("dateTime") LocalDateTime dateTime);
 
+    @Query("SELECT w FROM Weather w WHERE w.regionCode = :regionCode " +
+            "AND w.createdAt >= :dateTime " +
+            "ORDER BY w.createdAt DESC")
+    List<Weather> findRecentWeather(
+            @Param("regionCode") String regionCode,
+            @Param("dateTime") LocalDateTime dateTime);
+
     void deleteByCreatedAtBefore(LocalDateTime dateTime);
 }
