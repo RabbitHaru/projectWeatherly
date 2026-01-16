@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class AirQualityApiService {
                     .queryParam("pageNo", 1)
                     .queryParam("sidoName", sidoName)
                     .queryParam("ver", "1.3")
+                    .encode(StandardCharsets.UTF_8)
                     .build()
                     .toUri();
 
@@ -143,7 +145,7 @@ public class AirQualityApiService {
     /**
      * 대기질 예보 정보 조회
      */
-    @Cacheable(value = "airQualityForecast", key = "#sidoName")
+//    @Cacheable(value = "airQualityForecast", key = "#sidoName")
     public List<AirQualityResponseDTO.AirQualityForecast> getAirQualityForecast(String sidoName) {
         try {
             String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

@@ -19,8 +19,8 @@
     --light-text: #333333;
     --light-card: #ffffff;
     --light-border: #e9ecef;
-    --card-bg: #ffffff;  /* 추가 */
-    --text-color: #333333;  /* 추가 */
+    --card-bg: #ffffff;
+    --text-color: #333333;
 
     --dark-bg: #1a1a2e;
     --dark-secondary: #16213e;
@@ -391,12 +391,17 @@ body.dark-mode .dropdown-divider {
     padding: 0 20px;
     overflow-x: hidden;
     width: 100%;
+    min-width: 0;
 }
 
 @media (max-width: 1200px) {
     .main-container {
         grid-template-columns: 1fr;
     }
+}
+
+.main-content {
+    min-width: 0;
 }
 
 /* 날씨 요약 섹션 */
@@ -429,6 +434,9 @@ body.dark-mode .weather-summary {
 
 /* 위치 정보 및 컨트롤 스타일 */
 .location-info {
+    display: flex;
+    flex-direction: column; /* 세로 정렬: 위에는 제목줄, 아래는 시간 */
+    gap: 5px;
     flex: 1;
 }
 
@@ -439,38 +447,39 @@ body.dark-mode .weather-summary {
     margin-bottom: 30px;
 }
 
+/* 제목 줄 (아이콘 + 지역명 + 버튼) */
 .location-title {
     display: flex;
-    align-items: center;
-    gap: 15px;
+    align-items: center; /* 수직 중앙 정렬 */
+    gap: 15px; /* 요소 간 간격 */
     font-size: 2.2rem;
-    margin: 0 0 10px 0;
-    flex-wrap: wrap;
-    width: 100%;
+    margin: 0;
+    line-height: 1.2;
 }
 
 .location-name {
     font-weight: 700;
     color: white;
-    margin-right: 0;
 }
 
+/* 위치 동기화 버튼 스타일 */
 .location-control-btn.gps-sync-btn {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 8px 15px;
+    padding: 6px 15px; /* 패딩 미세 조정 */
     border-radius: 20px;
     cursor: pointer;
     font-size: 0.9rem;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     transition: var(--transition);
     backdrop-filter: blur(5px);
     white-space: nowrap;
-    margin-left: 10px;
-    height: 36px;
+    height: 36px; /* 높이 고정 */
+    margin: 0; /* 불필요한 마진 제거 */
 }
 
 body.dark-mode .location-control-btn.gps-sync-btn {
@@ -489,21 +498,21 @@ body.dark-mode .location-control-btn.gps-sync-btn {
     color: #2ecc71;
 }
 
+/* 시간 정보 (제목 아래로 이동됨) */
 .location-meta {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-    margin-top: 10px;
-    width: 100%;
+    align-items: center;
+    margin-top: 5px; /* 제목과의 간격 */
+    padding-left: 2px; /* 시각적 보정 */
 }
 
 .current-time {
-    font-size: 1.1rem;
+    font-size: 1rem; /* 크기 약간 축소 */
     opacity: 0.9;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 5px 15px;
-    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.1); /* 배경 추가하여 가독성 확보 */
+    padding: 4px 12px;
+    border-radius: 15px;
 }
 
 /* GPS 버튼 애니메이션 */
@@ -765,7 +774,7 @@ body.dark-mode .forecast-tabs {
 }
 
 body.dark-mode .tab-btn {
-    color: #a0a0b0 !important;
+    color: #d0d0e0 !important;
     background: transparent !important;
 }
 
@@ -788,12 +797,12 @@ body.dark-mode .tab-btn {
 
 body.dark-mode .tab-btn:hover {
     color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
 }
 
 body.dark-mode .tab-btn.active {
     color: #4fc3f7 !important;
-    background: rgba(79, 195, 247, 0.1) !important;
+    background: rgba(79, 195, 247, 0.15) !important;
 }
 
 .tab-btn.active::before {
@@ -813,19 +822,18 @@ body.dark-mode .tab-btn.active::before {
     display: block;
 }
 
-/* 가로 스크롤 카드 공통 스타일 */
+/* ===== 가로 스크롤 카드 공통 스타일 (높이 제한 해제) ===== */
 .horizontal-forecast-card {
     background: var(--light-card);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-light);
     overflow: hidden;
     min-height: 280px;
+    height: auto;
     display: flex;
     flex-direction: column;
     max-width: 100%;
     width: 100%;
-    /* 아래 속성 추가 */
-    overflow: hidden; /* 카드 자체는 넘치지 않도록 */
 }
 
 body.dark-mode .horizontal-forecast-card {
@@ -880,21 +888,19 @@ body.dark-mode .card-subtitle {
     color: #bdc3c7;
 }
 
-/* 가로 스크롤 컨테이너 */
+/* ===== 가로 스크롤 컨테이너 (스크롤바 공간 확보) ===== */
 .horizontal-scroll-container {
     flex: 1;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 20px 25px;
+    padding: 20px 25px 30px 25px;
     position: relative;
-    min-height: 200px;
+    height: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--primary-color) #f0f0f0;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    /* 아래 속성 추가 - 스크롤이 발생해도 레이아웃을 벗어나지 않도록 */
-    max-width: calc(100% - 50px); /* 패딩 고려 */
 }
 
 .horizontal-scroll-container::-webkit-scrollbar {
@@ -965,26 +971,8 @@ body.dark-mode .horizontal-scroll-container::after {
     opacity: 1;
 }
 
-/* ===== 스크롤 가능 표시를 위한 클래스 ===== */
 .has-scroll {
     position: relative;
-}
-
-/* ===== 메인 컨테이너 그리드 안정화 ===== */
-.main-container {
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-    gap: 30px;
-    max-width: 1600px;
-    margin: 30px auto;
-    padding: 0 20px;
-    /* 아래 속성 추가 - 내부 요소가 그리드를 벗어나지 않도록 */
-    min-width: 0; /* 중요: 그리드 아이템 내부에서 넘치지 않도록 */
-}
-
-/* 메인 콘텐츠 영역에도 min-width: 0 추가 */
-.main-content {
-    min-width: 0; /* 중요: 플렉스/그리드 아이템 내부 오버플로우 방지 */
 }
 
 body.dark-mode .horizontal-scroll-container::before {
@@ -1007,163 +995,189 @@ body.dark-mode .horizontal-scroll-container::before {
     align-items: stretch;
     height: 100%;
     box-sizing: border-box;
-    /* 아래 속성 추가 - 플렉스 아이템이 줄바꿈되지 않도록 */
     flex-wrap: nowrap;
 }
 
-/* ===== 시간별 아이템 스타일 ===== */
-.hour-item, .tomorrow-hour-item {
-    display: inline-flex;
+/* ===== 시간별/내일/주간/미세먼지 아이템 공통 스타일 (통일됨) ===== */
+.hour-item,
+.tomorrow-hour-item,
+.day-item,
+.aqi-forecast-item {
+    height: auto !important; /* 높이 자동 조절 */
+    min-height: 180px; /* 최소 높이 보장 */
+    display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
+    justify-content: space-between;
     padding: 20px 15px;
-    background: #f8f9fa;
+
+    /* [Light Mode] 통일된 배경 및 테두리 */
+    background: #ffffff;
+    border: 1px solid #e9ecef;
     border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+
     transition: all 0.3s ease;
     flex-shrink: 0;
     text-align: center;
     position: relative;
-    height: 160px;
     box-sizing: border-box;
+    min-width: 25%;
+    width: auto;
+}
+
+/* 너비 설정 */
+.hour-item, .tomorrow-hour-item {
+    min-width: 120px;
     max-width: 180px;
     width: auto;
 }
 
-body.dark-mode .hour-item,
-body.dark-mode .tomorrow-hour-item {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+.day-item {
+    min-width: 160px;
+    max-width: 250px;
+    width: 250px;
 }
 
+
+
+/* 호버 효과 (공통) */
 .hour-item:hover,
-.tomorrow-hour-item:hover {
+.tomorrow-hour-item:hover,
+.day-item:hover,
+.aqi-forecast-item:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+/* =========================================
+   [Dark Mode] 디자인 통일 및 가독성 확보
+   ========================================= */
+body.dark-mode .hour-item,
+body.dark-mode .tomorrow-hour-item,
+body.dark-mode .day-item,
+body.dark-mode .aqi-forecast-item {
+    /* [Dark Mode] 배경색 통일: 차분한 다크 그레이 */
+    background: #34495e !important;
+    border: 1px solid #4a6278 !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important;
 }
 
 body.dark-mode .hour-item:hover,
-body.dark-mode .tomorrow-hour-item:hover {
-    background: #3a3a5d !important;
-    border-color: #4a4a6d !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
+body.dark-mode .tomorrow-hour-item:hover,
+body.dark-mode .day-item:hover,
+body.dark-mode .aqi-forecast-item:hover {
+    background: #3b526b !important; /* 호버 시 약간 밝게 */
+    border-color: #64b5f6 !important; /* 호버 시 테두리 밝은 파랑 */
 }
 
-.hour-time, .tomorrow-time {
+/* 1. 최상단 헤더 텍스트 (시간, 요일, 날짜) */
+.hour-time, .tomorrow-time, .day-name, .aqi-forecast-header h5 {
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 10px;
     color: var(--secondary-color);
 }
 
 body.dark-mode .hour-time,
-body.dark-mode .tomorrow-time {
-    color: #b0b0c0 !important;
+body.dark-mode .tomorrow-time,
+body.dark-mode .day-name,
+body.dark-mode .aqi-forecast-header h5 {
+    color: #ffffff !important; /* 다크모드: 흰색 */
 }
 
-.hour-icon, .tomorrow-icon {
+/* 2. 보조 텍스트 (날짜, 지역 등) */
+.day-date, .aqi-forecast-region {
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+}
+
+body.dark-mode .day-date,
+body.dark-mode .aqi-forecast-region {
+    color: #d0d0d0 !important; /* 다크모드: 밝은 회색 */
+}
+
+/* 3. 아이콘 색상 (공통) */
+.hour-icon, .tomorrow-icon, .temp-icon {
     font-size: 2.5rem;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     color: var(--primary-color);
-    height: 40px;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.hour-temp, .tomorrow-temp {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: var(--accent-color);
+body.dark-mode .hour-icon,
+body.dark-mode .tomorrow-icon,
+body.dark-mode .temp-icon {
+    color: #64b5f6 !important; /* 다크모드: 밝은 파랑 아이콘 */
 }
 
-.hour-pop, .tomorrow-pop {
-    font-size: 0.9rem;
-    color: #3498db;
-    background: rgba(52, 152, 219, 0.1);
-    padding: 4px 10px;
-    border-radius: 15px;
-    margin-top: 5px;
-}
-
-.hour-humidity, .tomorrow-wind {
-    font-size: 0.8rem;
+/* 4. 주요 수치 (온도, AQI 값) - 가장 잘 보여야 함 */
+.hour-temp, .tomorrow-temp, .temp-value, .aqi-forecast-value {
+    font-size: 1.6rem;
+    font-weight: 800;
     color: var(--secondary-color);
+    margin: 5px 0;
+}
+
+body.dark-mode .hour-temp,
+body.dark-mode .tomorrow-temp,
+body.dark-mode .temp-value,
+body.dark-mode .aqi-forecast-value {
+    color: #ffffff !important; /* 다크모드: 흰색 (가장 강조) */
+}
+
+/* 5. 날씨 상태 텍스트 (흐림, 맑음 등) - 잘 안 보이던 부분 수정 */
+.temp-condition {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    font-weight: 600;
+}
+
+body.dark-mode .temp-condition {
+    color: #e0e0e0 !important; /* 다크모드: 아주 밝은 회색 */
+}
+
+/* 6. 하단 보조 정보 (습도, 바람) */
+.hour-humidity, .tomorrow-wind {
+    font-size: 0.85rem;
+    color: #7f8c8d;
     margin-top: 5px;
-    opacity: 0.8;
 }
 
 body.dark-mode .hour-humidity,
 body.dark-mode .tomorrow-wind {
-    color: #bdc3c7;
+    color: #bdc3c7 !important; /* 다크모드: 밝은 실버 */
 }
 
-/* ===== 주간 아이템 스타일 ===== */
-.day-item {
-    display: inline-flex;
-    flex-direction: column;
-    min-width: 160px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-    text-align: center;
-    height: 200px;
-    justify-content: space-between;
-    box-sizing: border-box;
-    max-width: 180px;
-    width: auto;
+/* 7. 강수확률/POP 배지 */
+.hour-pop, .tomorrow-pop, .day-pop {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2980b9;
+    background: rgba(52, 152, 219, 0.15);
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-top: 5px;
+    display: inline-block;
 }
 
-body.dark-mode .day-item {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+body.dark-mode .hour-pop,
+body.dark-mode .tomorrow-pop,
+body.dark-mode .day-pop {
+    color: #81d4fa !important; /* 다크모드: 밝은 하늘색 텍스트 */
+    background: rgba(129, 212, 250, 0.2) !important; /* 다크모드: 반투명 배경 */
 }
 
-.day-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-body.dark-mode .day-item:hover {
-    background: #3a3a5d !important;
-    border-color: #4a4a6d !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
-}
-
-.day-header {
-    margin-bottom: 15px;
-}
-
-.day-name {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--secondary-color);
-    margin-bottom: 5px;
-}
-
-body.dark-mode .day-name {
-    color: #ffffff !important;
-}
-
-.day-date {
-    font-size: 1rem;
-    color: var(--secondary-color);
-    opacity: 0.8;
-}
-
+/* ===== 주간 예보 내부 구조 (오전/오후 박스) ===== */
 .day-temps {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 15px;
-    gap: 10px;
+    gap: 8px;
+    width: 100%;
 }
 
 .temp-am, .temp-pm {
@@ -1171,117 +1185,36 @@ body.dark-mode .day-name {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px;
+    padding: 10px 5px;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.02);
+    background: #f1f3f5; /* Light Mode: 연한 회색 */
 }
 
 body.dark-mode .temp-am,
 body.dark-mode .temp-pm {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: rgba(0, 0, 0, 0.2) !important; /* Dark Mode: 어두운 반투명 */
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* 오전/오후 라벨 */
 .temp-label {
-    font-size: 0.8rem;
-    color: var(--secondary-color);
-    margin-bottom: 5px;
-    font-weight: 500;
-}
-
-.temp-value {
-    font-size: 1.4rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    color: var(--text-color);
-    margin-bottom: 8px;
-}
-
-.temp-icon {
-    font-size: 1.8rem;
-    margin-bottom: 5px;
-    color: var(--primary-color);
-}
-
-.temp-condition {
-    font-size: 0.8rem;
-    color: var(--secondary-color);
-    text-align: center;
-}
-
-.day-pop {
-    font-size: 0.9rem;
-    color: #3498db;
-    background: rgba(52, 152, 219, 0.1);
-    padding: 6px 12px;
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
-/* ===== 미세먼지 아이템 스타일 ===== */
-.aqi-forecast-item {
-    display: inline-flex;
-    flex-direction: column;
-    min-width: 180px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-    text-align: center;
-    height: 180px;
-    justify-content: center;
-    align-items: center;
-    box-sizing: border-box;
-    max-width: 180px;
-    width: auto;
-}
-
-body.dark-mode .aqi-forecast-item {
-    background: #2a2a4a !important;
-    border: 1px solid #3a3a5d !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
-}
-
-.aqi-forecast-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.aqi-forecast-header {
-    margin-bottom: 15px;
-}
-
-.aqi-forecast-header h5 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--secondary-color);
+    color: #7f8c8d;
     margin-bottom: 5px;
 }
 
-body.dark-mode .aqi-forecast-header h5 {
-    color: #ffffff !important;
+body.dark-mode .temp-label {
+    color: #81d4fa !important; /* 다크모드: 밝은 하늘색으로 포인트 */
 }
 
-.aqi-forecast-region {
-    font-size: 0.9rem;
-    color: var(--secondary-color);
-    opacity: 0.8;
-}
-
-.aqi-forecast-value {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-
+/* 미세먼지 상태 배지 */
 .aqi-forecast-status {
+    display: inline-block;
     padding: 6px 15px;
     border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
     margin-top: 10px;
 }
 
@@ -1292,15 +1225,13 @@ body.dark-mode .aqi-forecast-header h5 {
     justify-content: center;
     min-width: 100%;
     height: 150px;
-    color: var(--secondary-color);
+    color: #95a5a6;
     font-style: italic;
-    text-align: center;
-    padding: 20px;
+    font-size: 1rem;
 }
 
 body.dark-mode .no-data {
-    color: var(--dark-text);
-    opacity: 0.7;
+    color: #bdc3c7;
 }
 
 /* 예보 요약 카드 */
@@ -1317,7 +1248,7 @@ body.dark-mode .no-data {
     }
 }
 
-/* 반응형 조정 - 작은 화면에서 가로 스크롤 컨테이너 최적화 */
+/* 예보 요약 카드 반응형 */
 @media (max-width: 768px) {
     .horizontal-scroll-container {
         padding: 15px;
@@ -1359,17 +1290,9 @@ body.dark-mode .summary-card:hover {
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
 }
 
-.summary-card.ultra-short {
-    border-top-color: var(--primary-color);
-}
-
-.summary-card.short-term {
-    border-top-color: var(--success-color);
-}
-
-.summary-card.mid-term {
-    border-top-color: var(--warning-color);
-}
+.summary-card.ultra-short { border-top-color: var(--primary-color); }
+.summary-card.short-term { border-top-color: var(--success-color); }
+.summary-card.mid-term { border-top-color: var(--warning-color); }
 
 .summary-header {
     display: flex;
@@ -1380,17 +1303,9 @@ body.dark-mode .summary-card:hover {
     border-bottom: 2px solid;
 }
 
-.summary-card.ultra-short .summary-header {
-    border-bottom-color: rgba(52, 152, 219, 0.2);
-}
-
-.summary-card.short-term .summary-header {
-    border-bottom-color: rgba(46, 204, 113, 0.2);
-}
-
-.summary-card.mid-term .summary-header {
-    border-bottom-color: rgba(243, 156, 18, 0.2);
-}
+.summary-card.ultra-short .summary-header { border-bottom-color: rgba(52, 152, 219, 0.2); }
+.summary-card.short-term .summary-header { border-bottom-color: rgba(46, 204, 113, 0.2); }
+.summary-card.mid-term .summary-header { border-bottom-color: rgba(243, 156, 18, 0.2); }
 
 .summary-header h3 {
     margin: 0;
@@ -1398,6 +1313,11 @@ body.dark-mode .summary-card:hover {
     align-items: center;
     gap: 10px;
     font-size: 1.2rem;
+    color: var(--secondary-color);
+}
+
+body.dark-mode .summary-header h3 {
+    color: #ffffff !important;
 }
 
 .summary-range {
@@ -2010,7 +1930,7 @@ body.dark-mode .project-info {
     margin-bottom: 0;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* ===== RESPONSIVE DESIGN & UTILS ===== */
 @media (max-width: 1400px) {
     .main-container {
         grid-template-columns: 2fr 1fr;
@@ -2084,7 +2004,6 @@ body.dark-mode .project-info {
         margin-top: 10px;
     }
 
-    /* 메뉴 아이템 텍스트 숨김 */
     .menu-item span {
         display: none;
     }
@@ -2105,7 +2024,6 @@ body.dark-mode .project-info {
         font-size: 3.5rem;
     }
 
-    /* 위치 컨트롤 버튼 작은 화면에서 아이콘만 표시 */
     .location-control-btn.gps-sync-btn .btn-text {
         font-size: 0.8rem;
     }
@@ -2117,38 +2035,44 @@ body.dark-mode .project-info {
     .view-all-btn {
         padding: 8px;
     }
+
+    /* 높이 제한 해제 (중요) */
+    .horizontal-forecast-card {
+        min-height: auto;
+    }
+
+    .hour-item, .tomorrow-hour-item {
+        min-width: 100px;
+        height: auto !important;
+        padding: 15px 10px;
+    }
+
+    .day-item {
+        min-width: 130px;
+        height: auto !important;
+    }
 }
 
-/* ===== UTILITY CLASSES ===== */
-.hidden {
-    display: none !important;
+@media (max-width: 480px) {
+    .hour-item, .tomorrow-hour-item {
+        min-width: 90px;
+        height: auto !important;
+    }
+    .day-item {
+        min-width: 120px;
+        height: auto !important;
+    }
 }
 
-.text-center {
-    text-align: center;
-}
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.p-20 { padding: 20px; }
 
-.text-right {
-    text-align: right;
-}
-
-.text-left {
-    text-align: left;
-}
-
-.mt-20 {
-    margin-top: 20px;
-}
-
-.mb-20 {
-    margin-bottom: 20px;
-}
-
-.p-20 {
-    padding: 20px;
-}
-
-/* ===== SCROLLBAR STYLES ===== */
+/* 스크롤바 */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -2180,7 +2104,7 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
     background: #95a5a6 !important;
 }
 
-/* ===== GPS 동기화 상태 표시 ===== */
+/* GPS 동기화 상태 표시 */
 .sync-success {
     background: rgba(46, 204, 113, 0.3) !important;
     border-color: rgba(46, 204, 113, 0.5) !important;
@@ -2201,144 +2125,16 @@ body.dark-mode .sync-error {
     border-color: rgba(231, 76, 60, 0.4) !important;
 }
 
-/* ===== 다크모드 전환 애니메이션 ===== */
-body,
-.main-header,
-.weather-summary,
-.forecast-section,
-.summary-card,
-.sidebar-card,
-.card-header,
-.card-content,
-.hour-item,
-.day-item,
-.region-item,
-.region-weather,
-.detail-card,
-.aqi-item,
-.warning-status,
-.map-control-btn,
-.control-btn,
-.menu-item,
-.user-menu-btn,
-.dropdown-content,
-.location-control-btn,
-.community-preview,
-.post-item {
+/* 애니메이션 */
+body, .main-header, .weather-summary, .forecast-section,
+.summary-card, .sidebar-card, .card-header, .card-content,
+.hour-item, .day-item, .region-item, .region-weather,
+.detail-card, .aqi-item, .warning-status, .map-control-btn,
+.control-btn, .menu-item, .user-menu-btn, .dropdown-content,
+.location-control-btn, .community-preview, .post-item {
     transition: background-color 0.3s ease,
     border-color 0.3s ease,
     color 0.3s ease,
     transform 0.3s ease,
     box-shadow 0.3s ease;
-}
-
-/* ===== 반응형 추가 조정 ===== */
-@media (max-width: 1200px) {
-    .hour-item, .tomorrow-hour-item {
-        min-width: 110px;
-        padding: 15px 10px;
-        height: 150px;
-    }
-
-    .day-item {
-        min-width: 140px;
-        height: 180px;
-        padding: 15px;
-    }
-
-    .aqi-forecast-item {
-        min-width: 160px;
-        height: 160px;
-        padding: 15px;
-    }
-}
-
-@media (max-width: 768px) {
-    .horizontal-forecast-card {
-        min-height: 250px;
-    }
-
-    .horizontal-scroll-container {
-        padding: 15px 20px;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .hour-item, .tomorrow-hour-item {
-        min-width: 100px;
-        padding: 12px 8px;
-        height: 140px;
-    }
-
-    .hour-icon, .tomorrow-icon {
-        font-size: 2rem;
-        margin-bottom: 10px;
-    }
-
-    .hour-temp, .tomorrow-temp {
-        font-size: 1.5rem;
-    }
-
-    .day-item {
-        min-width: 130px;
-        height: 170px;
-        padding: 12px;
-    }
-
-    .temp-value {
-        font-size: 1.2rem;
-    }
-
-    .aqi-forecast-item {
-        min-width: 140px;
-        height: 150px;
-        padding: 12px;
-    }
-
-    .aqi-forecast-value {
-        font-size: 1.7rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .hour-item, .tomorrow-hour-item {
-        min-width: 90px;
-        padding: 10px 6px;
-        height: 130px;
-    }
-
-    .hour-time, .tomorrow-time {
-        font-size: 0.9rem;
-    }
-
-    .hour-icon, .tomorrow-icon {
-        font-size: 1.8rem;
-    }
-
-    .hour-temp, .tomorrow-temp {
-        font-size: 1.3rem;
-    }
-
-    .day-item {
-        min-width: 120px;
-        height: 160px;
-        padding: 10px;
-    }
-
-    .aqi-forecast-item {
-        min-width: 130px;
-        height: 140px;
-        padding: 10px;
-    }
-
-    .horizontal-scroll-container {
-        padding: 12px;
-        max-width: calc(100% - 24px);
-    }
-
-    .hourly-forecast-items,
-    .tomorrow-forecast-items,
-    .weekly-forecast-items,
-    .aqi-forecast-items {
-        gap: 12px;
-    }
 }

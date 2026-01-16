@@ -35,7 +35,7 @@ public class LocationService {
         try {
             String url = apiConfig.getIpInfoUrl();
             if (!ipAddress.equals("127.0.0.1") && !ipAddress.equals("0:0:0:0:0:0:0:1")) {
-                url = apiConfig.getIpInfoUrl() + "/" + ipAddress + "/json";
+                url = apiConfig.getIpInfoUrl() + "/" + ipAddress;
             }
 
             log.info("IP 기반 위치 조회 URL: {}", url);
@@ -51,7 +51,7 @@ public class LocationService {
                 if (node.has("city") && !node.get("city").isNull()) {
                     String city = node.get("city").asText();
                     location.setCity(city);
-                    location.setRegionName(city + "시");
+                    location.setRegionName(node.get("regionName").asText());
                 } else if (node.has("region") && !node.get("region").isNull()) {
                     location.setRegionName(node.get("region").asText());
                 } else {

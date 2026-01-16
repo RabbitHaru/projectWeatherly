@@ -50,32 +50,39 @@ public class WeatherApiService {
     @Cacheable(value = "weatherAllData", key = "#regionCode + '_' + #liteMode", unless = "#result == null")
     public WeatherResponseDTO getAllWeatherData(String regionCode, boolean liteMode) {
         try {
-            log.info("날씨 데이터 통합 조회 (병렬): {}", regionCode);
+            log.info("날씨 데이터 통합 조회 (병렬): {} (liteMode: {})", regionCode, liteMode);
 
-            // 1. 현재 날씨 (초단기실황) - 캐시 우선
+            // 1. 현재 날씨 (초단기실황) - 필수
             CompletableFuture<WeatherResponseDTO.CurrentWeather> currentFuture =
                     CompletableFuture.supplyAsync(() -> getCurrentWeatherCached(regionCode));
 
-            // 2. 오늘 시간별 예보 (초단기 우선, 없으면 단기)
-            CompletableFuture<List<WeatherResponseDTO.HourlyForecast>> todayHourlyFuture =
-                    CompletableFuture.supplyAsync(() -> getHourlyForecastCached(regionCode, 0));
+            // 2, 3, 4. 예보 데이터 (liteMode일 경우 실행하지 않음 -> 빈 Future 반환)
+            CompletableFuture<List<WeatherResponseDTO.HourlyForecast>> todayHourlyFuture;
+            CompletableFuture<List<WeatherResponseDTO.HourlyForecast>> tomorrowHourlyFuture;
+            CompletableFuture<List<WeatherResponseDTO.DailyForecast>> weeklyFuture;
 
-            // 3. 내일 시간별 예보 (단기예보에서)
-            CompletableFuture<List<WeatherResponseDTO.HourlyForecast>> tomorrowHourlyFuture =
-                    CompletableFuture.supplyAsync(() -> getHourlyForecastCached(regionCode, 1));
+            if (liteMode) {
+                todayHourlyFuture = CompletableFuture.completedFuture(null);
+                tomorrowHourlyFuture = CompletableFuture.completedFuture(null);
+                weeklyFuture = CompletableFuture.completedFuture(null);
+            } else {
+                todayHourlyFuture = CompletableFuture.supplyAsync(() -> getHourlyForecastCached(regionCode, 0));
+                tomorrowHourlyFuture = CompletableFuture.supplyAsync(() -> getHourlyForecastCached(regionCode, 1));
+                weeklyFuture = CompletableFuture.supplyAsync(() -> getWeeklyForecastCached(regionCode));
+            }
 
-            // 4. 주간 예보 (7일, 오전/오후 구분) - 캐시 우선
-            CompletableFuture<List<WeatherResponseDTO.DailyForecast>> weeklyFuture =
-                    CompletableFuture.supplyAsync(() -> getWeeklyForecastCached(regionCode));
-
-            // 5. 요약 정보 생성 (다른 작업 완료 후)
-            CompletableFuture<WeatherResponseDTO.WeatherSummary> summaryFuture =
-                    CompletableFuture.allOf(todayHourlyFuture, tomorrowHourlyFuture, weeklyFuture)
-                            .thenApply(v -> createWeatherSummary(
-                                    todayHourlyFuture.join(),
-                                    tomorrowHourlyFuture.join(),
-                                    weeklyFuture.join()
-                            ));
+            // 5. 요약 정보 생성 (liteMode가 아닐 때만 수행)
+            CompletableFuture<WeatherResponseDTO.WeatherSummary> summaryFuture;
+            if (liteMode) {
+                summaryFuture = CompletableFuture.completedFuture(null);
+            } else {
+                summaryFuture = CompletableFuture.allOf(todayHourlyFuture, tomorrowHourlyFuture, weeklyFuture)
+                        .thenApply(v -> createWeatherSummary(
+                                todayHourlyFuture.join(),
+                                tomorrowHourlyFuture.join(),
+                                weeklyFuture.join()
+                        ));
+            }
 
             // 모든 작업 완료 대기
             CompletableFuture.allOf(currentFuture, todayHourlyFuture, tomorrowHourlyFuture, weeklyFuture, summaryFuture).join();
@@ -86,13 +93,12 @@ public class WeatherApiService {
                     .regionCode(regionCode)
                     .currentTime(DateUtil.getCurrentFormattedDateTime())
                     .current(currentFuture.join())
-                    .hourly(liteMode ? null : todayHourlyFuture.join())
-                    .tomorrowHourly(liteMode ? null : tomorrowHourlyFuture.join())
-                    .daily(liteMode ? null : weeklyFuture.join())
-                    .summary(summaryFuture.join())
+                    .hourly(todayHourlyFuture.join())         // liteMode면 null
+                    .tomorrowHourly(tomorrowHourlyFuture.join()) // liteMode면 null
+                    .daily(weeklyFuture.join())               // liteMode면 null
+                    .summary(summaryFuture.join())            // liteMode면 null
                     .build();
 
-            log.info("날씨 데이터 조회 완료: {} (liteMode: {})", regionCode, liteMode);
             return response;
 
         } catch (Exception e) {

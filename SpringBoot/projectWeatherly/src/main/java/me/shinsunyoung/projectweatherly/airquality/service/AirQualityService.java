@@ -10,7 +10,9 @@ import me.shinsunyoung.projectweatherly.common.service.LocationService;
 import org.springframework.stereotype.Service;
 
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -102,18 +104,26 @@ public class AirQualityService {
      * 지역명에서 시도명 추출
      */
     private String extractSidoName(String regionName) {
-        if (regionName == null) return "서울";
-
-        // "서울특별시" → "서울", "부산광역시" → "부산"
-        if (regionName.contains("특별시") || regionName.contains("광역시")) {
-            return regionName.substring(0, 2);
-        }
-
-        // "경기도" → "경기"
-        if (regionName.endsWith("도")) {
-            return regionName.substring(0, regionName.length() - 1);
-        }
-
-        return regionName;
+        if (regionName == null || regionName.contains("?")) return "서울";
+        Map<String, String> sidoMap = new HashMap<>();
+        sidoMap.put("Seoul","서울");
+        sidoMap.put("Busan","부산");
+        sidoMap.put("Daegu","대구");
+        sidoMap.put("Incheon","인천");
+        sidoMap.put("Gwangju","광주");
+        sidoMap.put("Daejeon","대전");
+        sidoMap.put("Ulsan","울산");
+        sidoMap.put("Gyeonggi","경기");
+        sidoMap.put("Gangwon","강원");
+        sidoMap.put("Chungbuk","충북");
+        sidoMap.put("Chungnam","충남");
+        sidoMap.put("Jeonbuk","전북");
+        sidoMap.put("Jeonnam","전남");
+        sidoMap.put("Gyeongbuk","경북");
+        sidoMap.put("Gyeongnam","경남");
+        sidoMap.put("Jeju","제주");
+        sidoMap.put("Sejong","세종");
+        return sidoMap.getOrDefault(regionName, "서울");
     }
 }
+
