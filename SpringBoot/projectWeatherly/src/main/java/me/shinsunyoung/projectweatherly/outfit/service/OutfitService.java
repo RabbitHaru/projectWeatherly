@@ -1,5 +1,6 @@
 package me.shinsunyoung.projectweatherly.outfit.service;
 
+import me.shinsunyoung.projectweatherly.outfit.dto.OutfitConditionDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -7,7 +8,9 @@ import java.util.Map;
 @Service
 public class OutfitService {
 
-    public Map<String, Object> decide(int feelsLike) {
+    public Map<String, Object> decide(OutfitConditionDTO condition) {
+
+        int feelsLike = condition.getFeelsLike().intValue();
 
         int level;
         String levelText;
@@ -49,3 +52,4 @@ public class OutfitService {
         );
     }
 }
+
