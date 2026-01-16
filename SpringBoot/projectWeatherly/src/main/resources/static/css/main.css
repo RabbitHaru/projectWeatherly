@@ -933,56 +933,7 @@ body.dark-mode .horizontal-scroll-container::-webkit-scrollbar-thumb {
     opacity: 1;
 }
 
-/* 스크롤 힌트 */
-.horizontal-scroll-container::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 30px;
-    height: 100%;
-    background: linear-gradient(to right, transparent, var(--light-card) 90%);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 1;
-}
-
-body.dark-mode .horizontal-scroll-container::after {
-    background: linear-gradient(to right, transparent, var(--dark-card));
-}
-
-.horizontal-scroll-container::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 30px;
-    height: 100%;
-    background: linear-gradient(to left, transparent, var(--light-card) 90%);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 1;
-}
-
-.horizontal-scroll-container.scrolling::after,
-.horizontal-scroll-container.scrolling::before {
-    opacity: 1;
-}
-
-.has-scroll {
-    position: relative;
-}
-
-body.dark-mode .horizontal-scroll-container::before {
-    background: linear-gradient(to left, transparent, var(--dark-card));
-}
-
-.horizontal-scroll-container:hover::after,
-.horizontal-scroll-container:hover::before {
-    opacity: 1;
-}
+/* [삭제됨] 스크롤 힌트 (좌우 그라데이션) 제거 */
 
 /* 아이템 컨테이너 */
 .hourly-forecast-items,
@@ -1037,8 +988,6 @@ body.dark-mode .horizontal-scroll-container::before {
     max-width: 250px;
     width: 250px;
 }
-
-
 
 /* 호버 효과 (공통) */
 .hour-item:hover,

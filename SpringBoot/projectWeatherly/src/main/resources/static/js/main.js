@@ -555,10 +555,11 @@ async function loadRegionalWeatherData() {
     const container = document.getElementById('regional-weather');
     if (!container) return;
 
-    // 로딩 표시
     container.innerHTML = '<div style="text-align:center; padding:20px; color:#888;"><i class="fas fa-spinner fa-spin"></i> 로딩중...</div>';
 
+    // [수정됨] 서울 추가 (맨 위)
     const regions = [
+        {name: '서울', code: '1100000000'},
         {name: '부산', code: '2600000000'},
         {name: '대구', code: '2700000000'},
         {name: '인천', code: '2800000000'},
@@ -567,19 +568,15 @@ async function loadRegionalWeatherData() {
         {name: '울산', code: '3100000000'}
     ];
 
-    // 코드를 쉼표로 연결 (예: "2600000000,2700000000,...")
     const regionCodes = regions.map(r => r.code).join(',');
 
     try {
-        // 백엔드의 compare/lite 엔드포인트 사용 (한 번에 조회 + 가벼운 데이터)
-        const response = await fetch(`${API_BASE_URL}/api/weather/compare/lite?regionCodes=${regionCodes}`);
+        const response = await fetch(`${API_BASE_URL}/api/weather/compare?regionCodes=${regionCodes}`);
         const result = await response.json();
 
         if (result.success && result.data) {
-            container.innerHTML = ''; // 로딩 제거
+            container.innerHTML = '';
 
-            // 결과 데이터와 우리가 정의한 regions 순서가 다를 수 있으므로 매핑
-            // (백엔드 결과 순서가 보장되면 그대로 써도 되지만, 안전하게 매핑)
             regions.forEach(targetRegion => {
                 const weatherData = result.data.find(d => d.regionCode === targetRegion.code);
 
@@ -592,9 +589,6 @@ async function loadRegionalWeatherData() {
                     const cur = weatherData.current || {};
                     const temp = cur.temperature !== undefined ? Math.round(cur.temperature) : '--';
                     const condition = cur.weatherCondition || '--';
-
-                    // 아이콘 결정 (단순 텍스트 매핑 또는 API 아이콘 사용)
-                    // API에서 weatherIcon을 주면 그것을 사용 (<i class="${cur.weatherIcon}"></i>)
 
                     div.innerHTML = `
                         <div class="region-info">

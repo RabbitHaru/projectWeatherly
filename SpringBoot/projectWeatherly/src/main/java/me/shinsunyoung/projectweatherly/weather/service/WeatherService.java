@@ -23,11 +23,6 @@ public class WeatherService {
 
     private final WeatherApiService weatherApiService;
     private final LocationService locationService;
-    private final RestTemplate restTemplate;
-
-    // 지역별 요청 횟수 제한 캐시
-    private static final ConcurrentHashMap<String, Long> REQUEST_RATE_LIMIT = new ConcurrentHashMap<>();
-    private static final long REQUEST_COOLDOWN_MS = 10000; // 10초
 
     public WeatherResponseDTO getWeatherByIp(HttpServletRequest request) {
         String clientIp = locationService.getClientIp(request);
@@ -53,19 +48,10 @@ public class WeatherService {
 
     public WeatherResponseDTO getWeatherByRegionCode(String regionCode, boolean liteMode) {
         try {
-            // 요청 빈도 제한 체크
-            if (shouldRateLimit(regionCode)) {
-                log.warn("요청 빈도 제한: {}", regionCode);
-                return createFallbackWeatherData(regionCode, liteMode);
-            }
+            // [수정됨] 빈도 제한 로직 제거 -> WeatherApiService의 @Cacheable에 위임
+            // 캐시가 있으면 API 호출 없이 저장된 데이터를 반환하므로 안전함
 
-            // 모든 데이터를 한 번에 가져오기 (캐시 적용)
-            WeatherResponseDTO weatherData = weatherApiService.getAllWeatherData(regionCode, liteMode);
-
-            // 요청 기록 업데이트
-            updateRequestTime(regionCode);
-
-            return weatherData;
+            return weatherApiService.getAllWeatherData(regionCode, liteMode);
 
         } catch (Exception e) {
             log.error("날씨 정보 조회 실패: {}", e.getMessage());
@@ -117,20 +103,7 @@ public class WeatherService {
         return compareWeather(regionCodes, true);
     }
 
-    private boolean shouldRateLimit(String regionCode) {
-        Long lastRequestTime = REQUEST_RATE_LIMIT.get(regionCode);
-        if (lastRequestTime == null) {
-            return false;
-        }
-
-        long currentTime = System.currentTimeMillis();
-        return (currentTime - lastRequestTime) < REQUEST_COOLDOWN_MS;
-    }
-
-    private void updateRequestTime(String regionCode) {
-        REQUEST_RATE_LIMIT.put(regionCode, System.currentTimeMillis());
-    }
-
+    // 더미 데이터 생성 메서드 (실제 API 실패 시에만 사용)
     private WeatherResponseDTO createFallbackWeatherData(String regionCode, boolean liteMode) {
         String regionName = switch (regionCode) {
             case "1100000000" -> "서울특별시";
