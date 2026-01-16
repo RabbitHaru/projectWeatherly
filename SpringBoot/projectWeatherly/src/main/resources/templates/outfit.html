@@ -26,18 +26,39 @@
                 <div class="location-info">
                     <h2 class="location-title">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span class="location-name">부산진구</span>
+                        <span class="location-name"
+                              th:text="${location?.name ?: '위치 정보 없음'}">
+                        부산진구
+                        </span>
+
                         <button class="location-change-btn gps-sync-btn" title="위치 변경 및 GPS 동기화">
                             <i class="fas fa-satellite"></i>
                             <span>위치 동기화</span>
                         </button>
                     </h2>
                     <div class="weather-brief">
-                        <div class="current-time" id="current-time">2023년 10월 20일 금요일 14:30</div>
+                        <div class="current-time" th:text="${currentTime ?: '날짜 정보 없음'}">2023년 10월 20일 금요일 14:30</div>
                         <div class="weather-details">
-                            <span class="current-temp">22°C</span>
-                            <span class="weather-desc">맑음</span>
-                            <span class="feels-like">체감온도: 23°C</span>
+                            <span th:if="${weather?.current != null}"
+                                  th:text="${weather.current.temperature + '°C'}">
+                            </span>
+                            <span th:unless="${weather?.current != null}">
+                                온도 정보 없음
+                            </span>
+
+                            <span class="feels-like"
+                                  th:if="${weather?.current != null}"
+                                  th:text="'체감온도: ' + ${weather.current.feelsLike} + '°C'">
+                            </span>
+
+                            <span class="weather-desc"
+                                  th:if="${weather?.current != null}"
+                                  th:text="${weather.current.weatherCondition}">
+                            </span>
+                            <span class="weather-desc"
+                                  th:unless="${weather?.current != null}">
+                                날씨 정보 없음
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -47,7 +68,9 @@
                     <div class="outfit-icon-wrapper">
                         <i class="fas fa-tshirt"></i>
                     </div>
-                    <div class="outfit-label">반팔 티셔츠</div>
+                    <div class="outfit-label" th:text="${outfit?.mainName ?: '옷차림 정보 없음'}">
+                        반팔 티셔츠
+                    </div>
                 </div>
             </div>
 
@@ -56,7 +79,15 @@
                 <div class="decision-header">
                     <h3><i class="fas fa-check-circle"></i> 지금 입을 옷 결정</h3>
                     <div class="decision-level">
-                        <span class="level-badge level-2">가벼운 겉옷 필요</span>
+                        <span class="level-badge"
+                              th:if="${outfit != null}"
+                              th:attr="class=${'level-badge level-' + outfit.level}"
+                              th:text="${outfit?.levelText}">
+                        </span>
+                        <span class="level-badge level-unknown"
+                              th:unless="${outfit != null}">
+                            정보 없음
+                        </span>
                     </div>
                 </div>
 
@@ -70,7 +101,9 @@
 
                 <!-- 추천 요약 문구 -->
                 <div class="decision-summary">
-                    <p>체감온도 23℃로 반팔과 가벼운 겉옷이 적절합니다.</p>
+                    <p th:text="${outfit?.summary ?: '날씨 정보를 확인하여 옷차림을 추천해드립니다.'}">
+                        체감온도 23℃로 반팔과 가벼운 겉옷이 적절합니다.
+                    </p>
                 </div>
 
                 <!-- 날씨 판단 요인 -->
@@ -79,28 +112,60 @@
                         <div class="factor-icon"><i class="fas fa-thermometer-half"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">체감온도</div>
-                            <div class="factor-value">23°C</div>
+                            <div class="factor-value">
+                                <span th:if="${weather?.current != null}"
+                                      th:text="${weather.current.feelsLike + '°C'}">
+                                    23°C
+                                </span>
+                                <span th:unless="${weather?.current != null}">
+                                    -
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div class="factor-item primary">
                         <div class="factor-icon"><i class="fas fa-wind"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">바람</div>
-                            <div class="factor-value">2.5 m/s</div>
+                            <div class="factor-value">
+                                <span th:if="${weather?.current != null and weather.current.windSpeed != null}"
+                                      th:text="${weather.current.windSpeed + ' m/s'}">
+                                    2.5 m/s
+                                </span>
+                                <span th:unless="${weather?.current != null and weather.current.windSpeed != null}">
+                                    -
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div class="factor-item secondary">
                         <div class="factor-icon"><i class="fas fa-smog"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">미세먼지</div>
-                            <div class="factor-value">보통</div>
+                            <div class="factor-value">
+                                <span th:if="${airQuality != null and airQuality.pm10 != null}"
+                                      th:text="${airQuality.pm10 <= 30 ? '좋음' : airQuality.pm10 <= 80 ? '보통' : '나쁨'}">
+                                    보통
+                                </span>
+                                <span th:unless="${airQuality != null and airQuality.pm10 != null}">
+                                    -
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div class="factor-item secondary">
                         <div class="factor-icon"><i class="fas fa-tint"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">습도</div>
-                            <div class="factor-value">45%</div>
+                            <div class="factor-value">
+                                <span th:if="${weather?.current != null and weather.current.humidity != null}"
+                                      th:text="${weather.current.humidity + '%'}">
+                                    45%
+                                </span>
+                                <span th:unless="${weather?.current != null and weather.current.humidity != null}">
+                                    -
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -311,7 +376,7 @@
 
 <script>
     // 다크모드 토글 기능
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const darkModeToggle = document.getElementById('darkmode-toggle');
         const body = document.body;
 
@@ -325,7 +390,7 @@
         }
 
         // 다크모드 토글 버튼 클릭 이벤트
-        darkModeToggle.addEventListener('click', function() {
+        darkModeToggle.addEventListener('click', function () {
             const isCurrentlyDark = body.classList.contains('dark-mode');
 
             if (isCurrentlyDark) {
@@ -384,7 +449,7 @@
         const gpsBtn = document.querySelector('.gps-sync-btn');
 
         if (gpsBtn) {
-            gpsBtn.addEventListener('click', function() {
+            gpsBtn.addEventListener('click', function () {
                 // GPS 동기화 중 표시
                 const originalHTML = this.innerHTML;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 동기화 중...';
@@ -394,7 +459,7 @@
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         // 성공 시
-                        function(position) {
+                        function (position) {
                             const lat = position.coords.latitude;
                             const lng = position.coords.longitude;
 
@@ -416,7 +481,7 @@
                             // updateWeatherData(lat, lng);
                         },
                         // 실패 시
-                        function(error) {
+                        function (error) {
                             console.error('GPS 오류:', error);
 
                             // 버튼 상태 복원 (실패)
@@ -449,11 +514,11 @@
     }
 
     // 옷차림 레벨 카드 클릭 이벤트
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const dayCards = document.querySelectorAll('.day-card');
 
         dayCards.forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function () {
                 // 카드 클릭 시 상세 정보 표시
                 const dayName = this.querySelector('.day-name').textContent;
                 const outfitName = this.querySelector('.outfit-name').textContent;
