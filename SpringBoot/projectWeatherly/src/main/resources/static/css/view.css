@@ -1,0 +1,577 @@
+/* 글보기 페이지 전용 스타일 */
+.view-header-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    margin-top: 3rem;
+}
+
+.view-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.view-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.view-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+.view-meta-item i {
+    font-size: 1.1rem;
+}
+
+.view-content-container {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+    min-height: 400px;
+}
+
+.view-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #212529;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.view-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.view-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.view-left-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.view-right-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.list-btn {
+    background: #6c757d;
+    color: white;
+}
+
+.list-btn:hover {
+    background: #5a6268;
+    color: white;
+    text-decoration: none;
+}
+
+.edit-btn {
+    background: #3498db;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #2980b9;
+    color: white;
+    text-decoration: none;
+}
+
+.delete-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #c0392b;
+    color: white;
+    text-decoration: none;
+}
+
+.like-btn {
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+.like-btn:hover {
+    background: #e9ecef;
+}
+
+.like-btn.liked {
+    background: #e74c3c;
+    color: white;
+    border-color: #e74c3c;
+}
+
+.report-btn {
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+.report-btn:hover {
+    background: #ffebee;
+    color: #c62828;
+    border-color: #ef9a9a;
+}
+
+/* 댓글 섹션 */
+.comments-section {
+    margin-top: 3rem;
+}
+
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.comments-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #495057;
+}
+
+.comments-count {
+    background: #667eea;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.comment-form {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.comment-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.comment-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.comment-submit-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 1rem;
+}
+
+.comment-submit-btn:hover {
+    background: #45a049;
+}
+
+.comment-list {
+    margin-top: 2rem;
+}
+
+.comment-item {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.comment-author-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #667eea;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.comment-author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.comment-author-name {
+    font-weight: 600;
+    color: #495057;
+}
+
+.comment-date {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.comment-action-btn {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s;
+}
+
+.comment-action-btn:hover {
+    color: #667eea;
+}
+
+.comment-content {
+    color: #212529;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+}
+
+.comment-like-btn {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.comment-like-btn:hover {
+    color: #e74c3c;
+}
+
+.comment-like-btn.liked {
+    color: #e74c3c;
+}
+
+/* 신고 모달 */
+.report-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.report-modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 2rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.report-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.report-modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #495057;
+}
+
+.report-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.report-reason {
+    margin-bottom: 1.5rem;
+}
+
+.report-reason-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.report-reason-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.report-details {
+    margin-bottom: 1.5rem;
+}
+
+.report-details-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.report-details-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.report-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.report-cancel-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.report-submit-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* 이미지 갤러리 */
+.image-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.gallery-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.gallery-image:hover {
+    transform: scale(1.02);
+}
+
+/* 이미지 모달 */
+.image-modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-image {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 5px;
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* 다크모드 스타일 */
+body.dark-mode .view-content-container {
+    background: #1e1e1e;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .view-content {
+    color: #e2e8f0;
+}
+
+body.dark-mode .view-actions {
+    border-top-color: #4a5568;
+}
+
+body.dark-mode .like-btn,
+body.dark-mode .report-btn {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #cbd5e0;
+}
+
+body.dark-mode .comment-form {
+    background: #2d3748;
+}
+
+body.dark-mode .comment-textarea {
+    background: #1e1e1e;
+    border-color: #4a5568;
+    color: #e2e8f0;
+}
+
+body.dark-mode .comment-item {
+    background: #1e1e1e;
+    border-color: #4a5568;
+}
+
+body.dark-mode .comment-author-name {
+    color: #e2e8f0;
+}
+
+body.dark-mode .comment-content {
+    color: #cbd5e0;
+}
+
+body.dark-mode .report-modal-content {
+    background: #1e1e1e;
+}
+
+body.dark-mode .report-modal-title {
+    color: #e2e8f0;
+}
+
+body.dark-mode .report-reason-select,
+body.dark-mode .report-details-textarea {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .view-header-section {
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .view-title {
+        font-size: 1.8rem;
+    }
+
+    .view-content-container {
+        padding: 1.5rem;
+    }
+
+    .view-actions {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .view-left-actions,
+    .view-right-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .image-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}

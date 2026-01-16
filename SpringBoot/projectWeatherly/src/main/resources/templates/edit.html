@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 수정 - Weatherly</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/community.css">
+
+    <!-- 빈 favicon -->
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+    <style>
+        .edit-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .edit-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        .edit-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .edit-header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .edit-header .subtitle {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .form-group input {
+            height: 50px;
+        }
+
+        .form-group textarea {
+            min-height: 300px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .category-select {
+            width: 200px;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .char-count {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-cancel {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-submit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: #2980b9;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .alert-error {
+            background-color: #fde8e8;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .preview-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .preview-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .preview-content {
+            color: #34495e;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* 다크모드 스타일 */
+        body.dark-mode .edit-card {
+            background: #2c3e50;
+            color: #ecf0f1;
+        }
+
+        body.dark-mode .edit-header h1 {
+            color: #ecf0f1;
+        }
+
+        body.dark-mode .form-group label {
+            color: #ecf0f1;
+        }
+
+        body.dark-mode .form-group input,
+        body.dark-mode .form-group textarea,
+        body.dark-mode .form-group select {
+            background: #34495e;
+            border-color: #4a6278;
+            color: #ecf0f1;
+        }
+
+        body.dark-mode .preview-section {
+            background: #34495e;
+        }
+
+        body.dark-mode .preview-title {
+            color: #ecf0f1;
+        }
+
+        body.dark-mode .preview-content {
+            color: #bdc3c7;
+        }
+
+        /* 헤더 스타일 */
+        .main-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            margin-right: 0.5rem;
+        }
+
+        .logo span {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-right a {
+            color: white;
+            text-decoration: none;
+        }
+
+        #darkModeToggle {
+            background: none;
+            border: 1px solid white;
+            color: white;
+            border-radius: 5px;
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+
+        /* 푸터 스타일 */
+        .main-footer {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .copyright {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .footer-info {
+            color: #bdc3c7;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-info {
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+
+        /* 파일 업로드 */
+        .file-upload {
+            margin-top: 1rem;
+        }
+
+        .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #3498db;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .upload-btn:hover {
+            background: #2980b9;
+        }
+
+        .file-list {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .file-item button {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+        }
+
+        /* 토스트 메시지 */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: #2c3e50;
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 헤더 -->
+<header class="main-header">
+    <div class="header-container">
+        <!-- 로고 -->
+        <div class="header-left">
+            <a href="/" class="logo">
+                <i class="fas fa-cloud-sun"></i>
+                <span>Weatherly</span>
+            </a>
+        </div>
+
+        <!-- 네비게이션 및 다크모드 -->
+        <div class="header-right">
+            <a href="/community">
+                <i class="fas fa-users"></i> 커뮤니티
+            </a>
+            <a href="/weather">
+                <i class="fas fa-cloud-sun-rain"></i> 날씨
+            </a>
+            <button id="darkModeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- 메인 컨텐츠 -->
+<main class="edit-container">
+    <div class="edit-card">
+        <div class="edit-header">
+            <h1><i class="fas fa-edit"></i> 게시글 수정</h1>
+            <p class="subtitle">게시글 내용을 수정하고 저장하세요</p>
+        </div>
+
+        <!-- 알림 메시지 -->
+        <div id="alertMessage" class="alert" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="alertText"></span>
+        </div>
+
+        <!-- 게시글 정보 (data 속성으로 저장) -->
+        <div id="postData"
+             data-id="4"
+             data-author="홍길동"
+             data-created="2024-01-15"
+             data-category="일반"
+             style="display: none;">
+        </div>
+
+        <!-- 수정 폼 -->
+        <form id="editForm" class="edit-form">
+            <!-- 제목 입력 -->
+            <div class="form-group">
+                <label for="postTitle">제목 <span class="required">*</span></label>
+                <input type="text"
+                       id="postTitle"
+                       name="title"
+                       placeholder="게시글 제목을 입력하세요"
+                       maxlength="100"
+                       required>
+                <div class="char-count">
+                    <span id="titleCount">0</span>/100자
+                </div>
+            </div>
+
+            <!-- 카테고리 선택 -->
+            <div class="form-group">
+                <label for="postCategory">카테고리</label>
+                <select id="postCategory" name="category" class="category-select">
+                    <option value="일반">일반</option>
+                    <option value="질문">질문</option>
+                    <option value="정보">정보</option>
+                    <option value="후기">후기</option>
+                    <option value="공지">공지</option>
+                </select>
+            </div>
+
+            <!-- 내용 입력 -->
+            <div class="form-group">
+                <label for="postContent">내용 <span class="required">*</span></label>
+                <textarea id="postContent"
+                          name="content"
+                          placeholder="게시글 내용을 입력하세요"
+                          maxlength="2000"
+                          required></textarea>
+                <div class="char-count">
+                    <span id="contentCount">0</span>/2000자
+                </div>
+            </div>
+
+            <!-- 파일 업로드 (선택) -->
+            <div class="form-group">
+                <label for="fileUpload">파일 첨부</label>
+                <input type="file"
+                       id="fileUpload"
+                       name="files"
+                       multiple
+                       style="display: none;"
+                       accept="image/*,.pdf,.doc,.docx,.txt">
+                <label for="fileUpload" class="upload-btn">
+                    <i class="fas fa-paperclip"></i> 파일 선택
+                </label>
+                <div class="file-list" id="fileList">
+                    <!-- 파일 목록이 여기에 표시됩니다 -->
+                </div>
+            </div>
+
+            <!-- 미리보기 섹션 -->
+            <div class="preview-section">
+                <div class="preview-title" id="previewTitle">제목 미리보기</div>
+                <div class="preview-content" id="previewContent">내용 미리보기</div>
+            </div>
+
+            <!-- 버튼 영역 -->
+            <div class="form-buttons">
+                <button type="button" class="btn btn-delete" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i> 삭제
+                </button>
+                <button type="button" class="btn btn-cancel" onclick="cancelEdit()">
+                    <i class="fas fa-times"></i> 취소
+                </button>
+                <button type="submit" class="btn btn-submit">
+                    <i class="fas fa-save"></i> 수정 완료
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<!-- 푸터 -->
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <p class="copyright">© 2025 Weatherly. All rights reserved.</p>
+            <p class="footer-info">날씨 정보 제공 서비스 및 커뮤니티 플랫폼</p>
+            <p class="project-info">본 프로젝트는 학습용으로 제작된 웹사이트입니다.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- 토스트 메시지 -->
+<div class="toast" id="toastMessage"></div>
+
+<!-- JavaScript -->
+<script>
+    // 게시글 데이터
+    let postData = {
+        id: null,
+        title: "",
+        content: "",
+        category: "일반",
+        files: []
+    };
+
+    // DOM 요소
+    const postDataElement = document.getElementById('postData');
+    const editForm = document.getElementById('editForm');
+    const postTitle = document.getElementById('postTitle');
+    const postContent = document.getElementById('postContent');
+    const postCategory = document.getElementById('postCategory');
+    const titleCount = document.getElementById('titleCount');
+    const contentCount = document.getElementById('contentCount');
+    const previewTitle = document.getElementById('previewTitle');
+    const previewContent = document.getElementById('previewContent');
+    const fileUpload = document.getElementById('fileUpload');
+    const fileList = document.getElementById('fileList');
+    const alertMessage = document.getElementById('alertMessage');
+    const alertText = document.getElementById('alertText');
+    const toastMessage = document.getElementById('toastMessage');
+
+    // 초기 데이터 로드
+    function loadPostData() {
+        // 실제 구현에서는 URL 파라미터나 서버에서 데이터를 가져옵니다
+        // 예시: const postId = new URLSearchParams(window.location.search).get('id');
+
+        // 임시 데이터
+        postData = {
+            id: postDataElement ? postDataElement.dataset.id : null,
+            title: "오늘의 날씨가 정말 좋네요!",
+            content: `오늘 서울의 날씨는 맑고 기온이 15°C로 매우 쾌적합니다.
+                바람도 약하게 불어 산책하기 좋은 날씨예요.
+                내일은 약간 흐리겠지만 비 소식은 없으니 야외 활동 계획하셔도 좋을 것 같습니다.
+
+                특별히 주목할 점은 습도가 45%로 매우 쾌적하다는 것입니다.
+                이런 날에는 창문을 열고 환기하기도 좋고, 빨래도 잘 마를 거예요.
+
+                모두들 좋은 하루 보내세요!`,
+            category: "일반",
+            files: [
+                { name: "weather.jpg", size: "2.4MB" },
+                { name: "forecast.pdf", size: "1.1MB" }
+            ]
+        };
+
+        // 폼에 데이터 채우기
+        if (postData.id) {
+            postTitle.value = postData.title;
+            postContent.value = postData.content;
+            postCategory.value = postData.category;
+
+            // 글자 수 업데이트
+            updateCharCount(postTitle, titleCount, 100);
+            updateCharCount(postContent, contentCount, 2000);
+
+            // 미리보기 업데이트
+            updatePreview();
+
+            // 파일 목록 업데이트
+            updateFileList();
+        } else {
+            showAlert('게시글을 찾을 수 없습니다.', 'error');
+            setTimeout(() => {
+                window.location.href = '/community';
+            }, 2000);
+        }
+    }
+
+    // 글자 수 업데이트
+    function updateCharCount(element, counter, maxLength) {
+        const length = element.value.length;
+        counter.textContent = length;
+
+        if (length > maxLength * 0.9) {
+            counter.style.color = '#e74c3c';
+        } else if (length > maxLength * 0.7) {
+            counter.style.color = '#f39c12';
+        } else {
+            counter.style.color = '#7f8c8d';
+        }
+    }
+
+    // 미리보기 업데이트
+    function updatePreview() {
+        previewTitle.textContent = postTitle.value || "제목 미리보기";
+        previewContent.textContent = postContent.value || "내용 미리보기";
+    }
+
+    // 파일 목록 업데이트
+    function updateFileList() {
+        fileList.innerHTML = '';
+
+        postData.files.forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                    <i class="fas fa-file"></i>
+                    <span>${file.name} (${file.size})</span>
+                    <button type="button" onclick="removeFile(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+            fileList.appendChild(fileItem);
+        });
+    }
+
+    // 파일 추가
+    fileUpload.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+
+        files.forEach(file => {
+            const size = formatFileSize(file.size);
+            postData.files.push({
+                name: file.name,
+                size: size,
+                file: file
+            });
+        });
+
+        updateFileList();
+        fileUpload.value = '';
+        showToast(`${files.length}개의 파일이 추가되었습니다.`);
+    });
+
+    // 파일 삭제
+    function removeFile(index) {
+        postData.files.splice(index, 1);
+        updateFileList();
+        showToast('파일이 삭제되었습니다.');
+    }
+
+    // 파일 크기 포맷팅
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // 알림 표시
+    function showAlert(message, type = 'error') {
+        alertText.textContent = message;
+        alertMessage.className = `alert alert-${type}`;
+        alertMessage.style.display = 'block';
+
+        if (type === 'error') {
+            alertMessage.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        } else {
+            alertMessage.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        }
+    }
+
+    // 토스트 메시지 표시
+    function showToast(message) {
+        toastMessage.textContent = message;
+        toastMessage.style.display = 'block';
+
+        setTimeout(() => {
+            toastMessage.style.display = 'none';
+        }, 3000);
+    }
+
+    // 게시글 수정 저장
+    async function savePost() {
+        const title = postTitle.value.trim();
+        const content = postContent.value.trim();
+        const category = postCategory.value;
+
+        // 유효성 검사
+        if (!title) {
+            showAlert('제목을 입력해주세요.', 'error');
+            postTitle.focus();
+            return false;
+        }
+
+        if (!content) {
+            showAlert('내용을 입력해주세요.', 'error');
+            postContent.focus();
+            return false;
+        }
+
+        if (title.length > 100) {
+            showAlert('제목은 100자 이내로 입력해주세요.', 'error');
+            postTitle.focus();
+            return false;
+        }
+
+        if (content.length > 2000) {
+            showAlert('내용은 2000자 이내로 입력해주세요.', 'error');
+            postContent.focus();
+            return false;
+        }
+
+        // FormData 생성
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('content', content);
+        formData.append('category', category);
+
+        // 파일 추가
+        postData.files.forEach(file => {
+            if (file.file) {
+                formData.append('files', file.file);
+            }
+        });
+
+        try {
+            // 실제 구현에서는 아래 API 호출을 사용합니다
+            // const response = await fetch(`/community/boards/${postData.id}`, {
+            //     method: 'PUT',
+            //     body: formData
+            // });
+
+            // 임시 성공 처리
+            showToast('게시글이 수정되었습니다.');
+
+            // 2초 후 게시글 상세 페이지로 이동
+            setTimeout(() => {
+                window.location.href = `/community/boards/${postData.id}`;
+            }, 2000);
+
+            return true;
+
+        } catch (error) {
+            console.error('수정 실패:', error);
+            showAlert('게시글 수정 중 오류가 발생했습니다.', 'error');
+            return false;
+        }
+    }
+
+    // 게시글 삭제
+    function confirmDelete() {
+        if (confirm('정말로 이 게시글을 삭제하시겠습니까?\n삭제된 게시글은 복구할 수 없습니다.')) {
+            deletePost();
+        }
+    }
+
+    async function deletePost() {
+        try {
+            // 실제 구현에서는 아래 API 호출을 사용합니다
+            // const response = await fetch(`/community/boards/${postData.id}`, {
+            //     method: 'DELETE'
+            // });
+
+            showToast('게시글이 삭제되었습니다.');
+
+            // 2초 후 커뮤니티 목록 페이지로 이동
+            setTimeout(() => {
+                window.location.href = '/community';
+            }, 2000);
+
+        } catch (error) {
+            console.error('삭제 실패:', error);
+            showAlert('게시글 삭제 중 오류가 발생했습니다.', 'error');
+        }
+    }
+
+    // 수정 취소
+    function cancelEdit() {
+        if (postTitle.value !== postData.title || postContent.value !== postData.content) {
+            if (confirm('수정 내용이 저장되지 않았습니다.\n정말로 나가시겠습니까?')) {
+                window.location.href = `/community/boards/${postData.id}`;
+            }
+        } else {
+            window.location.href = `/community/boards/${postData.id}`;
+        }
+    }
+
+    // 자동 저장 (옵션)
+    let autoSaveTimer;
+    function autoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            if (postTitle.value || postContent.value) {
+                // localStorage에 임시 저장
+                const draft = {
+                    title: postTitle.value,
+                    content: postContent.value,
+                    category: postCategory.value,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem(`post_draft_${postData.id}`, JSON.stringify(draft));
+                console.log('자동 저장됨');
+            }
+        }, 5000); // 5초 후 자동 저장
+    }
+
+    // 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+        // 다크모드 상태 복원
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            const icon = document.querySelector('#darkModeToggle i');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        // 게시글 데이터 로드
+        loadPostData();
+
+        // 자동 저장된 데이터 불러오기
+        const savedDraft = localStorage.getItem(`post_draft_${postData.id}`);
+        if (savedDraft) {
+            const draft = JSON.parse(savedDraft);
+            if (confirm('저장되지 않은 수정 내용이 있습니다. 불러오시겠습니까?')) {
+                postTitle.value = draft.title;
+                postContent.value = draft.content;
+                postCategory.value = draft.category;
+                updateCharCount(postTitle, titleCount, 100);
+                updateCharCount(postContent, contentCount, 2000);
+                updatePreview();
+            }
+            localStorage.removeItem(`post_draft_${postData.id}`);
+        }
+    });
+
+    // 이벤트 리스너
+    postTitle.addEventListener('input', function() {
+        updateCharCount(this, titleCount, 100);
+        updatePreview();
+        autoSave();
+    });
+
+    postContent.addEventListener('input', function() {
+        updateCharCount(this, contentCount, 2000);
+        updatePreview();
+        autoSave();
+    });
+
+    postCategory.addEventListener('change', function() {
+        autoSave();
+    });
+
+    editForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        savePost();
+    });
+
+    // 다크모드 전환
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        const icon = this.querySelector('i');
+        if (document.body.classList.contains('dark-mode')) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+            localStorage.setItem('darkMode', 'enabled');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+            localStorage.setItem('darkMode', 'disabled');
+        }
+    });
+
+    // 페이지 떠나기 전 확인
+    window.addEventListener('beforeunload', function(e) {
+        if (postTitle.value !== postData.title || postContent.value !== postData.content) {
+            e.preventDefault();
+            e.returnValue = '수정 내용이 저장되지 않았습니다. 정말로 나가시겠습니까?';
+        }
+    });
+</script>
+</body>
+</html>

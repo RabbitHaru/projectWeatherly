@@ -11,7 +11,7 @@ import java.util.List;
 public class BoardUpdateRequest {
     private String title;
     private String content;
-    private String weatherCondition;
+    private String category;
     private List<Long> imageIdsToDelete; // 삭제할 이미지 ID 목록
     private BoardStatus boardStatus;
     private Boolean isVerified;

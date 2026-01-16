@@ -10,622 +10,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/community.css}">
 
-    <style>
-        /* 커뮤니티 전용 스타일 */
-        .community-header-section {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            border-radius: var(--border-radius);
-            padding: 40px;
-            color: white;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .community-header-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
-        }
-
-        .community-title {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .community-subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 30px;
-        }
-
-        .community-actions {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .search-container {
-            position: relative;
-            flex: 1;
-            max-width: 500px;
-        }
-
-        .community-search {
-            width: 100%;
-            padding: 12px 20px 12px 45px;
-            border: none;
-            border-radius: 30px;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: var(--transition);
-        }
-
-        .community-search:focus {
-            outline: none;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            background: white;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary-color);
-            font-size: 1.2rem;
-        }
-
-        .write-btn {
-            padding: 12px 30px;
-            background: white;
-            color: var(--primary-color);
-            border: none;
-            border-radius: 30px;
-            font-size: 1rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .write-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            background: #f8f9fa;
-        }
-
-        /* 게시판 테이블 */
-        .community-board {
-            background: var(--light-card);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-light);
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-
-        body.dark-mode .community-board {
-            background: var(--dark-card);
-        }
-
-        .board-header {
-            display: grid;
-            grid-template-columns: 80px 1fr 150px 100px 100px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-bottom: 2px solid var(--primary-color);
-            font-weight: 700;
-            color: var(--secondary-color);
-        }
-
-        body.dark-mode .board-header {
-            background: #2c3e50;
-            color: var(--dark-text);
-        }
-
-        .post-item {
-            display: grid;
-            grid-template-columns: 80px 1fr 150px 100px 100px;
-            padding: 20px;
-            border-bottom: 1px solid var(--light-border);
-            transition: var(--transition);
-        }
-
-        body.dark-mode .post-item {
-            border-bottom: 1px solid var(--dark-border);
-        }
-
-        .post-item:hover {
-            background: #f8f9fa;
-            transform: translateX(5px);
-        }
-
-        body.dark-mode .post-item:hover {
-            background: #34495e;
-        }
-
-        .post-number {
-            text-align: center;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .post-title {
-            font-weight: 600;
-            color: var(--secondary-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        body.dark-mode .post-title {
-            color: var(--dark-text);
-        }
-
-        .post-title a {
-            color: inherit;
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .post-title a:hover {
-            color: var(--primary-color);
-        }
-
-        .post-category {
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .post-category.weather {
-            background: rgba(52, 152, 219, 0.1);
-            color: var(--primary-color);
-        }
-
-        .post-category.dust {
-            background: rgba(243, 156, 18, 0.1);
-            color: var(--warning-color);
-        }
-
-        .post-category.outfit {
-            background: rgba(46, 204, 113, 0.1);
-            color: var(--success-color);
-        }
-
-        .post-category.general {
-            background: rgba(155, 89, 182, 0.1);
-            color: #9b59b6;
-        }
-
-        .post-date {
-            color: #7f8c8d;
-            text-align: center;
-        }
-
-        body.dark-mode .post-date {
-            color: #bdc3c7;
-        }
-
-        .post-likes, .post-views {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            color: #666;
-        }
-
-        body.dark-mode .post-likes,
-        body.dark-mode .post-views {
-            color: #bdc3c7;
-        }
-
-        .post-likes i {
-            color: #e74c3c;
-        }
-
-        .post-views i {
-            color: #3498db;
-        }
-
-        /* 페이지네이션 */
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            margin: 40px 0;
-        }
-
-        .pagination {
-            display: flex;
-            gap: 5px;
-        }
-
-        .page-item {
-            list-style: none;
-        }
-
-        .page-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid var(--light-border);
-            color: var(--light-text);
-            text-decoration: none;
-            font-weight: 600;
-            transition: var(--transition);
-        }
-
-        body.dark-mode .page-link {
-            border-color: var(--dark-border);
-            color: var(--dark-text);
-        }
-
-        .page-link:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-            transform: translateY(-2px);
-        }
-
-        .page-item.active .page-link {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        /* 사이드바 메모리 카드 */
-        .memory-card {
-            background: var(--light-card);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-light);
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        body.dark-mode .memory-card {
-            background: var(--dark-card);
-        }
-
-        .memory-card h3 {
-            margin-bottom: 20px;
-            color: var(--secondary-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.3rem;
-        }
-
-        body.dark-mode .memory-card h3 {
-            color: var(--dark-text);
-        }
-
-        .memory-item {
-            background: #f8f9fa;
-            border-radius: var(--border-radius-sm);
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid var(--primary-color);
-        }
-
-        body.dark-mode .memory-item {
-            background: #34495e;
-        }
-
-        .memory-item:nth-child(2) {
-            border-left-color: var(--success-color);
-        }
-
-        .memory-item:nth-child(3) {
-            border-left-color: var(--warning-color);
-        }
-
-        .memory-item-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .pc-badge {
-            background: var(--primary-color);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .memory-item-title {
-            font-weight: 600;
-            color: var(--secondary-color);
-        }
-
-        body.dark-mode .memory-item-title {
-            color: var(--dark-text);
-        }
-
-        .memory-item-content {
-            color: #555;
-            line-height: 1.6;
-        }
-
-        body.dark-mode .memory-item-content {
-            color: #bdc3c7;
-        }
-
-        .memory-item-content ul {
-            margin: 10px 0 0 20px;
-            padding: 0;
-        }
-
-        .memory-item-content li {
-            margin-bottom: 5px;
-        }
-
-        /* 통계 카드 */
-        .stats-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: var(--border-radius);
-            padding: 25px;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .stats-card h3 {
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: var(--border-radius-sm);
-            backdrop-filter: blur(5px);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        /* 인기 게시물 */
-        .popular-posts {
-            background: var(--light-card);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-light);
-            padding: 25px;
-        }
-
-        body.dark-mode .popular-posts {
-            background: var(--dark-card);
-        }
-
-        .popular-posts h3 {
-            margin-bottom: 20px;
-            color: var(--secondary-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.3rem;
-        }
-
-        body.dark-mode .popular-posts h3 {
-            color: var(--dark-text);
-        }
-
-        .popular-post-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: var(--border-radius-sm);
-            margin-bottom: 10px;
-            transition: var(--transition);
-        }
-
-        body.dark-mode .popular-post-item {
-            background: #34495e;
-        }
-
-        .popular-post-item:hover {
-            transform: translateX(5px);
-        }
-
-        .popular-rank {
-            background: var(--accent-color);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-
-        .popular-post-content {
-            flex: 1;
-        }
-
-        .popular-post-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: var(--secondary-color);
-        }
-
-        body.dark-mode .popular-post-title {
-            color: var(--dark-text);
-        }
-
-        .popular-post-meta {
-            display: flex;
-            gap: 15px;
-            font-size: 0.85rem;
-            color: #7f8c8d;
-        }
-
-        body.dark-mode .popular-post-meta {
-            color: #bdc3c7;
-        }
-
-        /* 반응형 디자인 */
-        @media (max-width: 1200px) {
-            .board-header,
-            .post-item {
-                grid-template-columns: 60px 1fr 130px 90px 90px;
-            }
-        }
-
-        @media (max-width: 992px) {
-            .main-container {
-                grid-template-columns: 1fr;
-            }
-
-            .community-actions {
-                flex-direction: column;
-            }
-
-            .search-container {
-                max-width: 100%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .community-header-section {
-                padding: 30px 20px;
-            }
-
-            .community-title {
-                font-size: 2.2rem;
-            }
-
-            .board-header {
-                display: none;
-            }
-
-            .post-item {
-                grid-template-columns: 1fr;
-                gap: 10px;
-                padding: 15px;
-            }
-
-            .post-number,
-            .post-date,
-            .post-likes,
-            .post-views {
-                text-align: left;
-                justify-content: flex-start;
-            }
-
-            .post-info-row {
-                display: flex;
-                gap: 15px;
-                font-size: 0.9rem;
-                color: #7f8c8d;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .community-title {
-                font-size: 1.8rem;
-            }
-
-            .write-btn span {
-                display: none;
-            }
-
-            .write-btn {
-                padding: 12px;
-                width: 50px;
-                justify-content: center;
-            }
-        }
-
-        /* 키워드 태그 */
-        .keyword-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .keyword-tag {
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--primary-color);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: var(--transition);
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .keyword-tag:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .keyword-tag.active {
-            background: white;
-            color: var(--accent-color);
-        }
-
-        .keyword-tag i {
-            font-size: 0.8rem;
-        }
-    </style>
 </head>
+
 <body>
+<!-- 헤더 영역 (main.css에서 스타일 제공됨) -->
 <!-- 헤더 영역 -->
 <header class="main-header">
     <div class="header-container">
@@ -658,7 +49,7 @@
             <div class="control-buttons">
                 <button class="control-btn notification-btn" title="알림">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
+                    <span class="notification-badge">0</span>
                 </button>
 
                 <button class="control-btn favorites-btn" title="즐겨찾기">
@@ -690,298 +81,346 @@
             </div>
         </div>
     </div>
-    </div>
 </header>
 
 <!-- 커뮤니티 헤더 섹션 -->
 <div class="container">
     <div class="community-header-section">
         <h1 class="community-title">커뮤니티 게시판</h1>
-        <p class="community-subtitle">날씨, 미세먼지, 옷차림 등 다양한 주제로 소통하세요!</p>
+        <p class="community-subtitle">다양한 주제로 자유롭게 소통하세요!</p>
 
+        <!-- 수정된 부분: 글쓰기 버튼을 검색창 왼쪽으로 이동 -->
         <div class="community-actions">
-            <div class="search-container">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" class="community-search" placeholder="게시물 검색...">
-            </div>
-            <button class="write-btn">
+            <a th:href="@{/community/boards/write}" class="write-btn" sec:authorize="isAuthenticated()">
                 <i class="fas fa-pen"></i>
                 <span>글쓰기</span>
-            </button>
+            </a>
+
+            <form th:action="@{/community/boards/search}" method="get" class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="keyword" class="community-search"
+                       placeholder="게시물 검색..." th:value="${keyword}">
+            </form>
         </div>
-
-
+    </div>
+</div>
 
 <!-- 메인 콘텐츠 -->
 <div class="container">
-    <div class="main-container">
-        <!-- 왼쪽: 게시판 목록 -->
-        <div class="main-content">
-            <!-- 게시판 테이블 -->
-            <div class="community-board">
-                <div class="board-header">
-                    <div>글번호</div>
-                    <div>제목</div>
-                    <div>올린 날짜</div>
-                    <div>좋아요</div>
-                    <div>조회수</div>
-                </div>
+    <div class="community-board">
+        <!-- 게시판 헤더 -->
+        <div class="board-header">
+            <div>글번호</div>
+            <div>제목</div>
+            <div>올린 날짜</div>
+            <div>좋아요</div>
+            <div>조회수</div>
+        </div>
 
-                <!-- 게시물 목록 -->
-                <div class="post-list">
-                    <!-- 게시물 1 -->
-                    <div class="post-item">
-                        <div class="post-number">15</div>
-                        <div class="post-title">
-                            <span class="post-category weather">날씨</span>
-                            <a href="#">오늘 서울 날씨 정말 좋네요! 나들이 가기 딱이에요</a>
-                        </div>
-                        <div class="post-date">2024.01.15</div>
-                        <div class="post-likes">
-                            <i class="fas fa-heart"></i>
-                            <span>24</span>
-                        </div>
-                        <div class="post-views">
-                            <i class="fas fa-eye"></i>
-                            <span>156</span>
-                        </div>
-                    </div>
+        <!-- 게시물 목록 (동적 데이터) -->
+        <div class="post-list">
+            <!-- 게시글이 없을 때 -->
+            <div th:if="${#lists.isEmpty(boards.content)}" class="empty-board">
+                <i class="fas fa-inbox"></i>
+                <h4>등록된 게시글이 없습니다.</h4>
+                <p>첫 번째 게시글을 작성해보세요!</p>
 
-                    <!-- 게시물 2 -->
-                    <div class="post-item">
-                        <div class="post-number">14</div>
-                        <div class="post-title">
-                            <span class="post-category dust">미세먼지</span>
-                            <a href="#">내일 미세먼지 주의보 발령 예정입니다. 마스크 준비하세요!</a>
-                        </div>
-                        <div class="post-date">2024.01.14</div>
-                        <div class="post-likes">
-                            <i class="fas fa-heart"></i>
-                            <span>18</span>
-                        </div>
-                        <div class="post-views">
-                            <i class="fas fa-eye"></i>
-                            <span>203</span>
-                        </div>
-                    </div>
-
-                    <!-- 게시물 3 -->
-                    <div class="post-item">
-                        <div class="post-number">13</div>
-                        <div class="post-title">
-                            <span class="post-category outfit">옷차림</span>
-                            <a href="#">주말에 기온 0도 예상되는데, 어떤 옷이 적당할까요?</a>
-                        </div>
-                        <div class="post-date">2024.01.13</div>
-                        <div class="post-likes">
-                            <i class="fas fa-heart"></i>
-                            <span>32</span>
-                        </div>
-                        <div class="post-views">
-                            <i class="fas fa-eye"></i>
-                            <span>189</span>
-                        </div>
-                    </div>
-
-                    <!-- 게시물 4 -->
-                    <div class="post-item">
-                        <div class="post-number">12</div>
-                        <div class="post-title">
-                            <span class="post-category general">자유</span>
-                            <a href="#">우리 동네 겨울 날씨 변화에 따른 식물 관리 팁 공유합니다</a>
-                        </div>
-                        <div class="post-date">2024.01.12</div>
-                        <div class="post-likes">
-                            <i class="fas fa-heart"></i>
-                            <span>15</span>
-                        </div>
-                        <div class="post-views">
-                            <i class="fas fa-eye"></i>
-                            <span>134</span>
-                        </div>
-                    </div>
-
-                    <!-- 게시물 5 -->
-                    <div class="post-item">
-                        <div class="post-number">11</div>
-                        <div class="post-title">
-                            <span class="post-category weather">날씨</span>
-                            <a href="#">이번 주말 전국 대부분 지역에 눈 소식이 있습니다</a>
-                        </div>
-                        <div class="post-date">2024.01.11</div>
-                        <div class="post-likes">
-                            <i class="fas fa-heart"></i>
-                            <span>27</span>
-                        </div>
-                        <div class="post-views">
-                            <i class="fas fa-eye"></i>
-                            <span>178</span>
-                        </div>
-                    </div>
-
-                    <!-- 게시물 6 -->
-                    <div class="post-item">
-                        <div class="post-number">10</div>
-                        <div class="post-title">
-                            <span class="post-category dust">미세먼지</span>
-                            <a href="#">공기청정기 필터 교체 주기 얼마나 되시나요?</a>
-                        </div>
-                        <div class="post-date">2024.01.10</div>
-                        <div class="post-likes">
-                            <i class="fas fa-heart"></i>
-                            <span>21</span>
-                        </div>
-                        <div class="post-views">
-                            <i class="fas fa-eye"></i>
-                            <span>167</span>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <!-- 페이지네이션 -->
-            <div class="pagination-container">
-                <ul class="pagination">
-                    <li class="page-item">
-                        <a class="page-link" href="#">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
+            <!-- 게시글 목록 (Thymeleaf로 동적 렌더링) -->
+            <div th:each="board : ${boards.content}" class="post-item">
+                <div class="post-number" th:text="${board.id}"></div>
+                <div class="post-title">
+                    <!-- 작성자 닉네임 표시 -->
+                    <div class="post-author">
+                        <i class="fas fa-user-circle"></i>
+                        <span th:text="${board.memberNickname}"></span>
+                    </div>
+                    <a th:href="@{/community/boards/{id}(id=${board.id})}"
+                       th:text="${board.title}"></a>
+                </div>
+                <div class="post-date"
+                     th:text="${#temporals.format(board.createdAt, 'yyyy.MM.dd')}"></div>
+                <div class="post-likes">
+                    <i class="fas fa-heart"></i>
+                    <span th:text="${board.likeCount}"></span>
+                </div>
+                <div class="post-views">
+                    <i class="fas fa-eye"></i>
+                    <span th:text="${board.viewCount}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 페이지네이션 (동적) - 10개씩 표시 -->
+    <div th:if="${boards.totalPages > 1}" class="pagination-container">
+        <ul class="pagination">
+            <!-- 이전 페이지 -->
+            <li class="page-item page-prev" th:classappend="${boards.first} ? 'disabled' : ''">
+                <a class="page-link" th:href="@{'/community/boards'(page=${boards.number - 1})}">
+                    <i class="fas fa-chevron-left"></i> 이전
+                </a>
+            </li>
+
+            <!-- 페이지 번호들 (현재 페이지를 중심으로 최대 10개 표시) -->
+            <div class="page-numbers">
+                <!-- Thymeleaf에서 현재 페이지를 기준으로 10개 페이지 번호 계산 -->
+                <th:block th:with="currentPage=${boards.number + 1},
+                                  startPage=${Math.max(1, currentPage - 4)},
+                                  endPage=${Math.min(boards.totalPages, startPage + 9)}">
+                    <li th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                        class="page-item page-number"
+                        th:classappend="${i == currentPage} ? 'active' : ''">
+                        <a class="page-link" th:href="@{'/community/boards'(page=${i - 1})}"
+                           th:text="${i}"></a>
                     </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">4</a></li>
-                    <li class="page-item"><a class="page-link" href="#">5</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </li>
+                </th:block>
+            </div>
+
+            <!-- 다음 페이지 -->
+            <li class="page-item page-next" th:classappend="${boards.last} ? 'disabled' : ''">
+                <a class="page-link" th:href="@{'/community/boards'(page=${boards.number + 1})}">
+                    다음 <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- 사이드 메모리 카드 -->
+<div class="container" style="max-width: 800px;">
+    <div class="memory-card">
+        <h3><i class="fas fa-info-circle"></i> 커뮤니티 안내</h3>
+
+        <div class="memory-item">
+            <div class="memory-item-header">
+                <div class="pc-badge">1</div>
+                <div class="memory-item-title">게시글 작성</div>
+            </div>
+            <div class="memory-item-content">
+                로그인 후 자유롭게 게시글을 작성할 수 있습니다.
+                제목과 내용을 명확하게 작성해주세요.
+            </div>
+        </div>
+
+        <div class="memory-item">
+            <div class="memory-item-header">
+                <div class="pc-badge">2</div>
+                <div class="memory-item-title">글 수정 및 삭제</div>
+            </div>
+            <div class="memory-item-content">
+                <ul>
+                    <li>본인이 작성한 글만 수정 및 삭제가 가능합니다</li>
+                    <li>수정은 게시글 상세 페이지에서 가능합니다</li>
+                    <li>부적절한 게시글은 관리자에 의해 삭제될 수 있습니다</li>
                 </ul>
             </div>
         </div>
 
-
-
-            <!-- 메모리 카드 -->
-            <div class="memory-card">
-                <h3><i class="fas fa-info-circle"></i> 커뮤니티 안내</h3>
-
-                <div class="memory-item">
-                    <div class="memory-item-header">
-                        <div class="pc-badge">1</div>
-                        <div class="memory-item-title">이메일 인증</div>
-                    </div>
-                    <div class="memory-item-content">
-                        회원가입 시 이메일 인증이 필요합니다. 인증하지 않으면 일부 기능이 제한됩니다.
-                    </div>
-                </div>
-
-                <div class="memory-item">
-                    <div class="memory-item-header">
-                        <div class="pc-badge">2</div>
-                        <div class="memory-item-title">글 수정 및 삭제</div>
-                    </div>
-                    <div class="memory-item-content">
-                        <ul>
-                            <li>로그인 후 작성한 글의 수정 및 삭제가 가능합니다</li>
-                            <li>로그아웃 시 로그인 상태를 확인하고 로그아웃을 진행합니다</li>
-                            <li>타인의 게시물은 신고 기능을 이용해주세요</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="memory-item">
-                    <div class="memory-item-header">
-                        <div class="pc-badge">3</div>
-                        <div class="memory-item-title">회원가입 안내</div>
-                    </div>
-                    <div class="memory-item-content">
-                        <ul>
-                            <li>회원가입 후 모든 커뮤니티 기능을 이용하실 수 있습니다</li>
-                            <li>회원가입은 무료이며 1분 내외로 완료됩니다</li>
-                            <li>소셜 로그인(카카오, 네이버)도 지원합니다</li>
-                        </ul>
-                    </div>
-                </div>
+        <div class="memory-item">
+            <div class="memory-item-header">
+                <div class="pc-badge">3</div>
+                <div class="memory-item-title">커뮤니티 규칙</div>
             </div>
-
-
-
-        <!-- 푸터 -->
-        <footer class="main-footer">
-            <div class="footer-container">
-                <div class="footer-content">
-                    <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
-                    <p class="footer-info">기상청 API를 활용한 실시간 날씨 정보 서비스</p>
-                    <p class="project-info">Project by GMR</p>
-                </div>
+            <div class="memory-item-content">
+                <ul>
+                    <li>타인을 존중하는 말투를 사용해주세요</li>
+                    <li>광고성 게시물은 금지합니다</li>
+                    <li>불법 정보 공유는 제재 대상입니다</li>
+                </ul>
             </div>
-        </footer>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 (main.css에서 스타일 제공됨) -->
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
+            <p class="footer-info">기상청 API를 활용한 실시간 날씨 정보 서비스</p>
+            <p class="project-info">Project by GMR</p>
+        </div>
+    </div>
+</footer>
 
 <!-- JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // 다크모드 토글
-    document.getElementById('darkmode-toggle').addEventListener('click', function() {
-        document.body.classList.toggle('dark-mode');
-        const icon = this.querySelector('i');
-        if (document.body.classList.contains('dark-mode')) {
-            icon.className = 'fas fa-sun';
-            this.title = '라이트모드 전환';
+    // 페이지 로드 시 다크모드 상태 복원
+    document.addEventListener('DOMContentLoaded', function() {
+        const darkMode = localStorage.getItem('darkMode');
+        const toggleBtn = document.getElementById('darkmode-toggle');
+
+        if (darkMode === 'enabled') {
+            enableDarkMode();
         } else {
-            icon.className = 'fas fa-moon';
-            this.title = '다크모드 전환';
+            disableDarkMode();
+        }
+
+        // 다크모드 토글 버튼 이벤트 리스너
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', toggleDarkMode);
         }
     });
 
-    // 검색 기능
-    document.querySelector('.community-search').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const searchTerm = this.value.trim();
-            if (searchTerm) {
-                alert(`"${searchTerm}" 검색을 실행합니다.`);
-                // 실제 검색 로직 구현
+    // 다크모드 활성화 함수
+    function enableDarkMode() {
+        document.body.classList.add('dark-mode');
+        const toggleBtn = document.getElementById('darkmode-toggle');
+        if (toggleBtn) {
+            toggleBtn.querySelector('i').className = 'fas fa-sun';
+            toggleBtn.title = '라이트모드 전환';
+        }
+        localStorage.setItem('darkMode', 'enabled');
+
+        // 모든 이미지에 어두운 효과 적용
+        document.querySelectorAll('img').forEach(img => {
+            if (!img.classList.contains('no-dark-filter')) {
+                img.style.filter = 'brightness(0.7) contrast(1.1)';
+            }
+        });
+    }
+
+    // 다크모드 비활성화 함수
+    function disableDarkMode() {
+        document.body.classList.remove('dark-mode');
+        const toggleBtn = document.getElementById('darkmode-toggle');
+        if (toggleBtn) {
+            toggleBtn.querySelector('i').className = 'fas fa-moon';
+            toggleBtn.title = '다크모드 전환';
+        }
+        localStorage.setItem('darkMode', 'disabled');
+
+        // 이미지 효과 제거
+        document.querySelectorAll('img').forEach(img => {
+            img.style.filter = '';
+        });
+    }
+
+    // 다크모드 토글 함수
+    function toggleDarkMode() {
+        if (document.body.classList.contains('dark-mode')) {
+            disableDarkMode();
+        } else {
+            enableDarkMode();
+        }
+    }
+
+    // 모든 페이지에서 공통으로 사용할 다크모드 초기화 함수
+    window.initializeDarkMode = function() {
+        const darkMode = localStorage.getItem('darkMode');
+        const toggleBtn = document.getElementById('darkmode-toggle');
+
+        if (darkMode === 'enabled') {
+            document.body.classList.add('dark-mode');
+            if (toggleBtn) {
+                toggleBtn.querySelector('i').className = 'fas fa-sun';
+                toggleBtn.title = '라이트모드 전환';
+            }
+        } else {
+            document.body.classList.remove('dark-mode');
+            if (toggleBtn) {
+                toggleBtn.querySelector('i').className = 'fas fa-moon';
+                toggleBtn.title = '다크모드 전환';
             }
         }
-    });
 
-    // 글쓰기 버튼
-    document.querySelector('.write-btn').addEventListener('click', function() {
-        // 로그인 체크
-        const isLoggedIn = true; // 실제로는 세션 체크
-        if (isLoggedIn) {
-            window.location.href = '/community/write';
-        } else {
-            alert('로그인이 필요합니다.');
-            window.location.href = '/login?redirect=/community/write';
+        // 토글 버튼 이벤트 리스너
+        if (toggleBtn) {
+            toggleBtn.removeEventListener('click', toggleDarkMode);
+            toggleBtn.addEventListener('click', toggleDarkMode);
+        }
+    };
+
+    // 현재 페이지에서도 초기화 실행
+    window.initializeDarkMode();
+
+    // 기존 이벤트 리스너들은 유지하면서 다크모드 토글만 제거
+    // 검색 기능 (엔터키로 검색)
+    document.querySelector('.community-search').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            this.form.submit();
         }
     });
 
-    // 키워드 태그 클릭
-    document.querySelectorAll('.keyword-tag').forEach(tag => {
-        tag.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.keyword-tag').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-
-            const keyword = this.querySelector('span').textContent;
-            alert(`"${keyword}" 필터가 적용되었습니다.`);
-            // 실제 필터링 로직 구현
+    // 게시글 클릭 시 상세페이지로 이동
+    document.querySelectorAll('.post-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            if (!e.target.closest('a') && !e.target.closest('button')) {
+                const link = this.querySelector('.post-title a');
+                if (link) {
+                    window.location.href = link.href;
+                }
+            }
         });
     });
 
     // 모바일에서 더 나은 사용자 경험을 위한 처리
     if (window.innerWidth <= 768) {
-        // 모바일에서 게시물 클릭 시 상세보기로 이동
-        document.querySelectorAll('.post-title a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                // 모바일에서는 즉시 상세페이지로 이동
-                window.location.href = this.getAttribute('href');
-            });
+        document.querySelectorAll('.post-item').forEach(item => {
+            item.style.cursor = 'pointer';
         });
     }
+
+    // 드롭다운 메뉴 토글
+    document.querySelector('.user-menu-btn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        const dropdown = this.nextElementSibling;
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // 문서 클릭 시 드롭다운 닫기
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+            dropdown.style.display = 'none';
+        });
+    });
+
+    // 알림 버튼 클릭 시
+    document.querySelector('.notification-btn').addEventListener('click', function() {
+        alert('알림 기능은 준비 중입니다.');
+    });
+
+    // 즐겨찾기 버튼 클릭 시
+    document.querySelector('.favorites-btn').addEventListener('click', function() {
+        alert('즐겨찾기 기능은 준비 중입니다.');
+    });
+
+    // 게시글 작성 버튼 (비로그인 시)
+    const writeBtn = document.querySelector('.write-btn');
+    if (writeBtn && !writeBtn.getAttribute('href')) {
+        writeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?')) {
+                window.location.href = '/login?redirect=/community/boards/write';
+            }
+        });
+    }
+
+    // 페이지네이션 효과
+    document.querySelectorAll('.page-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (this.parentElement.classList.contains('disabled')) {
+                e.preventDefault();
+                return;
+            }
+        });
+    });
+
+    // 글쓰기 버튼 비로그인 시 처리
+    const writeBtns = document.querySelectorAll('.write-btn');
+    writeBtns.forEach(btn => {
+        if (!btn.getAttribute('href')) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?')) {
+                    window.location.href = '/login?redirect=/community/boards/write';
+                }
+            });
+        }
+    });
 </script>
 </body>
 </html>

@@ -7,6 +7,7 @@ import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
 import me.shinsunyoung.projectweatherly.board.dto.BoardRequest;
 import me.shinsunyoung.projectweatherly.board.dto.BoardResponse;
 import me.shinsunyoung.projectweatherly.board.dto.BoardUpdateRequest;
+import me.shinsunyoung.projectweatherly.board.dto.CommentResponse;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +29,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
     private final ImageUploadService imageUploadService;
+    private final CommentService commentService;  // CommentService 주입 추가
 
     // 게시글 생성
     @Transactional
@@ -39,6 +41,7 @@ public class BoardService {
                 .member(member)
                 .title(request.getTitle())
                 .content(request.getContent())
+                .category(request.getCategory())
                 .build();
 
         // 이미지 업로드 및 첨부
@@ -55,7 +58,7 @@ public class BoardService {
         }
 
         Board savedBoard = boardRepository.save(board);
-        return convertToResponse(savedBoard);
+        return convertToResponse(savedBoard, false);  // 목록 조회에서는 댓글 미포함
     }
 
     // 게시글 상세 조회
@@ -67,13 +70,13 @@ public class BoardService {
         board.increaseViewCount();
         boardRepository.save(board);
 
-        return convertToResponse(board);
+        return convertToResponse(board, true);  // 상세 조회에서는 댓글 포함
     }
 
     // 모든 게시글 조회
     public Page<BoardResponse> getAllBoards(Pageable pageable) {
         return boardRepository.findByBoardStatus(BoardStatus.ACTIVE, pageable)
-                .map(this::convertToResponse);
+                .map(board -> convertToResponse(board, false));  // 목록 조회에서는 댓글 미포함
     }
 
     // 게시글 수정
@@ -89,9 +92,10 @@ public class BoardService {
 
         board.setTitle(request.getTitle());
         board.setContent(request.getContent());
+        board.setCategory(request.getCategory());
 
         Board updatedBoard = boardRepository.save(board);
-        return convertToResponse(updatedBoard);
+        return convertToResponse(updatedBoard, true);  // 수정 후 상세 조회는 댓글 포함
     }
 
     // 게시글 삭제
@@ -113,19 +117,19 @@ public class BoardService {
     public Page<BoardResponse> searchBoards(String keyword, Pageable pageable) {
         return boardRepository.findByTitleContainingOrContentContainingAndBoardStatus(
                         keyword, keyword, BoardStatus.ACTIVE, pageable)
-                .map(this::convertToResponse);
+                .map(board -> convertToResponse(board, false));  // 목록 조회에서는 댓글 미포함
     }
 
     // 인기글 조회 (좋아요 순)
     public Page<BoardResponse> getPopularBoards(Pageable pageable) {
         return boardRepository.findPopularBoards(pageable)
-                .map(this::convertToResponse);
+                .map(board -> convertToResponse(board, false));  // 목록 조회에서는 댓글 미포함
     }
 
     // 최신글 조회 (생성일 순)
     public Page<BoardResponse> getRecentBoards(Pageable pageable) {
         return boardRepository.findRecentBoards(pageable)
-                .map(this::convertToResponse);
+                .map(board -> convertToResponse(board, false));  // 목록 조회에서는 댓글 미포함
     }
 
     // 게시글 검증 (관리자용)
@@ -136,27 +140,47 @@ public class BoardService {
 
         board.setIsVerified(isVerified);
         Board verifiedBoard = boardRepository.save(board);
-        return convertToResponse(verifiedBoard);
+        return convertToResponse(verifiedBoard, false);  // 목록 조회에서는 댓글 미포함
     }
 
-    // Board 엔티티 -> BoardResponse DTO 변환
-    private BoardResponse convertToResponse(Board board) {
+    // ✅ 수정된 convertToResponse 메서드 (comments 필드 추가)
+    private BoardResponse convertToResponse(Board board, boolean includeComments) {
+        // 이미지 URL 목록 추출
+        var imageUrls = board.getImages().stream()
+                .map(BoardImage::getImageUrl)
+                .collect(Collectors.toList());
+
+        // 댓글 정보 설정
+        List<CommentResponse> comments = null;
+        Integer commentCount = 0;
+
+        if (includeComments) {
+            // 상세 조회인 경우 댓글 목록 가져오기
+            comments = commentService.getCommentsByBoardId(board.getId());
+            commentCount = comments.size();
+        } else {
+            // 목록 조회인 경우 댓글 수만 가져오기
+            commentCount = commentService.getCommentCountByBoardId(board.getId());
+        }
+
         return BoardResponse.builder()
                 .id(board.getId())
                 .title(board.getTitle())
                 .content(board.getContent())
+                .category(board.getCategory())
+                .commentCount(commentCount)
+                .comments(comments)  // 댓글 목록 설정
                 .memberId(board.getMember().getId())
-                .memberNickname(board.getMember().getNickname()) // 닉네임 매핑
-                .memberEmail(board.getMember().getEmail()) // 이메일 매핑
+                .memberNickname(board.getMember().getNickname())
+                .memberEmail(board.getMember().getEmail())
                 .viewCount(board.getViewCount())
                 .likeCount(board.getLikeCount())
                 .isVerified(board.getIsVerified())
                 .boardStatus(board.getBoardStatus().name())
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
-                .imageUrls(board.getImages().stream()
-                        .map(BoardImage::getImageUrl)
-                        .collect(Collectors.toList()))
+                .imageUrls(imageUrls)
+                .images(imageUrls)
                 .thumbnailUrl(board.getThumbnailUrl())
                 .build();
     }

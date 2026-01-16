@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,11 +15,13 @@ public class BoardResponse {
     private Long id;
     private String title;
     private String content;
-
+    private String category;
+    private Integer commentCount = 0;
+    private List<CommentResponse> comments;
     // 작성자 정보
     private Long memberId;
-    private String memberNickname;  // 닉네임 필드 추가
-    private String memberEmail;     // 이메일 (선택사항)
+    private String memberNickname;
+    private String memberEmail;
 
     // 게시글 정보
     private Integer viewCount;
@@ -32,14 +33,17 @@ public class BoardResponse {
 
     // 이미지 정보
     private List<String> imageUrls;
+    private List<String> images;
     private String thumbnailUrl;
 
-    // 닉네임 getter (Lombok이 자동 생성하지만 명시적으로 추가)
-    public String getMemberNickname() {
-        return memberNickname;
-    }
 
-    public void setMemberNickname(String memberNickname) {
-        this.memberNickname = memberNickname;
+
+    // ✅ 기본값 false로 설정
+    @Builder.Default
+    private Boolean isAuthor = false;
+
+    // ✅ Thymeleaf 템플릿 호환을 위한 getImages() 메서드
+    public List<String> getImages() {
+        return this.images != null ? this.images : this.imageUrls;
     }
 }
