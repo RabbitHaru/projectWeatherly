@@ -4,93 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weatherly - 옷차림 추천</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/main.css}">
-    <link rel="stylesheet" th:href="@{/css/outfit.css}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/outfit.css}">
 </head>
 <body>
 <div th:replace="layout/header :: header"></div>
 
 <main class="outfit-main">
+
     <section class="outfit-current">
         <div class="current-info-card">
             <div class="location-weather">
                 <div class="location-info">
-                    <h2 class="location-title">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span class="location-name"
-                              th:text="${location?.name ?: '위치 정보 없음'}">
-                        부산진구
-                        </span>
+                    <div class="location-header-row">
+                        <h2 class="location-title">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="location-name" th:text="${location?.name ?: '위치 정보 없음'}">부산진구</span>
 
-                        <button class="location-change-btn gps-sync-btn" title="위치 변경 및 GPS 동기화">
-                            <i class="fas fa-satellite"></i>
-                            <span>위치 동기화</span>
-                        </button>
-                    </h2>
+                            <button class="location-control-btn gps-sync-btn" title="현재 위치로 동기화" id="gps-sync-btn">
+                                <i class="fas fa-satellite"></i>
+                                <span class="btn-text">위치 동기화</span>
+                            </button>
+                        </h2>
+                    </div>
+
                     <div class="weather-brief">
-                        <div class="current-time" th:text="${currentTime ?: '날짜 정보 없음'}">2023년 10월 20일 금요일 14:30</div>
-                        <div class="weather-details">
-                            <span th:if="${weather?.current != null}"
-                                  th:text="${weather.current.temperature + '°C'}">
-                            </span>
-                            <span th:unless="${weather?.current != null}">
-                            온도 정보 없음
-                            </span>
+                        <div class="current-time-badge">
+                            <i class="far fa-clock"></i>
+                            <span class="current-time" th:text="${currentTime ?: '-'}">2023년 10월 20일</span>
+                        </div>
 
-                            <span class="feels-like"
-                                  th:if="${weather?.current != null}"
-                                  th:text="'체감온도: ' + ${#numbers.formatDecimal(weather.current.feelsLike, 1, 0)} + '°C'">
-                            </span>
+                        <div class="weather-details-row">
+                            <div class="temp-box">
+                                <span class="current-temp" th:if="${weather?.current != null}">
+                                    <span th:text="${weather.current.temperature}">24</span><small>°C</small>
+                                </span>
+                            </div>
 
-                            <span class="weather-desc"
-                                  th:if="${weather?.current != null}"
-                                  th:text="${weather.current.weatherCondition}">
-                            </span>
+                            <div class="condition-box">
+                                <span class="weather-desc" th:if="${weather?.current != null}"
+                                      th:text="${weather.current.weatherCondition}">맑음</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="main-outfit-icon">
                     <div class="outfit-icon-wrapper">
-                        <i class="fas fa-tshirt"></i>
+                        <i th:class="${
+                            outfit?.level == 1 ? 'fas fa-tshirt' :
+                           (outfit?.level == 2 ? 'fas fa-layer-group' :
+                           (outfit?.level == 3 ? 'fas fa-user-tie' :
+                           (outfit?.level == 4 ? 'fas fa-vest' :
+                           'fas fa-user-secret')))
+                        }"></i>
                     </div>
-                    <div class="outfit-label" th:text="${outfit?.mainName ?: '옷차림 정보 없음'}">
-                        반팔 티셔츠
+                    <div class="outfit-label">
+                        <span th:text="${outfit?.mainName ?: '정보 없음'}">반팔 티셔츠</span>
                     </div>
                 </div>
             </div>
 
             <div class="outfit-decision-card">
                 <div class="decision-header">
-                    <h3><i class="fas fa-check-circle"></i> 지금 입을 옷 결정</h3>
-                    <div class="decision-level">
-                        <span class="level-badge"
-                              th:if="${outfit != null}"
-                              th:attr="class=${'level-badge level-' + outfit.level}"
-                              th:text="${outfit?.levelText}">
+                    <h3><i class="fas fa-check-circle"></i> 추천 결과 상세</h3>
+
+                    <div class="decision-actions" style="display: flex; align-items: center; gap: 15px;">
+                        <span class="level-badge" th:if="${outfit != null}"
+                              th:classappend="${'level-' + outfit.level}"
+                              th:text="${outfit.levelText}">
+                            가벼운 겉옷
                         </span>
-                        <span class="level-badge level-unknown"
-                              th:unless="${outfit != null}">
-                            정보 없음
-                        </span>
+
+                        <a href="/outfit/detail" class="detail-btn">
+                            <i class="fas fa-info-circle"></i> 상세 기준
+                        </a>
                     </div>
                 </div>
 
-                <div class="header-actions">
-                    <a href="/outfit/detail" class="detail-btn">
-                        <i class="fas fa-info-circle"></i>
-                        상세 기준 보기
-                    </a>
-                </div>
-
                 <div class="decision-summary">
-                    <p th:text="${outfit?.summary ?: '날씨 정보를 확인하여 옷차림을 추천해드립니다.'}">
-                        체감온도 23℃로 반팔과 가벼운 겉옷이 적절합니다.
+                    <i class="fas fa-quote-left quote-icon"></i>
+                    <p th:text="${outfit?.summary ?: '날씨 정보를 불러오는 중입니다.'}">
+                        체감온도가 23도라 선선하니 얇은 겉옷을 챙기세요.
                     </p>
                 </div>
 
@@ -100,58 +101,51 @@
                         <div class="factor-content">
                             <div class="factor-name">체감온도</div>
                             <div class="factor-value">
-                            <span th:if="${weather?.current != null}"
-                                  th:text="${#numbers.formatDecimal(weather.current.feelsLike, 1, 0)} + '°C'">
-                                23°C
-                            </span>
-                                <span th:unless="${weather?.current != null}">
-                                -
+                                <span th:if="${weather?.current != null}">
+                                    <span th:text="${#numbers.formatDecimal(weather.current.feelsLike, 1, 0)}">23</span><small>°C</small>
                                 </span>
+                                <span th:unless="${weather?.current != null}">-</span>
                             </div>
                         </div>
                     </div>
-                    <div class="factor-item primary">
+
+                    <div class="factor-item">
                         <div class="factor-icon"><i class="fas fa-wind"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">바람</div>
                             <div class="factor-value">
-                                <span th:if="${weather?.current != null and weather.current.windSpeed != null}"
-                                      th:text="${weather.current.windSpeed + ' m/s'}">
-                                    2.5 m/s
+                                <span th:if="${weather?.current?.windSpeed != null}">
+                                    <span th:text="${weather.current.windSpeed}">2.5</span><small>m/s</small>
                                 </span>
-                                <span th:unless="${weather?.current != null and weather.current.windSpeed != null}">
-                                    -
-                                </span>
+                                <span th:unless="${weather?.current != null}">-</span>
                             </div>
                         </div>
                     </div>
+
                     <div class="factor-item secondary">
                         <div class="factor-icon"><i class="fas fa-smog"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">미세먼지</div>
                             <div class="factor-value">
-                                <span th:if="${airQuality != null and airQuality.pm10 != null}"
-                                      th:text="${airQuality.pm10 <= 30 ? '좋음' : (airQuality.pm10 <= 80 ? '보통' : '나쁨')}">
+                                <span th:if="${airQuality?.pm10 != null}"
+                                      th:text="${airQuality.pm10 <= 30 ? '좋음' : (airQuality.pm10 <= 80 ? '보통' : '나쁨')}"
+                                      th:classappend="${airQuality.pm10 <= 30 ? 'text-success' : (airQuality.pm10 <= 80 ? 'text-warning' : 'text-danger')}">
                                     보통
                                 </span>
-                                <span th:unless="${airQuality != null and airQuality.pm10 != null}">
-                                    -
-                                </span>
+                                <span th:unless="${airQuality?.pm10 != null}">-</span>
                             </div>
                         </div>
                     </div>
+
                     <div class="factor-item secondary">
                         <div class="factor-icon"><i class="fas fa-tint"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">습도</div>
                             <div class="factor-value">
-                                <span th:if="${weather?.current != null and weather.current.humidity != null}"
-                                      th:text="${weather.current.humidity + '%'}">
-                                    45%
+                                <span th:if="${weather?.current?.humidity != null}">
+                                    <span th:text="${weather.current.humidity}">45</span><small>%</small>
                                 </span>
-                                <span th:unless="${weather?.current != null and weather.current.humidity != null}">
-                                    -
-                                </span>
+                                <span th:unless="${weather?.current != null}">-</span>
                             </div>
                         </div>
                     </div>
@@ -162,58 +156,48 @@
 
     <section class="level-guide-section">
         <div class="section-header">
-            <h3><i class="fas fa-layer-group"></i> 추천 로직 시각화</h3>
-            <p class="section-subtitle">옷차림 레벨은 체감온도에 따른 추천 강도를 나타냅니다.</p>
+            <h3><i class="fas fa-info-circle"></i> 옷차림 레벨 가이드</h3>
+            <p class="section-subtitle">체감온도별 옷차림 기준표입니다.</p>
         </div>
         <div class="level-guide">
             <div class="level-items">
                 <div class="level-item">
                     <div class="level-indicator level-1"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
+                    <div class="outfit-icon-small"><i class="fas fa-sun"></i></div>
                     <div class="level-desc">
-                        <strong>레벨 1</strong>
+                        <strong>레벨 1 (28°C↑)</strong>
                         <span>반팔, 민소매</span>
                     </div>
                 </div>
                 <div class="level-item">
                     <div class="level-indicator level-2"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
+                    <div class="outfit-icon-small"><i class="fas fa-cloud-sun"></i></div>
                     <div class="level-desc">
-                        <strong>레벨 2</strong>
-                        <span>반팔 + 겉옷</span>
+                        <strong>레벨 2 (23°C↑)</strong>
+                        <span>반팔 + 얇은 겉옷</span>
                     </div>
                 </div>
                 <div class="level-item">
                     <div class="level-indicator level-3"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
+                    <div class="outfit-icon-small"><i class="fas fa-cloud"></i></div>
                     <div class="level-desc">
-                        <strong>레벨 3</strong>
-                        <span>긴팔 + 가디건</span>
+                        <strong>레벨 3 (18°C↑)</strong>
+                        <span>긴팔, 가디건</span>
                     </div>
                 </div>
                 <div class="level-item">
                     <div class="level-indicator level-4"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-vest"></i>
-                    </div>
+                    <div class="outfit-icon-small"><i class="fas fa-wind"></i></div>
                     <div class="level-desc">
-                        <strong>레벨 4</strong>
+                        <strong>레벨 4 (13°C↑)</strong>
                         <span>자켓, 니트</span>
                     </div>
                 </div>
                 <div class="level-item">
                     <div class="level-indicator level-5"></div>
-                    <div class="outfit-icon-small">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
+                    <div class="outfit-icon-small"><i class="fas fa-snowflake"></i></div>
                     <div class="level-desc">
-                        <strong>레벨 5</strong>
+                        <strong>레벨 5 (13°C↓)</strong>
                         <span>코트, 패딩</span>
                     </div>
                 </div>
@@ -221,119 +205,91 @@
         </div>
     </section>
 
-    <section class="outfit-forecast"
-             th:if="${forecastOutfits != null and !forecastOutfits.isEmpty()}">
-
+    <section class="outfit-forecast" th:if="${forecastOutfits != null and !forecastOutfits.isEmpty()}">
         <div class="section-header">
-            <h3><i class="fas fa-calendar-alt"></i> 내일부터의 옷차림</h3>
-            <p class="section-subtitle">
-                단기 예보를 기반으로 한 향후 옷차림 경향입니다
-            </p>
+            <h3><i class="fas fa-calendar-alt"></i> 내일부터의 옷차림 예보</h3>
+            <p class="section-subtitle">단기 예보를 분석하여 미리 준비할 옷차림을 알려드립니다.</p>
         </div>
 
         <div class="forecast-days">
-            <div class="day-card"
-                 th:each="forecast : ${forecastOutfits}">
-
+            <div class="day-card" th:each="forecast : ${forecastOutfits}">
                 <div class="day-header">
-                    <div class="day-name"
-                         th:text="${forecast.dayOfWeek}">
-                        금
-                    </div>
-                    <div class="day-date"
-                         th:text="${forecast.date}">
-                        10/20
-                    </div>
+                    <div class="day-name" th:text="${forecast.dayOfWeek}">금</div>
+                    <div class="day-date" th:text="${forecast.date}">10/20</div>
                 </div>
 
                 <div class="weather-outfit">
                     <div class="weather-summary">
-                        <div class="weather-icon">
-                            <i class="fas fa-cloud-sun"></i>
-                        </div>
                         <div class="temp-range">
-                            <span class="temp-high"
-                                  th:text="${forecast.maxTemp + '°'}">
-                                26°
-                            </span>
-                            <span class="temp-low"
-                                  th:text="${forecast.minTemp + '°'}">
-                                18°
-                            </span>
+                            <span class="temp-high"><span th:text="${forecast.maxTemp}">26</span>°</span>
+                            <span class="divider">/</span>
+                            <span class="temp-low"><span th:text="${forecast.minTemp}">18</span>°</span>
                         </div>
                     </div>
 
                     <div class="outfit-summary">
                         <div class="outfit-icon">
-                            <i class="fas fa-tshirt"></i>
+                            <i th:class="${
+                                forecast.level == 1 ? 'fas fa-sun' :
+                               (forecast.level == 2 ? 'fas fa-cloud-sun' :
+                               (forecast.level == 3 ? 'fas fa-cloud' :
+                               (forecast.level == 4 ? 'fas fa-wind' : 'fas fa-snowflake')))
+                            }"></i>
                         </div>
-                        <div class="outfit-name"
-                             th:text="${forecast.mainName}">
-                            반팔 티셔츠
-                        </div>
-                        <div class="outfit-tip"
-                             th:text="${forecast.tip}">
-                            가벼운 자켓 준비
-                        </div>
+                        <div class="outfit-name" th:text="${forecast.mainName}">반팔 티셔츠</div>
+                        <div class="outfit-tip" th:text="${forecast.tip}">일교차 주의</div>
                     </div>
                 </div>
 
                 <div class="outfit-level">
-                    <div class="level-title">옷차림 레벨</div>
-
-                    <div class="level-indicator"
-                         th:classappend="${' level-' + forecast.level}">
-                    </div>
-
-                    <span class="level-text"
-                          th:text="${forecast.levelText}">
-                        가벼운 겉옷
-                    </span>
+                    <div class="level-indicator" th:classappend="${'level-' + forecast.level}"></div>
+                    <span class="level-text" th:text="${forecast.levelText}">가벼운 겉옷</span>
                 </div>
             </div>
         </div>
     </section>
+
 </main>
 
 <div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
 <script>
-    // 다크모드 및 기본 설정
     document.addEventListener('DOMContentLoaded', function () {
+        initDarkMode();
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 60000);
+        setupGpsSync();
+        setupCardInteractions();
+    });
+
+    function initDarkMode() {
         const darkModeToggle = document.getElementById('darkmode-toggle');
         const body = document.body;
-
         const isDarkMode = localStorage.getItem('darkMode') === 'true';
-
         if (isDarkMode) {
             body.classList.add('dark-mode');
             updateDarkModeIcon(true);
         }
-
-        darkModeToggle.addEventListener('click', function () {
-            const isCurrentlyDark = body.classList.contains('dark-mode');
-
-            if (isCurrentlyDark) {
-                body.classList.remove('dark-mode');
-                localStorage.setItem('darkMode', 'false');
-                updateDarkModeIcon(false);
-            } else {
-                body.classList.add('dark-mode');
-                localStorage.setItem('darkMode', 'true');
-                updateDarkModeIcon(true);
-            }
-        });
-
-        updateCurrentTime();
-        setInterval(updateCurrentTime, 60000);
-
-        setupGpsSync();
-    });
+        if(darkModeToggle) {
+            darkModeToggle.addEventListener('click', function () {
+                const isCurrentlyDark = body.classList.contains('dark-mode');
+                if (isCurrentlyDark) {
+                    body.classList.remove('dark-mode');
+                    localStorage.setItem('darkMode', 'false');
+                    updateDarkModeIcon(false);
+                } else {
+                    body.classList.add('dark-mode');
+                    localStorage.setItem('darkMode', 'true');
+                    updateDarkModeIcon(true);
+                }
+            });
+        }
+    }
 
     function updateDarkModeIcon(isDarkMode) {
         const icon = document.querySelector('#darkmode-toggle i');
         const button = document.getElementById('darkmode-toggle');
-
+        if(!icon || !button) return;
         if (isDarkMode) {
             icon.className = 'fas fa-sun';
             button.title = '라이트모드';
@@ -347,7 +303,7 @@
         const now = new Date();
         const options = {
             year: 'numeric', month: 'long', day: 'numeric',
-            weekday: 'long', hour: '2-digit', minute: '2-digit', second: '2-digit'
+            weekday: 'long', hour: '2-digit', minute: '2-digit'
         };
         const timeElements = document.querySelectorAll('.current-time');
         timeElements.forEach(el => {
@@ -355,82 +311,70 @@
         });
     }
 
-    // [수정] GPS 동기화 기능 (API 연동 + 페이지 새로고침)
     function setupGpsSync() {
         const gpsBtn = document.querySelector('.gps-sync-btn');
+        if (!gpsBtn) return;
 
-        if (gpsBtn) {
-            gpsBtn.addEventListener('click', function () {
-                const originalHTML = this.innerHTML;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 위치 저장 중...';
-                this.disabled = true;
+        gpsBtn.addEventListener('click', function () {
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span class="btn-text">위치 확인 중...</span>';
+            this.disabled = true;
 
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        async function (position) {
-                            const lat = position.coords.latitude;
-                            const lng = position.coords.longitude;
-
-                            try {
-                                // 서버에 위치 저장 요청
-                                const response = await fetch(`/api/weather/sync-location?latitude=${lat}&longitude=${lng}`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                });
-
-                                const data = await response.json();
-
-                                if (data.success) {
-                                    // 성공 시 새로고침
-                                    window.location.reload();
-                                } else {
-                                    throw new Error(data.message || '위치 저장 실패');
-                                }
-
-                            } catch (error) {
-                                console.error('서버 동기화 실패:', error);
-                                gpsBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> 오류 발생';
-                                gpsBtn.classList.add('sync-error');
-
-                                setTimeout(() => {
-                                    gpsBtn.innerHTML = originalHTML;
-                                    gpsBtn.disabled = false;
-                                    gpsBtn.classList.remove('sync-error');
-                                }, 2000);
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async function (position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        try {
+                            const response = await fetch(`/api/weather/sync-location?latitude=${lat}&longitude=${lng}`, {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'}
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                window.location.reload();
+                            } else {
+                                throw new Error(data.message || '실패');
                             }
-                        },
-                        function (error) {
-                            console.error('GPS 오류:', error);
-                            gpsBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> GPS 실패';
-                            setTimeout(() => {
-                                gpsBtn.innerHTML = originalHTML;
-                                gpsBtn.disabled = false;
-                            }, 2000);
-                        },
-                        {enableHighAccuracy: true, timeout: 10000}
-                    );
-                } else {
-                    alert('GPS를 지원하지 않는 브라우저입니다.');
-                    gpsBtn.innerHTML = originalHTML;
-                    gpsBtn.disabled = false;
-                }
-            });
-        }
+                        } catch (error) {
+                            console.error('동기화 실패:', error);
+                            showBtnError(gpsBtn, originalHTML);
+                        }
+                    },
+                    function (error) {
+                        console.error('GPS 오류:', error);
+                        showBtnError(gpsBtn, originalHTML);
+                    },
+                    {enableHighAccuracy: true, timeout: 10000}
+                );
+            } else {
+                alert('GPS 미지원');
+                showBtnError(gpsBtn, originalHTML);
+            }
+        });
     }
 
-    // 카드 클릭 이벤트
-    document.addEventListener('DOMContentLoaded', function () {
+    function showBtnError(btn, originalHTML) {
+        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span class="btn-text">실패</span>';
+        btn.classList.add('sync-error');
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            btn.classList.remove('sync-error');
+        }, 2000);
+    }
+
+    function setupCardInteractions() {
         const dayCards = document.querySelectorAll('.day-card');
         dayCards.forEach(card => {
-            card.addEventListener('click', function () {
-                const dayName = this.querySelector('.day-name').textContent;
-                const outfitName = this.querySelector('.outfit-name').textContent;
-                // alert(`${dayName} 추천 옷차림: ${outfitName}`); // 필요 시 주석 해제
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-5px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
             });
         });
-    });
+    }
 </script>
 </body>
 </html>
