@@ -30,15 +30,13 @@ public class Board {
     @Column(nullable = false, length = 200)
     private String title;
 
-    @Lob
-    @Column(nullable = false)
+    // ✅ CLOB 대신 TEXT로 변경 (LOWER 함수 사용 가능)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    // ✅ 카테고리 필드 추가
     @Column(name = "category", length = 50)
     private String category;
 
-    // 단일 image_url 대신 다중 이미지 관계
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<BoardImage> images = new ArrayList<>();

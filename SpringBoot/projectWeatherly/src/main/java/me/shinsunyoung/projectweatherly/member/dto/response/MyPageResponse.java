@@ -1,65 +1,55 @@
 package me.shinsunyoung.projectweatherly.member.dto.response;
 
-
-
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
-import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.util.List;
 
-import java.time.LocalDateTime;
-
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class MyPageResponse {
-
     private Long memberId;
-    private String email;
     private String nickname;
+    private String email;
     private String profileImage;
-    private MemberRole role;
-    private AuthProvider authProvider;
-    private Boolean isActive;
-    private LocalDateTime lastLoginAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     // 약관 동의 정보
     private Boolean termsOfServiceAgree;
     private Boolean privacyPolicyAgree;
-    private Boolean marketingAgree;
 
     // 알림 설정 정보
     private Boolean boardNotificationAgree;
     private Boolean weatherAlertAgree;
 
-    // 통계 정보 (추후 확장)
+    // 게시물 목록
+    private List<ReportedPostResponse> reportedPosts;
+    private List<CommunityPostResponse> myCommunityPosts;
+
+    // 통계
     private Integer postCount;
+    private Integer reportCount;
+
+    // ✅ 추가된 필드들 (에러 해결용)
     private Integer commentCount;
     private Integer likeCount;
 
-    // 날씨 관련 정보 (추후 확장)
-    private String recentWeatherRegion;
-    private String recentWeatherCondition;
-
+    // ✅ fromMemberResponse 메서드 추가
     public static MyPageResponse fromMemberResponse(MemberResponse memberResponse) {
         return MyPageResponse.builder()
                 .memberId(memberResponse.getMemberId())
-                .email(memberResponse.getEmail())
                 .nickname(memberResponse.getNickname())
+                .email(memberResponse.getEmail())
                 .profileImage(memberResponse.getProfileImage())
-                .role(memberResponse.getRole())
-                .authProvider(memberResponse.getAuthProvider())
-                .isActive(memberResponse.getIsActive())
-                .lastLoginAt(memberResponse.getLastLoginAt())
-                .createdAt(memberResponse.getCreatedAt())
-                .updatedAt(memberResponse.getUpdatedAt())
-                .termsOfServiceAgree(memberResponse.getTermsOfServiceAgree())
-                .privacyPolicyAgree(memberResponse.getPrivacyPolicyAgree())
-                .marketingAgree(memberResponse.getMarketingAgree())
-                .boardNotificationAgree(memberResponse.getBoardNotificationAgree())
-                .weatherAlertAgree(memberResponse.getWeatherAlertAgree())
+                .commentCount(0)
+                .likeCount(0)
+                .postCount(0)
+                .reportCount(0)
                 .build();
     }
 }

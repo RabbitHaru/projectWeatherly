@@ -1,19 +1,17 @@
 package me.shinsunyoung.projectweatherly.board.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 
-@Data
+@Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class CommentResponse {
     private Long id;
     private String content;
     private String writer;
+    private Long boardId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

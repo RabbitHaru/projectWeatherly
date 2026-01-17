@@ -6,50 +6,112 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.shinsunyoung.projectweatherly.member.dto.request.LoginRequest;
 import me.shinsunyoung.projectweatherly.member.dto.request.SignupRequest;
-import me.shinsunyoung.projectweatherly.member.dto.response.ApiResponse2;
 import me.shinsunyoung.projectweatherly.member.dto.response.LoginResponse;
 import me.shinsunyoung.projectweatherly.member.service.MemberService;
 import me.shinsunyoung.projectweatherly.util.FileNameUtil;
 import me.shinsunyoung.projectweatherly.util.FileUtil;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
-@RestController
+@Controller
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@Tag(name = "인증 API", description = "회원가입, 로그인, 로그아웃 관련 API")
+@Tag(name = "인증 컨트롤러", description = "회원가입, 로그인, 로그아웃 관련 페이지")
 public class AuthController {
 
     private final MemberService memberService;
     private final FileUtil fileUtil;
-    @PostMapping(value = "/signup",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "회원가입", description = "새로운 회원을 등록합니다.")
-    public ResponseEntity<ApiResponse2<Long>> signup(
-            @ModelAttribute SignupRequest request) {
-        List<FileNameUtil> fileNames = fileUtil.uploadFile(request.getProfileImage());
-        String profileImg = fileNames != null && !fileNames.isEmpty() ? fileNames.get(0).getNewFileName() : "default.png";
-        Long memberId = memberService.signup(request,profileImg);
 
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse2.success("회원가입이 완료되었습니다.", memberId));
+    // 로그인 페이지
+    @GetMapping("/login")
+    @Operation(summary = "로그인 페이지", description = "로그인 폼을 표시합니다.")
+    public String showLoginPage(Model model) {
+        model.addAttribute("loginRequest", new LoginRequest());
+        return "auth/login";
     }
 
+    // 로그인 처리
     @PostMapping("/login")
-    @Operation(summary = "로그인",
-            description = "이메일과 비밀번호로 로그인합니다. 로그인 성공 시 세션을 생성합니다.")
-    public ResponseEntity<ApiResponse2<LoginResponse>> login(
-            @Valid @RequestBody LoginRequest request) {
+    @Operation(summary = "로그인 처리", description = "이메일과 비밀번호로 로그인합니다.")
+    public String processLogin(
+            @Valid @ModelAttribute LoginRequest request,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
-        // Spring Security가 로그인을 처리하므로, 여기서는 추가적인 로그인 응답 정보만 반환
-        LoginResponse response = memberService.login(request);
+        if (bindingResult.hasErrors()) {
+            return "auth/login";
+        }
 
-        return ResponseEntity.ok(ApiResponse2.success("로그인되었습니다.", response));
+        try {
+            LoginResponse response = memberService.login(request);
+            redirectAttributes.addFlashAttribute("message", "로그인되었습니다.");
+            redirectAttributes.addFlashAttribute("user", response);
+            return "redirect:/";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "auth/login";
+        }
     }
 
+    // 회원가입 페이지
+    @GetMapping("/signup")
+    @Operation(summary = "회원가입 페이지", description = "회원가입 폼을 표시합니다.")
+    public String showSignupPage(Model model) {
+        model.addAttribute("signupRequest", new SignupRequest());
+        return "auth/signup";
+    }
 
+    // 회원가입 처리
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "회원가입 처리", description = "새로운 회원을 등록합니다.")
+    public String processSignup(
+            @ModelAttribute SignupRequest request,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            return "auth/signup";
+        }
+
+        try {
+            List<FileNameUtil> fileNames = fileUtil.uploadFile(request.getProfileImage());
+            String profileImg = fileNames != null && !fileNames.isEmpty() ?
+                    fileNames.get(0).getNewFileName() : "default.png";
+
+            Long memberId = memberService.signup(request, profileImg);
+
+            redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다.");
+            redirectAttributes.addFlashAttribute("memberId", memberId);
+            return "redirect:/auth/signup-success";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "auth/signup";
+        }
+    }
+
+    // 회원가입 성공 페이지
+    @GetMapping("/signup-success")
+    @Operation(summary = "회원가입 성공 페이지", description = "회원가입 성공 메시지를 표시합니다.")
+    public String showSignupSuccessPage() {
+        return "auth/signup-success";
+    }
+
+    // 로그아웃
+    @GetMapping("/logout")
+    @Operation(summary = "로그아웃", description = "사용자를 로그아웃합니다.")
+    public String logout(RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("message", "로그아웃되었습니다.");
+        return "redirect:/auth/login";
+    }
 }

@@ -12,5 +12,5 @@ public class BoardRequest {
     private String title;
     private String content;
     private String category;
-    private List<MultipartFile> imageFiles; // 다중 파일 업로드
+    private List<MultipartFile> imageFiles;
 }
