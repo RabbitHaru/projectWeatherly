@@ -5,123 +5,563 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${board.title + ' - Weatherly 커뮤니티'}">글 보기 - Weatherly 커뮤니티</title>
-
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/community.css}">
-    <link rel="stylesheet" th:href="@{/css/view.css}">
+    <link rel="stylesheet" th:href="@{/css/write.css}">
+    <style>
+        /* view 전용 스타일 추가 */
+        .view-content-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            min-height: 400px;
+        }
+
+        .view-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #212529;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .view-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .view-left-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .view-right-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .list-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .list-btn:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+
+        .edit-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #2980b9;
+            color: white;
+            text-decoration: none;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+            color: white;
+            text-decoration: none;
+        }
+
+        .like-btn {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        .like-btn:hover {
+            background: #e9ecef;
+        }
+
+        .like-btn.liked {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+
+        .report-btn {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        .report-btn:hover {
+            background: #ffebee;
+            color: #c62828;
+            border-color: #ef9a9a;
+        }
+
+        /* 이미지 갤러리 */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .gallery-image:hover {
+            transform: scale(1.02);
+        }
+
+        /* 이미지 모달 */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-image {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 5px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 댓글 섹션 */
+        .comments-section {
+            margin-top: 3rem;
+        }
+
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .comments-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .comments-count {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .comment-form {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .comment-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .comment-submit-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+
+        .comment-submit-btn:hover {
+            background: #45a049;
+        }
+
+        .comment-list {
+            margin-top: 2rem;
+        }
+
+        .comment-item {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comment-author-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .comment-author-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comment-author-name {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .comment-date {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .comment-action-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .comment-action-btn:hover {
+            color: #667eea;
+        }
+
+        .comment-content {
+            color: #212529;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+        }
+
+        .comment-like-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .comment-like-btn:hover {
+            color: #e74c3c;
+        }
+
+        .comment-like-btn.liked {
+            color: #e74c3c;
+        }
+
+        /* 신고 모달 */
+        .report-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .report-modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .report-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .report-modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .report-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .report-reason {
+            margin-bottom: 1.5rem;
+        }
+
+        .report-reason-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+
+        .report-reason-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .report-details {
+            margin-bottom: 1.5rem;
+        }
+
+        .report-details-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+
+        .report-details-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .report-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .report-cancel-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .report-submit-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* 다크모드 스타일 */
+        body.dark-mode .view-content-section {
+            background: #1e1e1e;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.3);
+        }
+
+        body.dark-mode .view-content {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .view-actions {
+            border-top-color: #4a5568;
+        }
+
+        body.dark-mode .like-btn,
+        body.dark-mode .report-btn {
+            background: #2d3748;
+            border-color: #4a5568;
+            color: #cbd5e0;
+        }
+
+        body.dark-mode .comment-form {
+            background: #2d3748;
+        }
+
+        body.dark-mode .comment-textarea {
+            background: #1e1e1e;
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .comment-item {
+            background: #1e1e1e;
+            border-color: #4a5568;
+        }
+
+        body.dark-mode .comment-author-name {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .comment-content {
+            color: #cbd5e0;
+        }
+
+        body.dark-mode .report-modal-content {
+            background: #1e1e1e;
+        }
+
+        body.dark-mode .report-modal-title {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .report-reason-select,
+        body.dark-mode .report-details-textarea {
+            background: #2d3748;
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+    </style>
 </head>
 
 <body>
-<!-- 헤더 영역 -->
-<header class="main-header">
-    <div class="header-container">
-        <!-- 왼쪽: 로고 -->
-        <div class="header-left">
-            <a href="/" class="logo">
-                <i class="fas fa-cloud-sun logo-icon"></i>
-                <span class="logo-text">Weatherly</span>
-            </a>
-        </div>
-
-        <!-- 가운데: 메인 메뉴 -->
-        <nav class="header-center">
-            <ul class="main-menu">
-                <li><a href="/" class="menu-item"><i class="fas fa-home"></i>홈</a></li>
-                <li><a href="/fine-dust" class="menu-item"><i class="fas fa-wind"></i>미세먼지</a></li>
-                <li><a href="/outfit" class="menu-item"><i class="fas fa-tshirt"></i> 옷차림</a></li>
-                <li><a href="/community" class="menu-item active"><i class="fas fa-comments"></i>커뮤니티</a></li>
-            </ul>
-        </nav>
-
-        <!-- 오른쪽: 사용자 컨트롤 -->
-        <div class="header-right">
-            <!-- 인사 메시지 -->
-            <div class="user-greeting" sec:authorize="isAuthenticated()">
-                <span class="greeting-text">안녕하세요, <strong sec:authentication="principal.username"></strong>님!</span>
-            </div>
-
-            <!-- 컨트롤 버튼들 -->
-            <div class="control-buttons">
-                <button class="control-btn notification-btn" title="알림">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">0</span>
-                </button>
-
-                <button class="control-btn favorites-btn" title="즐겨찾기">
-                    <i class="fas fa-star"></i>
-                </button>
-
-                <button class="control-btn darkmode-toggle" id="darkmode-toggle" title="다크모드 전환">
-                    <i class="fas fa-moon"></i>
-                </button>
-            </div>
-            <!-- 마이페이지 드롭다운 -->
-            <div class="dropdown">
-                <button class="user-menu-btn">
-                    <i class="fas fa-user-circle"></i>
-                    <span>마이페이지</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="dropdown-content" sec:authorize="isAuthenticated()">
-                    <a href="/mypage"><i class="fas fa-user"></i> 프로필</a>
-                    <a href="/settings"><i class="fas fa-cog"></i> 설정</a>
-                    <a href="/favorites"><i class="fas fa-star"></i> 즐겨찾기</a>
-                    <div class="dropdown-divider"></div>
-                    <a href="/logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</a>
-                </div>
-                <div class="dropdown-content" sec:authorize="isAnonymous()">
-                    <a href="/login"><i class="fas fa-sign-in-alt"></i> 로그인</a>
-                    <a href="/signup"><i class="fas fa-user-plus"></i> 회원가입</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</header>
+<div th:replace="layout/header :: header"></div>
 
 <!-- 글보기 헤더 섹션 -->
 <div class="container">
-    <div class="view-header-section">
-        <h1 class="view-title" th:text="${board.title}">게시글 제목</h1>
+    <div class="write-header-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; margin-top: 3rem;">
+        <h1 class="write-title" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;" th:text="${board.title}">게시글 제목</h1>
 
-        <div class="view-meta">
-            <div class="view-meta-item">
+        <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.95rem; opacity: 0.9;">
                 <i class="fas fa-user-circle"></i>
                 <span th:text="${board.memberNickname}">작성자</span>
             </div>
-            <div class="view-meta-item">
+            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.95rem; opacity: 0.9;">
                 <i class="fas fa-calendar-alt"></i>
                 <span th:text="${#temporals.format(board.createdAt, 'yyyy년 MM월 dd일 HH:mm')}">2026.01.16</span>
             </div>
-            <div class="view-meta-item">
+            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.95rem; opacity: 0.9;">
                 <i class="fas fa-eye"></i>
                 <span th:text="${board.viewCount}">0</span>회
             </div>
-            <div class="view-meta-item">
+            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.95rem; opacity: 0.9;">
                 <i class="fas fa-heart"></i>
                 <span th:text="${board.likeCount}">0</span>개
             </div>
             <!-- 카테고리 태그 -->
-            <span th:if="${board.category == 'weather'}" class="post-category weather">날씨</span>
-            <span th:if="${board.category == 'dust'}" class="post-category dust">미세먼지</span>
-            <span th:if="${board.category == 'outfit'}" class="post-category outfit">옷차림</span>
-            <span th:if="${board.category == 'general'}" class="post-category general">자유주제</span>
+            <span th:if="${board.category == 'weather'}" style="background: #1976d2; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">날씨</span>
+            <span th:if="${board.category == 'dust'}" style="background: #c2185b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">미세먼지</span>
+            <span th:if="${board.category == 'outfit'}" style="background: #7b1fa2; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">옷차림</span>
+            <span th:if="${board.category == 'general'}" style="background: #616161; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">자유주제</span>
         </div>
     </div>
 </div>
 
 <!-- 게시글 내용 -->
 <div class="container">
-    <div class="view-content-container">
+    <div class="view-content-section">
         <!-- 이미지 갤러리 -->
         <div th:if="${not #lists.isEmpty(board.images)}" class="image-gallery">
             <img th:each="image : ${board.images}"
-                 th:src="@{'/images/' + ${image.fileName}}"
+                 th:src="@{${image}}"
                  class="gallery-image"
-                 th:data-image="@{'/images/' + ${image.fileName}}"
+                 th:data-image="@{${image}}"
                  alt="게시글 이미지">
         </div>
 
@@ -147,18 +587,18 @@
 
             <button th:if="${board.isAuthor}"
                     class="action-btn delete-btn"
-                    onclick="deletePost([[${board.id}]])">
+                    th:onclick="'deletePost(' + ${board.id} + ')'">
                 <i class="fas fa-trash"></i> 삭제
             </button>
         </div>
 
         <div class="view-right-actions">
-            <button class="action-btn like-btn" id="like-btn" onclick="toggleLike()">
+            <button class="action-btn like-btn" id="like-btn" th:onclick="'toggleLike()'">
                 <i class="fas fa-heart"></i>
                 <span id="like-count" th:text="${board.likeCount}">0</span>
             </button>
 
-            <button class="action-btn report-btn" onclick="openReportModal('post', [[${board.id}]])">
+            <button class="action-btn report-btn" th:onclick="'openReportModal(\'post\', ' + ${board.id} + ')'">
                 <i class="fas fa-flag"></i> 신고
             </button>
         </div>
@@ -199,7 +639,7 @@
 
                     <div class="comment-actions">
                         <button class="comment-action-btn report-btn"
-                                onclick="openReportModal('comment', [[${comment.id}]])"
+                                th:onclick="'openReportModal(\'comment\', ' + ${comment.id} + ')'"
                                 title="신고">
                             <i class="fas fa-flag"></i>
                         </button>
@@ -211,7 +651,7 @@
                 </div>
 
                 <button class="comment-like-btn" th:classappend="${comment.isLiked} ? 'liked' : ''"
-                        onclick="toggleCommentLike([[${comment.id}]])">
+                        th:onclick="'toggleCommentLike(' + ${comment.id} + ')'">
                     <i class="fas fa-heart"></i>
                     <span th:text="${comment.likeCount}">0</span>
                 </button>
@@ -280,14 +720,17 @@
 <!-- JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // 게시글 ID 가져오기
-    const postId = [[${board.id}]];
+    // 게시글 ID 가져오기 (Thymeleaf 변수 삽입 - 올바른 문법 사용)
+    // 이 부분은 서버에서 렌더링될 때 실제 값으로 대체됩니다
+    const postId = /*[[${board.id}]]*/ 0;
+
+    console.log('Post ID:', postId); // 디버깅용
 
     // 게시글 삭제
     function deletePost(postId) {
         if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
-            fetch('/community/boards/' + postId, {
-                method: 'DELETE'
+            fetch('/community/boards/' + postId + '/delete', {
+                method: 'POST'
             })
                 .then(response => {
                     if (response.ok) {
@@ -309,7 +752,7 @@
         const likeBtn = document.getElementById('like-btn');
         const likeCount = document.getElementById('like-count');
 
-        fetch('/api/community/posts/' + postId + '/like', {
+        fetch('/community/boards/' + postId + '/like', {
             method: 'POST'
         })
             .then(response => {
@@ -321,11 +764,15 @@
                 return response.json();
             })
             .then(data => {
-                likeCount.textContent = data.likeCount;
-                if (data.liked) {
-                    likeBtn.classList.add('liked');
+                if (data.success) {
+                    likeCount.textContent = data.likeCount;
+                    if (data.liked) {
+                        likeBtn.classList.add('liked');
+                    } else {
+                        likeBtn.classList.remove('liked');
+                    }
                 } else {
-                    likeBtn.classList.remove('liked');
+                    alert(data.message || '좋아요 처리에 실패했습니다.');
                 }
             })
             .catch(error => {
@@ -459,7 +906,7 @@
         });
 
         // 페이지 방문 시 조회수 증가
-        fetch('/api/community/posts/' + postId + '/view', {
+        fetch('/community/boards/' + postId + '/view', {
             method: 'POST'
         }).catch(error => console.error('View count error:', error));
     });
@@ -488,3 +935,4 @@
 </script>
 </body>
 </html>
+[file content end]
