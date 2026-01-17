@@ -21,23 +21,12 @@
         </div>
 
         <nav class="header-center">
-<<<<<<< HEAD:SpringBoot/projectWeatherly/src/main/resources/templates/fragments/header.html
+
             <ul class="main-menu"  th:href="@{/}">
                 <li><a href="/" class="menu-item" th:classappend="${requestURI.equals('/') or requestURI.equals('')} ? 'active' : ''"><i class="fas fa-home"></i>홈</a></li>
                 <li><a href="/fine-dust" class="menu-item" th:classappend="${requestURI.contains('fine-dust')} ? 'active' : ''"><i class="fas fa-wind"></i>미세먼지</a></li>
                 <li><a href="/outfit" class="menu-item" th:classappend="${requestURI.contains('outfit')} ? 'active' : ''"><i class="fas fa-tshirt"></i> 옷차림</a></li>
                 <li><a href="/community" class="menu-item" th:classappend="${requestURI.contains('community')} ? 'active' : ''"><i class="fas fa-comments"></i>커뮤니티</a></li>
-=======
-            <ul class="main-menu">
-                <li><a href="/" class="menu-item">
-                    <i class="fas fa-home"></i> 홈</a></li>
-                <li><a href="/fine-dust" class="menu-item">
-                    <i class="fas fa-wind"></i> 미세먼지</a></li>
-                <li><a href="/outfit" class="menu-item">
-                    <i class="fas fa-tshirt"></i> 옷차림</a></li>
-                <li><a href="/community" class="menu-item">
-                    <i class="fas fa-comments"></i> 커뮤니티</a></li>
->>>>>>> origin/wq_test:SpringBoot/projectWeatherly/src/main/resources/templates/layout/header.html
             </ul>
         </nav>
 
