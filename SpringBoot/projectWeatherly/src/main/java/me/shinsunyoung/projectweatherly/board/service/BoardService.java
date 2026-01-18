@@ -1,35 +1,41 @@
 package me.shinsunyoung.projectweatherly.board.service;
 
-import lombok.RequiredArgsConstructor;
-import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
-import me.shinsunyoung.projectweatherly.board.domain.entity.BoardImage;
-import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
 import me.shinsunyoung.projectweatherly.board.dto.BoardRequest;
 import me.shinsunyoung.projectweatherly.board.dto.BoardResponse;
 import me.shinsunyoung.projectweatherly.board.dto.BoardUpdateRequest;
+<<<<<<< HEAD
 import me.shinsunyoung.projectweatherly.board.dto.CommentResponse;
 import me.shinsunyoung.projectweatherly.board.entity.Comment;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
+=======
+>>>>>>> board
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+<<<<<<< HEAD
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+=======
+>>>>>>> board
 
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
+public interface BoardService {
 
-@Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class BoardService {
+    // 기존 메서드들
+    Page<BoardResponse> getAllBoards(Pageable pageable);
+    Page<BoardResponse> getPopularBoards(Pageable pageable);
+    Page<BoardResponse> getRecentBoards(Pageable pageable);
+    Page<BoardResponse> searchBoards(String keyword, Pageable pageable);
+    BoardResponse getBoard(Long id);
+    BoardResponse createBoard(Long memberId, BoardRequest request);
+    BoardResponse updateBoard(Long boardId, Long memberId, BoardUpdateRequest request);
+    void deleteBoard(Long boardId, Long memberId);
 
+<<<<<<< HEAD
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
     private final ImageUploadService imageUploadService;
@@ -300,4 +306,12 @@ public class BoardService {
                 .map(board -> convertToResponse(board, false))
                 .collect(Collectors.toList());
     }
+=======
+    // 새로 추가된 메서드들
+    boolean toggleLike(Long boardId, Long memberId);
+    int getLikeCount(Long boardId);
+    void increaseViewCount(Long boardId);
+    Page<BoardResponse> getMyBoards(Long memberId, Pageable pageable);
+    Page<BoardResponse> getBoardsByCategory(String category, Pageable pageable);
+>>>>>>> board
 }

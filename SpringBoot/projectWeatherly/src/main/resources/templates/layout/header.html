@@ -8,6 +8,8 @@
     <title th:text="${pageTitle} + ' - Weatherly'">Weatherly</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/main.css}">
+    <!-- favicon 추가 -->
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
 </head>
 <body>
 <!-- 헤더 영역 -->
@@ -21,15 +23,22 @@
         </div>
 
         <nav class="header-center">
+<<<<<<< HEAD
 
             <ul class="main-menu"  th:href="@{/}">
                 <li><a href="/" class="menu-item" th:classappend="${#strings.equals(requestURI, '/') or #strings.equals(requestURI, '')} ? 'active' : ''"><i class="fas fa-home"></i>홈</a></li>
                 <li><a href="/fine-dust" class="menu-item" th:classappend="${requestURI.contains('fine-dust')} ? 'active' : ''"><i class="fas fa-wind"></i>미세먼지</a></li>
                 <li><a href="/outfit" class="menu-item" th:classappend="${requestURI.contains('outfit')} ? 'active' : ''"><i class="fas fa-tshirt"></i> 옷차림</a></li>
                 <li><a href="/community" class="menu-item" th:classappend="${requestURI.contains('community')} ? 'active' : ''"><i class="fas fa-comments"></i>커뮤니티</a></li>
+=======
+            <ul class="main-menu">
+                <li><a href="/" class="menu-item" th:classappend="${requestURI != null and (requestURI.equals('/') or requestURI.equals(''))} ? 'active' : ''"><i class="fas fa-home"></i>홈</a></li>
+                <li><a href="/fine-dust" class="menu-item" th:classappend="${requestURI != null and requestURI.contains('fine-dust')} ? 'active' : ''"><i class="fas fa-wind"></i>미세먼지</a></li>
+                <li><a href="/outfit" class="menu-item" th:classappend="${requestURI != null and requestURI.contains('outfit')} ? 'active' : ''"><i class="fas fa-tshirt"></i> 옷차림</a></li>
+                <li><a href="/community" class="menu-item" th:classappend="${requestURI != null and requestURI.contains('community')} ? 'active' : ''"><i class="fas fa-comments"></i>커뮤니티</a></li>
+>>>>>>> board
             </ul>
         </nav>
-
         <div class="header-right">
             <div class="user-greeting" sec:authorize="isAuthenticated()">
                 <span class="greeting-text">안녕하세요, <strong th:text="${nickname}"></strong>님!</span>

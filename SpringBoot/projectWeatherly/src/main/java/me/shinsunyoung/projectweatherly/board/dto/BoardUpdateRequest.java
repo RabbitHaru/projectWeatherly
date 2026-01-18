@@ -1,18 +1,15 @@
 package me.shinsunyoung.projectweatherly.board.dto;
 
-import lombok.Getter;
-import lombok.Setter;
-import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
+import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 public class BoardUpdateRequest {
     private String title;
     private String content;
     private String category;
-    private List<Long> imageIdsToDelete; // 삭제할 이미지 ID 목록
-    private BoardStatus boardStatus;
-    private Boolean isVerified;
+    private List<String> deleteImages;  // 삭제할 이미지 URL 목록
+    private List<MultipartFile> newImages;  // 새로 추가할 이미지
 }
