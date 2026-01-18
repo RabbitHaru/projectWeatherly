@@ -1,0 +1,847 @@
+/* ===== 마이페이지 스타일 ===== */
+/* 회원가입 페이지 스타일 상속 */
+:root {
+    --scale-factor: 1.3;
+}
+
+/* 컨테이너 스타일 */
+.mypage-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+    min-height: calc(100vh - 200px);
+}
+
+/* 헤더 스타일 */
+.mypage-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.mypage-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+body.dark-mode .mypage-header h1 {
+    color: var(--dark-text);
+}
+
+.mypage-header .subtitle {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+}
+
+body.dark-mode .mypage-header .subtitle {
+    color: #bdc3c7;
+}
+
+/* 메인 콘텐츠 레이아웃 */
+.mypage-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+}
+
+@media (max-width: 992px) {
+    .mypage-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 카드 공통 스타일 */
+.mypage-card {
+    background: var(--light-card);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-heavy);
+    overflow: hidden;
+    transition: var(--transition);
+    margin-bottom: 30px;
+}
+
+body.dark-mode .mypage-card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+}
+
+.mypage-card:hover {
+    box-shadow: var(--shadow-medium);
+}
+
+/* 카드 헤더 */
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 카드 내용 영역 */
+.profile-info,
+.profile-edit-form,
+.list-container {
+    padding: 25px;
+}
+
+/* 프로필 이미지 섹션 */
+.profile-image-section {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--light-border);
+}
+
+body.dark-mode .profile-image-section {
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.profile-image-preview {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--primary-color);
+    background: #f8f9fa;
+}
+
+body.dark-mode .profile-image-preview {
+    background: var(--dark-bg);
+    border-color: var(--primary-color);
+}
+
+.profile-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-image-controls {
+    flex: 1;
+}
+
+.change-image-btn {
+    padding: 12px 24px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+
+.change-image-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.image-info {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+body.dark-mode .image-info {
+    color: #bdc3c7;
+}
+
+/* 프로필 상세 정보 */
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid var(--primary-color);
+}
+
+body.dark-mode .info-row {
+    background: var(--dark-bg);
+    border-left: 4px solid var(--primary-color);
+}
+
+.info-label {
+    width: 150px;
+    font-weight: 600;
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+body.dark-mode .info-label {
+    color: var(--dark-text);
+}
+
+.info-value {
+    flex: 1;
+    color: var(--light-text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+body.dark-mode .info-value {
+    color: var(--dark-text);
+}
+
+/* 버튼 스타일 */
+.edit-profile-btn,
+.change-password-btn,
+.action-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.edit-profile-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.edit-profile-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.change-password-btn {
+    background: var(--info-color);
+    color: white;
+}
+
+.change-password-btn:hover {
+    background: #2980b9;
+}
+
+/* 프로필 수정 폼 */
+.profile-edit-form .form-group {
+    margin-bottom: 25px;
+}
+
+.profile-edit-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.dark-mode .profile-edit-form label {
+    color: var(--dark-text);
+}
+
+/* 리스트 아이템 스타일 */
+.list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+body.dark-mode .list-container::-webkit-scrollbar-track {
+    background: #34495e;
+}
+
+.list-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+body.dark-mode .list-container::-webkit-scrollbar-thumb {
+    background: #7f8c8d;
+}
+
+.list-item {
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+    padding: 20px;
+    transition: var(--transition);
+    border-left: 4px solid var(--primary-color);
+}
+
+body.dark-mode .list-item {
+    background: var(--dark-bg);
+    border-left: 4px solid var(--primary-color);
+}
+
+.list-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-light);
+}
+
+body.dark-mode .list-item:hover {
+    background: #2d3748;
+}
+
+.list-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.item-title {
+    font-weight: 600;
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+    flex: 1;
+}
+
+body.dark-mode .item-title {
+    color: var(--dark-text);
+}
+
+.item-status {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.item-status.reported {
+    background: rgba(231, 76, 60, 0.1);
+    color: var(--danger-color);
+}
+
+.item-status.completed {
+    background: rgba(46, 204, 113, 0.1);
+    color: var(--success-color);
+}
+
+.item-category-tag {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.item-category-tag.weather {
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--primary-color);
+}
+
+.item-category-tag.outfit {
+    background: rgba(46, 204, 113, 0.1);
+    color: var(--success-color);
+}
+
+.item-category-tag.dust {
+    background: rgba(243, 156, 18, 0.1);
+    color: var(--warning-color);
+}
+
+.item-content {
+    margin-bottom: 15px;
+    color: var(--light-text);
+}
+
+body.dark-mode .item-content {
+    color: var(--dark-text);
+}
+
+.item-content p {
+    margin: 0;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.item-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+body.dark-mode .item-meta {
+    color: #bdc3c7;
+}
+
+.item-stats {
+    display: flex;
+    gap: 15px;
+}
+
+.item-stats i {
+    margin-right: 5px;
+}
+
+.item-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.edit-btn {
+    background: var(--info-color);
+    color: white;
+}
+
+.delete-btn {
+    background: var(--danger-color);
+    color: white;
+}
+
+.action-btn:hover {
+    opacity: 0.9;
+}
+
+/* 카운트 뱃지 */
+.count-badge {
+    background: white;
+    color: var(--primary-color);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* 빈 리스트 스타일 */
+.empty-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #7f8c8d;
+    text-align: center;
+}
+
+body.dark-mode .empty-list {
+    color: #bdc3c7;
+}
+
+.empty-list i {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+/* 리스트 액션 */
+.list-actions {
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid var(--light-border);
+}
+
+body.dark-mode .list-actions {
+    border-top: 1px solid var(--dark-border);
+}
+
+.load-more-btn {
+    padding: 12px 30px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+
+.load-more-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* 모달 스타일 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: var(--light-card);
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow-heavy);
+    overflow: hidden;
+}
+
+body.dark-mode .modal-content {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    border-radius: 50%;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-form {
+    padding: 25px;
+}
+
+.modal-form .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+body.dark-mode .modal-form label {
+    color: var(--dark-text);
+}
+
+.modal-form input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--light-border);
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    transition: var(--transition);
+    background: white;
+    color: var(--light-text);
+}
+
+body.dark-mode .modal-form input {
+    background: var(--dark-bg);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.modal-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+body.dark-mode .modal-form input:focus {
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+}
+
+/* 입력 검증 (signup.css 스타일 상속) */
+.input-with-validation {
+    display: flex;
+    gap: 10px;
+}
+
+.input-with-validation input {
+    flex: 1;
+}
+
+.validation-btn {
+    padding: 0 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.validation-btn:hover {
+    background: var(--primary-dark);
+}
+
+.validation-message {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    min-height: 20px;
+}
+
+.validation-message.success {
+    color: var(--success-color);
+}
+
+.validation-message.error {
+    color: var(--danger-color);
+}
+
+.validation-message.info {
+    color: var(--info-color);
+}
+
+/* 폼 버튼 */
+.form-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.submit-btn {
+    flex: 1;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: var(--transition);
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.cancel-btn {
+    padding: 15px 30px;
+    background: var(--light-border);
+    color: var(--light-text);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: var(--transition);
+}
+
+body.dark-mode .cancel-btn {
+    background: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.cancel-btn:hover {
+    background: #e0e0e0;
+}
+
+body.dark-mode .cancel-btn:hover {
+    background: #4a4a6d;
+}
+
+/* 프로필 이미지 업로드 (signup.css 스타일 상속) */
+.profile-upload-controls {
+    flex: 1;
+}
+
+.upload-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.upload-btn:hover {
+    background: var(--primary-dark);
+}
+
+.remove-btn {
+    padding: 12px 24px;
+    background: var(--light-border);
+    color: var(--light-text);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+body.dark-mode .remove-btn {
+    background: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.remove-btn:hover {
+    background: #e0e0e0;
+}
+
+body.dark-mode .remove-btn:hover {
+    background: #4a4a6d;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .mypage-container {
+        margin: 20px auto;
+        padding: 0 15px;
+    }
+
+    .mypage-header h1 {
+        font-size: 2rem;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .mypage-content {
+        gap: 20px;
+    }
+
+    .profile-image-section {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .profile-upload-controls {
+        width: 100%;
+    }
+
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .info-label {
+        width: 100%;
+    }
+
+    .info-value {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .list-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .item-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .input-with-validation {
+        flex-direction: column;
+    }
+
+    .validation-btn {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+    }
+
+    .form-buttons {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        width: 95%;
+        margin: 10px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .edit-profile-btn {
+        align-self: flex-end;
+    }
+}

@@ -23,7 +23,7 @@
         <nav class="header-center">
 
             <ul class="main-menu"  th:href="@{/}">
-                <li><a href="/" class="menu-item" th:classappend="${requestURI.equals('/') or requestURI.equals('')} ? 'active' : ''"><i class="fas fa-home"></i>홈</a></li>
+                <li><a href="/" class="menu-item" th:classappend="${#strings.equals(requestURI, '/') or #strings.equals(requestURI, '')} ? 'active' : ''"><i class="fas fa-home"></i>홈</a></li>
                 <li><a href="/fine-dust" class="menu-item" th:classappend="${requestURI.contains('fine-dust')} ? 'active' : ''"><i class="fas fa-wind"></i>미세먼지</a></li>
                 <li><a href="/outfit" class="menu-item" th:classappend="${requestURI.contains('outfit')} ? 'active' : ''"><i class="fas fa-tshirt"></i> 옷차림</a></li>
                 <li><a href="/community" class="menu-item" th:classappend="${requestURI.contains('community')} ? 'active' : ''"><i class="fas fa-comments"></i>커뮤니티</a></li>
