@@ -3,20 +3,31 @@ package me.shinsunyoung.projectweatherly.board.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
+import me.shinsunyoung.projectweatherly.board.domain.entity.BoardImage;
 import me.shinsunyoung.projectweatherly.board.domain.entity.BoardLike;
+import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
 import me.shinsunyoung.projectweatherly.board.dto.BoardRequest;
 import me.shinsunyoung.projectweatherly.board.dto.BoardResponse;
 import me.shinsunyoung.projectweatherly.board.dto.BoardUpdateRequest;
+import me.shinsunyoung.projectweatherly.board.dto.CommentResponse;
+import me.shinsunyoung.projectweatherly.board.entity.Comment;
 import me.shinsunyoung.projectweatherly.board.repository.BoardLikeRepository;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
+import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,51 +38,78 @@ public class BoardServiceImpl implements BoardService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
     private final BoardLikeRepository boardLikeRepository;
+    private final ImageUploadService imageUploadService;
+    private final CommentRepository commentRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BoardResponse> getAllBoards(Pageable pageable) {
-        return boardRepository.findAll(pageable).map(this::convertToResponse);
+        return boardRepository.findByBoardStatus(BoardStatus.ACTIVE, pageable)
+                .map(board -> convertToResponse(board, false));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BoardResponse> getPopularBoards(Pageable pageable) {
-        return boardRepository.findAllByOrderByViewCountDesc(pageable).map(this::convertToResponse);
+        return boardRepository.findPopularBoards(BoardStatus.ACTIVE, pageable)
+                .map(board -> convertToResponse(board, false));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BoardResponse> getRecentBoards(Pageable pageable) {
-        return boardRepository.findAllByOrderByCreatedAtDesc(pageable).map(this::convertToResponse);
+        return boardRepository.findRecentBoards(BoardStatus.ACTIVE, pageable)
+                .map(board -> convertToResponse(board, false));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BoardResponse> searchBoards(String keyword, Pageable pageable) {
-        return boardRepository.findByTitleContainingOrContentContaining(keyword, pageable)
-                .map(this::convertToResponse);
+        return boardRepository.findByTitleContainingOrContentContainingAndBoardStatus(
+                        keyword, BoardStatus.ACTIVE, pageable)
+                .map(board -> convertToResponse(board, false));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BoardResponse getBoard(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        return convertToResponse(board);
+
+        // 조회수 증가
+        board.increaseViewCount();
+        boardRepository.save(board);
+
+        return convertToResponse(board, true);
     }
 
     @Override
-    public BoardResponse createBoard(Long memberId, BoardRequest request) {
+    public BoardResponse createBoard(Long memberId, BoardRequest request) throws IOException {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
         Board board = Board.builder()
+                .member(member)
                 .title(request.getTitle())
                 .content(request.getContent())
                 .category(request.getCategory())
-                .member(member)
-                .viewCount(0)
-                .likeCount(0)
                 .build();
 
-        boardRepository.save(board);
-        return convertToResponse(board);
+        // 이미지 업로드 및 첨부
+        if (request.getImageFiles() != null && !request.getImageFiles().isEmpty()) {
+            for (MultipartFile imageFile : request.getImageFiles()) {
+                String imageUrl = imageUploadService.uploadImage(imageFile);
+                BoardImage boardImage = BoardImage.builder()
+                        .imageUrl(imageUrl)
+                        .isThumbnail(board.getImages().isEmpty())
+                        .board(board)
+                        .build();
+                board.addImage(boardImage);
+            }
+        }
+
+        Board savedBoard = boardRepository.save(board);
+        return convertToResponse(savedBoard, false);
     }
 
     @Override
@@ -84,9 +122,12 @@ public class BoardServiceImpl implements BoardService {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
-        board.update(request.getTitle(), request.getContent(), request.getCategory());
-        boardRepository.save(board);
-        return convertToResponse(board);
+        board.setTitle(request.getTitle());
+        board.setContent(request.getContent());
+        board.setCategory(request.getCategory());
+
+        Board updatedBoard = boardRepository.save(board);
+        return convertToResponse(updatedBoard, false);
     }
 
     @Override
@@ -99,7 +140,8 @@ public class BoardServiceImpl implements BoardService {
             throw new IllegalArgumentException("게시글 삭제 권한이 없습니다.");
         }
 
-        boardRepository.delete(board);
+        board.setBoardStatus(BoardStatus.DELETED);
+        boardRepository.save(board);
     }
 
     @Override
@@ -132,6 +174,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getLikeCount(Long boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
@@ -147,29 +190,181 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BoardResponse> getMyBoards(Long memberId, Pageable pageable) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
-        return boardRepository.findByMember(member, pageable).map(this::convertToResponse);
+        return boardRepository.findByMember(member, pageable).map(board -> convertToResponse(board, false));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BoardResponse> getBoardsByCategory(String category, Pageable pageable) {
-        return boardRepository.findByCategory(category, pageable).map(this::convertToResponse);
+        return boardRepository.findByCategoryAndBoardStatus(category, BoardStatus.ACTIVE, pageable)
+                .map(board -> convertToResponse(board, false));
     }
 
-    private BoardResponse convertToResponse(Board board) {
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BoardResponse> getBoardsByMemberId(Long memberId, Pageable pageable) {
+        return boardRepository.findByMemberIdAndBoardStatus(memberId, BoardStatus.ACTIVE, pageable)
+                .map(board -> convertToResponse(board, false));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByMemberId(Long memberId) {
+        return boardRepository.countByMemberIdAndBoardStatus(memberId, BoardStatus.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BoardResponse> getMyBoardsSimple(Long memberId) {
+        Pageable pageable = PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Board> boards = boardRepository.findByMemberIdAndBoardStatus(memberId, BoardStatus.ACTIVE, pageable);
+
+        return boards.getContent().stream()
+                .map(board -> convertToResponse(board, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsByMemberIdAndBoardId(Long memberId, Long boardId) {
+        return boardRepository.existsByMemberIdAndIdAndBoardStatus(memberId, boardId, BoardStatus.ACTIVE);
+    }
+
+    @Override
+    public BoardResponse verifyBoard(Long boardId, Boolean isVerified) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        board.setIsVerified(isVerified);
+        Board verifiedBoard = boardRepository.save(board);
+        return convertToResponse(verifiedBoard, false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Board> getMyBoardsForMyPage(Long memberId) {
+        Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return boardRepository.findByMemberIdAndBoardStatus(memberId, BoardStatus.ACTIVE, pageable).getContent();
+    }
+
+    @Override
+    public BoardResponse changeBoardStatus(Long boardId, BoardStatus status) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        board.setBoardStatus(status);
+        Board updatedBoard = boardRepository.save(board);
+        return convertToResponse(updatedBoard, false);
+    }
+
+    @Override
+    public BoardResponse increaseLike(Long boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        board.increaseLikeCount();
+        Board updatedBoard = boardRepository.save(board);
+        return convertToResponse(updatedBoard, false);
+    }
+
+    @Override
+    public BoardResponse decreaseLike(Long boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        board.decreaseLikeCount();
+        Board updatedBoard = boardRepository.save(board);
+        return convertToResponse(updatedBoard, false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> getBoardIdsByMemberId(Long memberId) {
+        return boardRepository.findBoardIdsByMemberIdAndStatus(memberId, BoardStatus.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BoardResponse> searchMyBoardsByTitle(Long memberId, String keyword) {
+        Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Board> boards = boardRepository.findByMemberIdAndTitleContainingAndBoardStatus(
+                memberId, keyword, BoardStatus.ACTIVE, pageable);
+
+        return boards.getContent().stream()
+                .map(board -> convertToResponse(board, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Board getBoardEntity(Long boardId) {
+        return boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BoardResponse> getBoardsByIds(List<Long> boardIds) {
+        List<Board> boards = boardRepository.findAllById(boardIds);
+        return boards.stream()
+                .map(board -> convertToResponse(board, false))
+                .collect(Collectors.toList());
+    }
+
+    private BoardResponse convertToResponse(Board board, boolean includeComments) {
+        // 이미지 URL 목록 추출
+        var imageUrls = board.getImages().stream()
+                .map(BoardImage::getImageUrl)
+                .collect(Collectors.toList());
+
+        // 댓글 정보 설정
+        List<CommentResponse> comments = null;
+        Integer commentCount = 0;
+
+        if (includeComments) {
+            // 상세 조회인 경우 댓글 목록 가져오기
+            List<Comment> commentList = commentRepository.findByBoardId(board.getId());
+
+            // Comment 엔티티를 CommentResponse로 변환
+            comments = commentList.stream()
+                    .map(comment -> CommentResponse.builder()
+                            .id(comment.getId())
+                            .content(comment.getContent())
+                            .writer(comment.getWriter())
+                            .boardId(board.getId())
+                            .createdAt(comment.getCreatedAt())
+                            .updatedAt(comment.getUpdatedAt())
+                            .build())
+                    .collect(Collectors.toList());
+            commentCount = comments.size();
+        } else {
+            // 목록 조회인 경우 댓글 수만 가져오기
+            commentCount = commentRepository.countByBoardId(board.getId());
+        }
+
         return BoardResponse.builder()
                 .id(board.getId())
                 .title(board.getTitle())
                 .content(board.getContent())
                 .category(board.getCategory())
+                .commentCount(commentCount)
+                .comments(comments)
                 .memberId(board.getMember().getId())
                 .memberNickname(board.getMember().getNickname())
+                .memberEmail(board.getMember().getEmail())
                 .viewCount(board.getViewCount())
                 .likeCount(board.getLikeCount())
+                .isVerified(board.getIsVerified())
+                .boardStatus(board.getBoardStatus().name())
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
+                .imageUrls(imageUrls)
+                .images(imageUrls)
+                .thumbnailUrl(board.getThumbnailUrl())
                 .build();
     }
 }

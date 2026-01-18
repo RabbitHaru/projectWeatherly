@@ -2,15 +2,19 @@ package me.shinsunyoung.projectweatherly.board.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "boards")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -23,31 +27,37 @@ public class Board {
     @Column(nullable = false)
     private String title;
 
-    // ✅ CLOB 대신 TEXT로 변경 (LOWER 함수 사용 가능)
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-<<<<<<< HEAD
     @Column(name = "category", length = 50)
     private String category;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<BoardImage> images = new ArrayList<>();
-=======
-    @Column(nullable = false)
-    private String category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
->>>>>>> board
 
     @Column(nullable = false)
     private int viewCount;
 
     @Column(nullable = false)
     private int likeCount;
+
+    @Column(name = "is_verified")
+    @Builder.Default
+    private Boolean isVerified = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "board_status", length = 20)
+    @Builder.Default
+    private BoardStatus boardStatus = BoardStatus.ACTIVE;
+
+    @Column(name = "thumbnail_url", length = 500)
+    private String thumbnailUrl;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -79,5 +89,14 @@ public class Board {
         this.title = title;
         this.content = content;
         this.category = category;
+    }
+
+    // 이미지 추가 메서드
+    public void addImage(BoardImage image) {
+        if (this.images == null) {
+            this.images = new ArrayList<>();
+        }
+        this.images.add(image);
+        image.setBoard(this);
     }
 }
