@@ -4,547 +4,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${board.title + ' - Weatherly 커뮤니티'}">글 보기 - Weatherly 커뮤니티</title>
-    <!-- Bootstrap CSS -->
+    <title th:text="${board.title + ' - Weatherly 커뮤니티'}">글 보기</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/community.css}">
     <link rel="stylesheet" th:href="@{/css/write.css}">
     <style>
-        /* view 전용 스타일 추가 */
-        .view-content-section {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-            margin-bottom: 2rem;
-            min-height: 400px;
-        }
-
-        .view-content {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #212529;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .view-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .view-left-actions {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .view-right-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .action-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: none;
-        }
-
-        .list-btn {
-            background: #6c757d;
-            color: white;
-        }
-
-        .list-btn:hover {
-            background: #5a6268;
-            color: white;
-            text-decoration: none;
-        }
-
-        .edit-btn {
-            background: #3498db;
-            color: white;
-        }
-
-        .edit-btn:hover {
-            background: #2980b9;
-            color: white;
-            text-decoration: none;
-        }
-
-        .delete-btn {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .delete-btn:hover {
-            background: #c0392b;
-            color: white;
-            text-decoration: none;
-        }
-
-        .like-btn {
-            background: #f8f9fa;
-            color: #495057;
-            border: 1px solid #dee2e6;
-        }
-
-        .like-btn:hover {
-            background: #e9ecef;
-        }
-
-        .like-btn.liked {
-            background: #e74c3c;
-            color: white;
-            border-color: #e74c3c;
-        }
-
-        .report-btn {
-            background: #f8f9fa;
-            color: #495057;
-            border: 1px solid #dee2e6;
-        }
-
-        .report-btn:hover {
-            background: #ffebee;
-            color: #c62828;
-            border-color: #ef9a9a;
-        }
-
-        /* 이미지 갤러리 */
-        .image-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .gallery-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-
-        .gallery-image:hover {
-            transform: scale(1.02);
-        }
-
-        /* 이미지 모달 */
-        .image-modal {
-            display: none;
-            position: fixed;
-            z-index: 1001;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-image {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 5px;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* 댓글 섹션 */
-        .comments-section {
-            margin-top: 3rem;
-        }
-
-        .comments-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        .comments-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #495057;
-        }
-
-        .comments-count {
-            background: #667eea;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .comment-form {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .comment-textarea {
-            width: 100%;
-            min-height: 100px;
-            padding: 12px;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            resize: vertical;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-
-        .comment-textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .comment-submit-btn {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 1rem;
-        }
-
-        .comment-submit-btn:hover {
-            background: #45a049;
-        }
-
-        .comment-list {
-            margin-top: 2rem;
-        }
-
-        .comment-item {
-            background: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border: 1px solid #e9ecef;
-        }
-
-        .comment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .comment-author {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .comment-author-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #667eea;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .comment-author-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .comment-author-name {
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .comment-date {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-
-        .comment-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .comment-action-btn {
-            background: none;
-            border: none;
-            color: #6c757d;
-            cursor: pointer;
-            padding: 5px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.3s;
-        }
-
-        .comment-action-btn:hover {
-            color: #667eea;
-        }
-
-        .comment-content {
-            color: #212529;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-            white-space: pre-wrap;
-        }
-
-        .comment-like-btn {
-            background: none;
-            border: none;
-            color: #6c757d;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-
-        .comment-like-btn:hover {
-            color: #e74c3c;
-        }
-
-        .comment-like-btn.liked {
-            color: #e74c3c;
-        }
-
-        /* 신고 모달 */
-        .report-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-
-        .report-modal-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 2rem;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .report-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .report-modal-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #495057;
-        }
-
-        .report-modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #6c757d;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .report-reason {
-            margin-bottom: 1.5rem;
-        }
-
-        .report-reason-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #495057;
-        }
-
-        .report-reason-select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-
-        .report-details {
-            margin-bottom: 1.5rem;
-        }
-
-        .report-details-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #495057;
-        }
-
-        .report-details-textarea {
-            width: 100%;
-            min-height: 100px;
-            padding: 10px;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        .report-modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .report-cancel-btn {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .report-submit-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        /* 다크모드 스타일 */
-        body.dark-mode .view-content-section {
-            background: #1e1e1e;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.3);
-        }
-
-        body.dark-mode .view-content {
-            color: #e2e8f0;
-        }
-
-        body.dark-mode .view-actions {
-            border-top-color: #4a5568;
-        }
-
-        body.dark-mode .like-btn,
-        body.dark-mode .report-btn {
-            background: #2d3748;
-            border-color: #4a5568;
-            color: #cbd5e0;
-        }
-
-        body.dark-mode .comment-form {
-            background: #2d3748;
-        }
-
-        body.dark-mode .comment-textarea {
-            background: #1e1e1e;
-            border-color: #4a5568;
-            color: #e2e8f0;
-        }
-
-        body.dark-mode .comment-item {
-            background: #1e1e1e;
-            border-color: #4a5568;
-        }
-
-        body.dark-mode .comment-author-name {
-            color: #e2e8f0;
-        }
-
-        body.dark-mode .comment-content {
-            color: #cbd5e0;
-        }
-
-        body.dark-mode .report-modal-content {
-            background: #1e1e1e;
-        }
-
-        body.dark-mode .report-modal-title {
-            color: #e2e8f0;
-        }
-
-        body.dark-mode .report-reason-select,
-        body.dark-mode .report-details-textarea {
-            background: #2d3748;
-            border-color: #4a5568;
-            color: #e2e8f0;
-        }
+        .view-content-section { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 3px 15px rgba(0,0,0,0.08); margin-bottom: 2rem; min-height: 400px; }
+        .view-content { font-size: 1.1rem; line-height: 1.8; color: #212529; white-space: pre-wrap; word-break: break-word; }
+        .view-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e9ecef; }
+        .view-left-actions { display: flex; gap: 1rem; }
+        .view-right-actions { display: flex; gap: 0.5rem; }
+        .action-btn { padding: 8px 16px; border-radius: 8px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; border: none; }
+        .list-btn { background: #6c757d; color: white; }
+        .edit-btn { background: #3498db; color: white; }
+        .delete-btn { background: #e74c3c; color: white; }
+        .like-btn { background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; }
+        .like-btn.liked { background: #e74c3c; color: white; border-color: #e74c3c; }
+        .report-btn { background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; }
+        .image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .gallery-image { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; cursor: pointer; transition: transform 0.3s; }
+        .gallery-image:hover { transform: scale(1.02); }
+        .image-modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
+        .modal-image { max-width: 90%; max-height: 90%; border-radius: 5px; }
+        .modal-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
+        .comments-section { margin-top: 3rem; }
+        .comments-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e9ecef; }
+        .comment-form-container { background: #f8f9fa; border-radius: 10px; padding: 1.5rem; margin-bottom: 2rem; }
+        .comment-textarea { width: 100%; min-height: 100px; padding: 12px; border: 1px solid #dee2e6; border-radius: 8px; resize: vertical; display: block; margin-bottom: 1rem; }
+        .comment-submit-btn { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; }
+        .comment-item { background: white; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e9ecef; }
+        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .comment-like-form { display: inline; }
+        .comment-like-btn { background: none; border: none; color: #6c757d; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 0; }
+        .comment-like-btn.liked { color: #e74c3c; }
+        .comment-delete-btn { background: none; border: none; color: #e74c3c; font-size: 0.8rem; margin-left: 10px; cursor: pointer; }
+
+        /* 신고 모달 스타일 */
+        .report-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .report-modal-content { background-color: white; margin: 10% auto; padding: 2rem; border-radius: 10px; width: 90%; max-width: 500px; }
+        .report-reason-select { width: 100%; padding: 10px; border: 1px solid #dee2e6; border-radius: 8px; margin-bottom: 1rem; }
+        .report-details-textarea { width: 100%; min-height: 100px; padding: 10px; border: 1px solid #dee2e6; border-radius: 8px; }
+        .report-modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+        .report-cancel-btn { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        .report-submit-btn { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 
 <body>
-<div th:replace="layout/header :: header"></div>
+<div th:replace="~{layout/header :: header}"></div>
 
-<!-- 글보기 헤더 섹션 -->
 <div class="container">
     <div class="write-header-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; margin-top: 3rem;">
         <h1 class="write-title" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;" th:text="${board.title}">게시글 제목</h1>
-
         <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.95rem; opacity: 0.9;">
-                <i class="fas fa-user-circle"></i>
-                <span th:text="${board.memberNickname}">작성자</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.95rem; opacity: 0.9;">
-                <i class="fas fa-calendar-alt"></i>
-                <span th:text="${#temporals.format(board.createdAt, 'yyyy년 MM월 dd일 HH:mm')}">2026.01.16</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.95rem; opacity: 0.9;">
-                <i class="fas fa-eye"></i>
-                <span th:text="${board.viewCount}">0</span>회
-            </div>
-            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.95rem; opacity: 0.9;">
-                <i class="fas fa-heart"></i>
-                <span th:text="${board.likeCount}">0</span>개
-            </div>
-            <!-- 카테고리 태그 -->
+            <div style="display: flex; align-items: center; gap: 5px; opacity: 0.9;"><i class="fas fa-user-circle"></i><span th:text="${board.memberNickname}">작성자</span></div>
+            <div style="display: flex; align-items: center; gap: 5px; opacity: 0.9;"><i class="fas fa-calendar-alt"></i><span th:text="${#temporals.format(board.createdAt, 'yyyy년 MM월 dd일 HH:mm')}">날짜</span></div>
+            <div style="display: flex; align-items: center; gap: 5px; opacity: 0.9;"><i class="fas fa-eye"></i><span th:text="${board.viewCount}">0</span>회</div>
+            <div style="display: flex; align-items: center; gap: 5px; opacity: 0.9;"><i class="fas fa-heart"></i><span th:text="${board.likeCount}">0</span>개</div>
             <span th:if="${board.category == 'weather'}" style="background: #1976d2; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">날씨</span>
             <span th:if="${board.category == 'dust'}" style="background: #c2185b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">미세먼지</span>
             <span th:if="${board.category == 'outfit'}" style="background: #7b1fa2; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">옷차림</span>
@@ -553,386 +71,176 @@
     </div>
 </div>
 
-<!-- 게시글 내용 -->
 <div class="container">
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+    <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
+
     <div class="view-content-section">
-        <!-- 이미지 갤러리 -->
         <div th:if="${not #lists.isEmpty(board.images)}" class="image-gallery">
             <img th:each="image : ${board.images}"
-                 th:src="@{${image}}"
+                 th:src="|/community/images/post/${image}|"
                  class="gallery-image"
-                 th:data-image="@{${image}}"
-                 alt="게시글 이미지">
+                 th:data-image="|/community/images/post/${image}|"
+                 alt="이미지"
+                 onerror="this.style.display='none'">
         </div>
-
-        <!-- 게시글 내용 -->
-        <div class="view-content" th:text="${board.content}">
-            게시글 내용이 여기에 표시됩니다.
-        </div>
+        <div class="view-content" th:text="${board.content}">내용</div>
     </div>
 
-    <!-- 게시글 액션 버튼 -->
     <div class="view-actions">
         <div class="view-left-actions">
-            <a th:href="@{/community}" class="action-btn list-btn">
-                <i class="fas fa-list"></i> 목록
-            </a>
-
-            <!-- 작성자만 수정/삭제 가능 -->
-            <a th:if="${board.isAuthor}"
-               th:href="@{'/community/boards/' + ${board.id} + '/edit'}"
-               class="action-btn edit-btn">
-                <i class="fas fa-edit"></i> 수정
-            </a>
-
-            <button th:if="${board.isAuthor}"
-                    class="action-btn delete-btn"
-                    th:onclick="'deletePost(' + ${board.id} + ')'">
-                <i class="fas fa-trash"></i> 삭제
-            </button>
+            <a th:href="@{/community}" class="action-btn list-btn"><i class="fas fa-list"></i> 목록</a>
+            <a th:if="${board.isAuthor}" th:href="@{'/community/boards/' + ${board.id} + '/edit'}" class="action-btn edit-btn"><i class="fas fa-edit"></i> 수정</a>
+            <form th:if="${board.isAuthor}" th:action="@{'/community/boards/' + ${board.id} + '/delete'}" method="post" style="display:inline;" onsubmit="return confirm('정말로 삭제하시겠습니까?');">
+                <button type="submit" class="action-btn delete-btn"><i class="fas fa-trash"></i> 삭제</button>
+            </form>
         </div>
-
         <div class="view-right-actions">
-            <button class="action-btn like-btn" id="like-btn" th:onclick="'toggleLike()'">
-                <i class="fas fa-heart"></i>
-                <span id="like-count" th:text="${board.likeCount}">0</span>
+            <button class="action-btn like-btn" id="like-btn" th:onclick="'toggleLike()'" th:classappend="${isLiked} ? 'liked' : ''">
+                <i class="fas fa-heart"></i> <span id="like-count" th:text="${board.likeCount}">0</span>
             </button>
-
-            <button class="action-btn report-btn" th:onclick="'openReportModal(\'post\', ' + ${board.id} + ')'">
-                <i class="fas fa-flag"></i> 신고
-            </button>
+            <button class="action-btn report-btn" th:onclick="'openReportModal(\'POST\', ' + ${board.id} + ')'"><i class="fas fa-flag"></i> 신고</button>
         </div>
     </div>
 
-    <!-- 댓글 섹션 -->
     <div class="comments-section">
         <div class="comments-header">
             <h2 class="comments-title">댓글</h2>
             <span class="comments-count" id="comments-count" th:text="${board.commentCount}">0</span>
         </div>
 
-        <!-- 댓글 작성 폼 -->
-        <div class="comment-form" sec:authorize="isAuthenticated()">
-            <textarea class="comment-textarea" id="comment-content" placeholder="댓글을 작성해주세요. (최소 2자)" maxlength="500"></textarea>
-            <button class="comment-submit-btn" onclick="submitComment()">
-                <i class="fas fa-paper-plane"></i> 댓글 작성
-            </button>
-        </div>
-        <div class="comment-form" sec:authorize="isAnonymous()">
-            <p style="color: #6c757d; text-align: center;">
-                <i class="fas fa-info-circle"></i> 댓글을 작성하려면 <a href="/login" style="color: #667eea; font-weight: 500;">로그인</a>이 필요합니다.
-            </p>
+        <div class="comment-form-container" sec:authorize="isAuthenticated()">
+            <form th:action="@{/community/boards/{boardId}/comments(boardId=${board.id})}" method="post">
+                <textarea class="comment-textarea" name="content" placeholder="댓글을 작성해주세요. (최소 2자)" maxlength="500" required></textarea>
+                <div style="text-align: right;">
+                    <button type="submit" class="comment-submit-btn"><i class="fas fa-paper-plane"></i> 댓글 작성</button>
+                </div>
+            </form>
         </div>
 
-        <!-- 댓글 목록 -->
+        <div class="comment-form-container" sec:authorize="isAnonymous()">
+            <p style="color: #6c757d; text-align: center; margin: 0;"><i class="fas fa-info-circle"></i> 댓글을 작성하려면 <a href="/login" style="color: #667eea; font-weight: 500;">로그인</a>이 필요합니다.</p>
+        </div>
+
         <div class="comment-list" id="comment-list">
-            <!-- 댓글 동적 로드 -->
             <div class="comment-item" th:each="comment : ${board.comments}">
                 <div class="comment-header">
                     <div class="comment-author">
                         <div class="comment-author-img" th:text="${#strings.substring(comment.memberNickname, 0, 1)}">U</div>
                         <div class="comment-author-info">
                             <div class="comment-author-name" th:text="${comment.memberNickname}">사용자</div>
-                            <div class="comment-date" th:text="${#temporals.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">2026.01.16 12:00</div>
+                            <div class="comment-date" th:text="${#temporals.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">날짜</div>
                         </div>
                     </div>
-
                     <div class="comment-actions">
-                        <button class="comment-action-btn report-btn"
-                                th:onclick="'openReportModal(\'comment\', ' + ${comment.id} + ')'"
-                                title="신고">
-                            <i class="fas fa-flag"></i>
-                        </button>
+                        <form th:if="${#authentication.principal != 'anonymousUser' and #authentication.principal.user.nickname == comment.memberNickname}"
+                              th:action="@{/community/boards/{boardId}/comments/{commentId}/delete(boardId=${board.id}, commentId=${comment.id})}"
+                              method="post" style="display:inline;" onsubmit="return confirm('댓글을 삭제하시겠습니까?');">
+                            <button type="submit" class="comment-delete-btn"><i class="fas fa-times"></i></button>
+                        </form>
+                        <button class="comment-action-btn report-btn" th:onclick="'openReportModal(\'COMMENT\', ' + ${comment.id} + ')'"><i class="fas fa-flag"></i></button>
                     </div>
                 </div>
+                <div class="comment-content" th:text="${comment.content}">댓글 내용</div>
 
-                <div class="comment-content" th:text="${comment.content}">
-                    댓글 내용이 여기에 표시됩니다.
-                </div>
-
-                <button class="comment-like-btn" th:classappend="${comment.isLiked} ? 'liked' : ''"
-                        th:onclick="'toggleCommentLike(' + ${comment.id} + ')'">
-                    <i class="fas fa-heart"></i>
-                    <span th:text="${comment.likeCount}">0</span>
-                </button>
+                <form th:action="@{/community/boards/{boardId}/comments/{commentId}/like(boardId=${board.id}, commentId=${comment.id})}"
+                      method="post" class="comment-like-form">
+                    <button type="submit" class="comment-like-btn" th:classappend="${comment.isLiked} ? 'liked' : ''">
+                        <i class="fas fa-heart"></i> <span th:text="${comment.likeCount}">0</span>
+                    </button>
+                </form>
             </div>
-
-            <!-- 댓글이 없을 때 -->
             <div th:if="${#lists.isEmpty(board.comments)}" class="empty-comments" style="text-align: center; padding: 3rem; color: #6c757d;">
                 <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem; color: #dee2e6;"></i>
                 <h4>아직 댓글이 없습니다.</h4>
-                <p>첫 번째 댓글을 작성해보세요!</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 이미지 모달 -->
-<div class="image-modal" id="image-modal">
-    <span class="modal-close" onclick="closeImageModal()">&times;</span>
-    <img class="modal-image" id="modal-image">
-</div>
+<div class="image-modal" id="image-modal"><span class="modal-close" onclick="closeImageModal()">&times;</span><img class="modal-image" id="modal-image"></div>
 
-<!-- 신고 모달 -->
 <div class="report-modal" id="report-modal">
     <div class="report-modal-content">
-        <div class="report-modal-header">
-            <h2 class="report-modal-title">신고하기</h2>
-            <button class="report-modal-close" onclick="closeReportModal()">&times;</button>
-        </div>
+        <form th:action="@{/community/reports/create}" method="post">
+            <div class="report-modal-header">
+                <h2 class="report-modal-title">신고하기</h2>
+                <button type="button" class="report-modal-close" onclick="closeReportModal()">&times;</button>
+            </div>
 
-        <div class="report-reason">
-            <div class="report-reason-title">신고 사유</div>
-            <select class="report-reason-select" id="report-reason">
-                <option value="spam">스팸/광고</option>
-                <option value="abuse">욕설/혐오 발언</option>
-                <option value="illegal">불법 정보</option>
-                <option value="privacy">개인정보 노출</option>
-                <option value="copyright">저작권 침해</option>
-                <option value="other">기타</option>
-            </select>
-        </div>
+            <input type="hidden" name="type" id="report-type">
+            <input type="hidden" name="targetId" id="report-target-id">
 
-        <div class="report-details">
-            <div class="report-details-title">상세 내용 (선택사항)</div>
-            <textarea class="report-details-textarea" id="report-details"
-                      placeholder="신고 내용을 자세히 설명해주세요."></textarea>
-        </div>
-
-        <div class="report-modal-actions">
-            <button class="report-cancel-btn" onclick="closeReportModal()">취소</button>
-            <button class="report-submit-btn" onclick="submitReport()">신고 제출</button>
-        </div>
+            <div class="report-reason">
+                <div class="report-reason-title">신고 사유</div>
+                <select class="report-reason-select" name="reason" id="report-reason">
+                    <option value="spam">스팸/광고</option>
+                    <option value="abuse">욕설/혐오 발언</option>
+                    <option value="illegal">불법 정보</option>
+                    <option value="other">기타</option>
+                </select>
+            </div>
+            <div class="report-details">
+                <div class="report-details-title">상세 내용</div>
+                <textarea class="report-details-textarea" name="details" id="report-details"></textarea>
+            </div>
+            <div class="report-modal-actions">
+                <button type="button" class="report-cancel-btn" onclick="closeReportModal()">취소</button>
+                <button type="submit" class="report-submit-btn">신고 제출</button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- 푸터 -->
 <footer class="main-footer">
-    <div class="footer-container">
-        <div class="footer-content">
-            <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
-            <p class="footer-info">기상청 API를 활용한 실시간 날씨 정보 서비스</p>
-            <p class="project-info">Project by GMR</p>
-        </div>
-    </div>
+    <div class="footer-container"><div class="footer-content"><p class="copyright">© 2026 Weatherly. All rights reserved.</p></div></div>
 </footer>
 
-<!-- JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // 게시글 ID 가져오기 (Thymeleaf 변수 삽입 - 올바른 문법 사용)
-    // 이 부분은 서버에서 렌더링될 때 실제 값으로 대체됩니다
+<script th:inline="javascript">
+    /* [수정됨] IDE 오류 방지 주석 처리 */
     const postId = /*[[${board.id}]]*/ 0;
 
-    console.log('Post ID:', postId); // 디버깅용
-
-    // 게시글 삭제
-    function deletePost(postId) {
-        if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
-            fetch('/community/boards/' + postId + '/delete', {
-                method: 'POST'
-            })
-                .then(response => {
-                    if (response.ok) {
-                        alert('게시글이 삭제되었습니다.');
-                        window.location.href = '/community';
-                    } else {
-                        alert('삭제 중 오류가 발생했습니다.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('삭제 중 오류가 발생했습니다.');
-                });
-        }
+    function getCsrfToken() {
+        return document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || document.querySelector('input[name="_csrf"]')?.value;
     }
 
-    // 좋아요 토글
+    // 게시글 좋아요 (AJAX 유지)
     function toggleLike() {
-        const likeBtn = document.getElementById('like-btn');
-        const likeCount = document.getElementById('like-count');
-
-        fetch('/community/boards/' + postId + '/like', {
-            method: 'POST'
-        })
-            .then(response => {
-                if (response.status === 401) {
-                    alert('로그인이 필요합니다.');
-                    window.location.href = '/login';
-                    return;
-                }
-                return response.json();
-            })
+        fetch('/community/boards/' + postId + '/like', { method: 'POST', headers: { 'X-CSRF-TOKEN': getCsrfToken() }})
+            .then(res => res.status === 401 ? (window.location.href='/login') : res.json())
             .then(data => {
-                if (data.success) {
-                    likeCount.textContent = data.likeCount;
-                    if (data.liked) {
-                        likeBtn.classList.add('liked');
-                    } else {
-                        likeBtn.classList.remove('liked');
-                    }
-                } else {
-                    alert(data.message || '좋아요 처리에 실패했습니다.');
+                if(data.success) {
+                    document.getElementById('like-count').textContent = data.likeCount;
+                    document.getElementById('like-btn').classList.toggle('liked', data.liked);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('좋아요 처리 중 오류가 발생했습니다.');
             });
     }
 
-    // 댓글 작성
-    function submitComment() {
-        const content = document.getElementById('comment-content').value.trim();
-
-        if (content.length < 2) {
-            alert('댓글은 최소 2자 이상 입력해주세요.');
-            return;
+    // 조회수 증가
+    document.addEventListener('DOMContentLoaded', function() {
+        if (postId > 0) {
+            fetch('/community/boards/' + postId + '/view', { method: 'POST', headers: { 'X-CSRF-TOKEN': getCsrfToken() }});
         }
 
-        fetch('/api/community/posts/' + postId + '/comments', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ content: content })
-        })
-            .then(response => {
-                if (response.ok) {
-                    location.reload();
-                } else if (response.status === 401) {
-                    alert('로그인이 필요합니다.');
-                    window.location.href = '/login';
-                } else {
-                    alert('댓글 작성에 실패했습니다.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('댓글 작성 중 오류가 발생했습니다.');
-            });
-    }
-
-    // 댓글 좋아요
-    function toggleCommentLike(commentId) {
-        const likeBtn = event.target.closest('.comment-like-btn');
-
-        fetch('/api/community/comments/' + commentId + '/like', {
-            method: 'POST'
-        })
-            .then(response => {
-                if (response.status === 401) {
-                    alert('로그인이 필요합니다.');
-                    window.location.href = '/login';
-                    return;
-                }
-                return response.json();
-            })
-            .then(data => {
-                const likeCountSpan = likeBtn.querySelector('span');
-                likeCountSpan.textContent = data.likeCount;
-
-                if (data.liked) {
-                    likeBtn.classList.add('liked');
-                } else {
-                    likeBtn.classList.remove('liked');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('댓글 좋아요 처리 중 오류가 발생했습니다.');
-            });
-    }
-
-    // 신고 모달
-    let reportType = '';
-    let reportTargetId = '';
-
-    function openReportModal(type, targetId) {
-        reportType = type;
-        reportTargetId = targetId;
-        document.getElementById('report-modal').style.display = 'block';
-    }
-
-    function closeReportModal() {
-        document.getElementById('report-modal').style.display = 'none';
-        document.getElementById('report-reason').value = 'spam';
-        document.getElementById('report-details').value = '';
-    }
-
-    function submitReport() {
-        const reason = document.getElementById('report-reason').value;
-        const details = document.getElementById('report-details').value;
-
-        const reportData = {
-            type: reportType,
-            targetId: reportTargetId,
-            reason: reason,
-            details: details
-        };
-
-        fetch('/api/reports', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(reportData)
-        })
-            .then(response => {
-                if (response.ok) {
-                    alert('신고가 접수되었습니다.');
-                    closeReportModal();
-                } else {
-                    alert('신고 처리 중 오류가 발생했습니다.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('신고 처리 중 오류가 발생했습니다.');
-            });
-    }
-
-    // 이미지 갤러리
-    document.addEventListener('DOMContentLoaded', function() {
-        const galleryImages = document.querySelectorAll('.gallery-image');
-        const imageModal = document.getElementById('image-modal');
-        const modalImage = document.getElementById('modal-image');
-
-        galleryImages.forEach(image => {
-            image.addEventListener('click', function() {
-                modalImage.src = this.getAttribute('data-image') || this.src;
-                imageModal.style.display = 'flex';
+        // 이미지 모달 처리
+        document.querySelectorAll('.gallery-image').forEach(img => {
+            img.addEventListener('click', function() {
+                document.getElementById('modal-image').src = this.getAttribute('data-image');
+                document.getElementById('image-modal').style.display = 'flex';
             });
         });
-
-        // 페이지 방문 시 조회수 증가
-        fetch('/community/boards/' + postId + '/view', {
-            method: 'POST'
-        }).catch(error => console.error('View count error:', error));
     });
 
-    function closeImageModal() {
-        document.getElementById('image-modal').style.display = 'none';
+    function closeImageModal() { document.getElementById('image-modal').style.display = 'none'; }
+    function closeReportModal() { document.getElementById('report-modal').style.display = 'none'; }
+
+    // 신고 모달 열기
+    function openReportModal(type, id) {
+        document.getElementById('report-type').value = type;
+        document.getElementById('report-target-id').value = id;
+        document.getElementById('report-modal').style.display = 'block';
     }
-
-    // ESC 키로 모달 닫기
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeImageModal();
-            closeReportModal();
-        }
-    });
-
-    // 모달 외부 클릭 시 닫기
-    window.addEventListener('click', function(e) {
-        if (e.target === document.getElementById('image-modal')) {
-            closeImageModal();
-        }
-        if (e.target === document.getElementById('report-modal')) {
-            closeReportModal();
-        }
-    });
 </script>
 </body>
 </html>
-[file content end]

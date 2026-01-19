@@ -33,6 +33,7 @@
     position: relative;
     flex: 1;
     min-width: 300px;
+
 }
 
 .search-icon {
@@ -394,4 +395,15 @@
     .post-title a {
         font-size: 0.95rem;
     }
+}
+body .container {
+    max-width: 1000px !important;
+    margin: 30px auto !important;
+    padding: 0 20px !important;
+}
+
+/* 메모리 카드는 800px로 (회원가입 카드 크기와 유사) */
+.memory-card {
+    max-width: 800px !important;
+    margin: 30px auto !important;
 }

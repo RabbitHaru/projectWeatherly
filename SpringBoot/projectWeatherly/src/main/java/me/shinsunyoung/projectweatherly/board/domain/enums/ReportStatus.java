@@ -5,5 +5,6 @@ public enum ReportStatus {
     PENDING,    // 대기 중
     PROCESSING, // 처리 중
     RESOLVED,   // 처리 완료
-    REJECTED    // 기각
+    REJECTED,   // 기각
+    CANCELLED   // 취소
 }

@@ -5,12 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
 import me.shinsunyoung.projectweatherly.board.domain.entity.BoardImage;
 import me.shinsunyoung.projectweatherly.board.domain.entity.BoardLike;
+import me.shinsunyoung.projectweatherly.board.domain.entity.Comment;
 import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
 import me.shinsunyoung.projectweatherly.board.dto.BoardRequest;
 import me.shinsunyoung.projectweatherly.board.dto.BoardResponse;
 import me.shinsunyoung.projectweatherly.board.dto.BoardUpdateRequest;
 import me.shinsunyoung.projectweatherly.board.dto.CommentResponse;
-import me.shinsunyoung.projectweatherly.board.entity.Comment;
 import me.shinsunyoung.projectweatherly.board.repository.BoardLikeRepository;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
@@ -70,8 +70,9 @@ public class BoardServiceImpl implements BoardService {
                 .map(board -> convertToResponse(board, false));
     }
 
+    // [수정됨] 조회수 증가(DB 쓰기)가 있으므로 readOnly=true를 제거했습니다.
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public BoardResponse getBoard(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
@@ -95,16 +96,17 @@ public class BoardServiceImpl implements BoardService {
                 .category(request.getCategory())
                 .build();
 
-        // 이미지 업로드 및 첨부
         if (request.getImageFiles() != null && !request.getImageFiles().isEmpty()) {
             for (MultipartFile imageFile : request.getImageFiles()) {
-                String imageUrl = imageUploadService.uploadImage(imageFile);
-                BoardImage boardImage = BoardImage.builder()
-                        .imageUrl(imageUrl)
-                        .isThumbnail(board.getImages().isEmpty())
-                        .board(board)
-                        .build();
-                board.addImage(boardImage);
+                if (!imageFile.isEmpty()) {
+                    String imageUrl = imageUploadService.uploadImage(imageFile);
+                    BoardImage boardImage = BoardImage.builder()
+                            .imageUrl(imageUrl)
+                            .isThumbnail(board.getImages().isEmpty())
+                            .board(board)
+                            .build();
+                    board.addImage(boardImage);
+                }
             }
         }
 
@@ -117,7 +119,6 @@ public class BoardServiceImpl implements BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        // 권한 체크
         if (!board.getMember().getId().equals(memberId)) {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
@@ -125,6 +126,33 @@ public class BoardServiceImpl implements BoardService {
         board.setTitle(request.getTitle());
         board.setContent(request.getContent());
         board.setCategory(request.getCategory());
+
+        // 이미지 삭제 처리
+        if (request.getDeleteImages() != null && !request.getDeleteImages().isEmpty()) {
+            for (String fileName : request.getDeleteImages()) {
+                board.getImages().removeIf(img -> img.getImageUrl().equals(fileName));
+            }
+        }
+
+        // 새 이미지 추가 처리
+        if (request.getNewImages() != null && !request.getNewImages().isEmpty()) {
+            for (MultipartFile imageFile : request.getNewImages()) {
+                if (!imageFile.isEmpty()) {
+                    try {
+                        String imageUrl = imageUploadService.uploadImage(imageFile);
+                        BoardImage boardImage = BoardImage.builder()
+                                .imageUrl(imageUrl)
+                                .board(board)
+                                .isThumbnail(board.getImages().isEmpty())
+                                .build();
+                        board.addImage(boardImage);
+                    } catch (IOException e) {
+                        log.error("이미지 수정 중 업로드 실패", e);
+                        throw new RuntimeException("이미지 업로드 실패");
+                    }
+                }
+            }
+        }
 
         Board updatedBoard = boardRepository.save(board);
         return convertToResponse(updatedBoard, false);
@@ -135,7 +163,6 @@ public class BoardServiceImpl implements BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        // 권한 체크
         if (!board.getMember().getId().equals(memberId)) {
             throw new IllegalArgumentException("게시글 삭제 권한이 없습니다.");
         }
@@ -148,20 +175,17 @@ public class BoardServiceImpl implements BoardService {
     public boolean toggleLike(Long boardId, Long memberId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
         Optional<BoardLike> existingLike = boardLikeRepository.findByBoardAndMember(board, member);
 
         if (existingLike.isPresent()) {
-            // 좋아요 취소
             boardLikeRepository.delete(existingLike.get());
             board.decreaseLikeCount();
             boardRepository.save(board);
             return false;
         } else {
-            // 좋아요 추가
             BoardLike boardLike = BoardLike.builder()
                     .board(board)
                     .member(member)
@@ -171,6 +195,18 @@ public class BoardServiceImpl implements BoardService {
             boardRepository.save(board);
             return true;
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isLiked(Long boardId, Long memberId) {
+        Optional<Board> board = boardRepository.findById(boardId);
+        Optional<Member> member = memberRepository.findById(memberId);
+
+        if (board.isEmpty() || member.isEmpty()) {
+            return false;
+        }
+        return boardLikeRepository.findByBoardAndMember(board.get(), member.get()).isPresent();
     }
 
     @Override
@@ -187,6 +223,12 @@ public class BoardServiceImpl implements BoardService {
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
         board.increaseViewCount();
         boardRepository.save(board);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int getViewCount(Long boardId) {
+        return boardRepository.findById(boardId).map(Board::getViewCount).orElse(0);
     }
 
     @Override
@@ -222,7 +264,6 @@ public class BoardServiceImpl implements BoardService {
     public List<BoardResponse> getMyBoardsSimple(Long memberId) {
         Pageable pageable = PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Board> boards = boardRepository.findByMemberIdAndBoardStatus(memberId, BoardStatus.ACTIVE, pageable);
-
         return boards.getContent().stream()
                 .map(board -> convertToResponse(board, false))
                 .collect(Collectors.toList());
@@ -236,12 +277,9 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public BoardResponse verifyBoard(Long boardId, Boolean isVerified) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
         board.setIsVerified(isVerified);
-        Board verifiedBoard = boardRepository.save(board);
-        return convertToResponse(verifiedBoard, false);
+        return convertToResponse(boardRepository.save(board), false);
     }
 
     @Override
@@ -253,32 +291,23 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public BoardResponse changeBoardStatus(Long boardId, BoardStatus status) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
         board.setBoardStatus(status);
-        Board updatedBoard = boardRepository.save(board);
-        return convertToResponse(updatedBoard, false);
+        return convertToResponse(boardRepository.save(board), false);
     }
 
     @Override
     public BoardResponse increaseLike(Long boardId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
+        Board board = boardRepository.findById(boardId).orElseThrow();
         board.increaseLikeCount();
-        Board updatedBoard = boardRepository.save(board);
-        return convertToResponse(updatedBoard, false);
+        return convertToResponse(boardRepository.save(board), false);
     }
 
     @Override
     public BoardResponse decreaseLike(Long boardId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
+        Board board = boardRepository.findById(boardId).orElseThrow();
         board.decreaseLikeCount();
-        Board updatedBoard = boardRepository.save(board);
-        return convertToResponse(updatedBoard, false);
+        return convertToResponse(boardRepository.save(board), false);
     }
 
     @Override
@@ -293,56 +322,47 @@ public class BoardServiceImpl implements BoardService {
         Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Board> boards = boardRepository.findByMemberIdAndTitleContainingAndBoardStatus(
                 memberId, keyword, BoardStatus.ACTIVE, pageable);
-
-        return boards.getContent().stream()
-                .map(board -> convertToResponse(board, false))
-                .collect(Collectors.toList());
+        return boards.getContent().stream().map(b -> convertToResponse(b, false)).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Board getBoardEntity(Long boardId) {
-        return boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        return boardRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<BoardResponse> getBoardsByIds(List<Long> boardIds) {
-        List<Board> boards = boardRepository.findAllById(boardIds);
-        return boards.stream()
-                .map(board -> convertToResponse(board, false))
-                .collect(Collectors.toList());
+        return boardRepository.findAllById(boardIds).stream().map(b -> convertToResponse(b, false)).collect(Collectors.toList());
     }
 
+    // [수정됨] .getNickname() 제거로 컴파일 오류 해결
     private BoardResponse convertToResponse(Board board, boolean includeComments) {
-        // 이미지 URL 목록 추출
         var imageUrls = board.getImages().stream()
                 .map(BoardImage::getImageUrl)
                 .collect(Collectors.toList());
 
-        // 댓글 정보 설정
         List<CommentResponse> comments = null;
         Integer commentCount = 0;
 
         if (includeComments) {
-            // 상세 조회인 경우 댓글 목록 가져오기
             List<Comment> commentList = commentRepository.findByBoardId(board.getId());
-
-            // Comment 엔티티를 CommentResponse로 변환
             comments = commentList.stream()
                     .map(comment -> CommentResponse.builder()
                             .id(comment.getId())
                             .content(comment.getContent())
+                            // [수정] comment.getWriter()가 이미 String(닉네임)을 반환하므로 그대로 사용
                             .writer(comment.getWriter())
+                            .memberNickname(comment.getWriter())
                             .boardId(board.getId())
                             .createdAt(comment.getCreatedAt())
                             .updatedAt(comment.getUpdatedAt())
+                            .likeCount(comment.getLikeCount())
                             .build())
                     .collect(Collectors.toList());
             commentCount = comments.size();
         } else {
-            // 목록 조회인 경우 댓글 수만 가져오기
             commentCount = commentRepository.countByBoardId(board.getId());
         }
 

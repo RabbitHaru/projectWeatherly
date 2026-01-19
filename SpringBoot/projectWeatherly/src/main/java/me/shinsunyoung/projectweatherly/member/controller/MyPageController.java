@@ -6,10 +6,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.shinsunyoung.projectweatherly.board.domain.enums.ReportType;
 import me.shinsunyoung.projectweatherly.member.dto.request.*;
+import me.shinsunyoung.projectweatherly.member.dto.response.MyPageResponse;
 import me.shinsunyoung.projectweatherly.member.service.MyPageService;
-import me.shinsunyoung.projectweatherly.member.service.ReportService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -31,20 +30,20 @@ import java.util.UUID;
 @Controller
 @RequestMapping("/mypage")
 @RequiredArgsConstructor
-@Tag(name = "마이페이지 컨트롤러", description = "마이페이지 관련 기능 페이지")
+@Tag(name = "마이페이지 컨트롤러", description = "마이페이지 관련 기능")
 public class MyPageController {
 
     private final MyPageService myPageService;
-    private final ReportService reportService;
 
-    // 상수 정의
+    // 파일 업로드 설정
     private static final String UPLOAD_DIR = "./uploads/";
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".jpg", ".jpeg", ".png", ".gif", ".webp");
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
-    private static final String REDIRECT_MYPAGE = "redirect:/mypage";
-    private static final String ERROR_UNAUTHORIZED = "redirect:/login";
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-    // 마이페이지 메인
+    /**
+     * 마이페이지 메인 조회
+     * - 프로필 정보, 작성 글, 기타 설정 정보를 모두 모델에 담아 뷰로 전달
+     */
     @GetMapping
     @Operation(summary = "마이페이지 메인", description = "마이페이지 메인을 표시합니다.")
     public String getMyInfo(
@@ -53,591 +52,167 @@ public class MyPageController {
             HttpServletRequest request) {
 
         if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
+            return "redirect:/login";
         }
 
         try {
             String email = userDetails.getUsername();
-            var memberResponse = myPageService.getMyPageInfo(email);
-
-            // UpdateMemberRequest가 null이 아닐 때만 생성
-            UpdateMemberRequest updateRequest = null;
-            if (memberResponse != null) {
-                updateRequest = UpdateMemberRequest.builder()
-                        .nickname(memberResponse.getNickname())
-                        .profileImage(memberResponse.getProfileImage())
-                        .build();
-            }
+            MyPageResponse memberResponse = myPageService.getMyPageInfo(email);
 
             model.addAttribute("myPage", memberResponse);
-            model.addAttribute("updateRequest", updateRequest);
+            model.addAttribute("requestURI", request.getRequestURI());
 
-            // requestURI 추가 (헤더에서 사용)
-            String requestURI = request.getRequestURI();
-            model.addAttribute("requestURI", requestURI);
+            // 폼 바인딩용 빈 객체들 추가 (에러 방지)
+            if (!model.containsAttribute("passwordRequest")) {
+                model.addAttribute("passwordRequest", new UpdatePasswordRequest());
+            }
+            if (!model.containsAttribute("notificationRequest")) {
+                // 기존 설정값이 있다면 채워서 보냄 (Service에서 가져오는 로직 필요, 없다면 기본값)
+                model.addAttribute("notificationRequest", new UpdateNotificationRequest());
+            }
 
             return "mypage";
         } catch (Exception e) {
-            log.error("마이페이지 정보 조회 중 오류 발생: {}", e.getMessage(), e);
-            model.addAttribute("error", "정보를 불러오는 중 오류가 발생했습니다.");
-            return ERROR_UNAUTHORIZED;
+            log.error("마이페이지 로딩 실패", e);
+            return "redirect:/";
         }
     }
 
-    // 프로필 수정 페이지
-    @GetMapping("/profile/edit")
-    @Operation(summary = "프로필 수정 페이지", description = "프로필 수정 폼을 표시합니다.")
-    public String showEditProfilePage(
-            @AuthenticationPrincipal UserDetails userDetails,
-            Model model,
-            HttpServletRequest request) {  // HttpServletRequest 추가
-
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        try {
-            String email = userDetails.getUsername();
-            var response = myPageService.getMyPageInfo(email);
-
-            UpdateMemberRequest updateRequest = UpdateMemberRequest.builder()
-                    .nickname(response.getNickname())
-                    .profileImage(response.getProfileImage())
-                    .build();
-
-            model.addAttribute("myPage", response);
-            model.addAttribute("updateRequest", updateRequest);
-
-            // requestURI 추가
-            model.addAttribute("requestURI", request.getRequestURI());
-
-            return "mypage/edit-profile";
-        } catch (Exception e) {
-            log.error("프로필 수정 페이지 로딩 중 오류 발생: {}", e.getMessage(), e);
-            return REDIRECT_MYPAGE;
-        }
-    }
-
-    // 프로필 수정 처리
+    /**
+     * 프로필 수정 처리 (이미지 포함)
+     */
     @PostMapping("/profile/edit")
-    @Operation(summary = "프로필 수정 처리", description = "프로필을 수정합니다.")
     public String updateProfile(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @ModelAttribute UpdateMemberRequest request,
             BindingResult bindingResult,
-            Model model,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest servletRequest) {  // HttpServletRequest 추가
-
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        if (bindingResult.hasErrors()) {
-            try {
-                String email = userDetails.getUsername();
-                var response = myPageService.getMyPageInfo(email);
-                model.addAttribute("myPage", response);
-
-                // requestURI 추가
-                model.addAttribute("requestURI", servletRequest.getRequestURI());
-
-                return "mypage/edit-profile";
-            } catch (Exception e) {
-                log.error("프로필 수정 중 오류 발생: {}", e.getMessage(), e);
-                redirectAttributes.addFlashAttribute("error", "프로필 수정 중 오류가 발생했습니다.");
-                return REDIRECT_MYPAGE;
-            }
-        }
-
-        try {
-            String email = userDetails.getUsername();
-            myPageService.updateMemberForMyPage(email, request);
-            redirectAttributes.addFlashAttribute("message", "프로필이 수정되었습니다.");
-        } catch (IllegalArgumentException e) {
-            log.warn("프로필 수정 실패: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/mypage/profile/edit";
-        } catch (Exception e) {
-            log.error("프로필 수정 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "프로필 수정 중 오류가 발생했습니다.");
-            return "redirect:/mypage/profile/edit";
-        }
-
-        return REDIRECT_MYPAGE;
-    }
-
-    // 비밀번호 변경 페이지
-    @GetMapping("/password/change")
-    @Operation(summary = "비밀번호 변경 페이지", description = "비밀번호 변경 폼을 표시합니다.")
-    public String showChangePasswordPage(
-            @AuthenticationPrincipal UserDetails userDetails,
-            Model model,
-            HttpServletRequest request) {  // HttpServletRequest 추가
-
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        model.addAttribute("passwordRequest", new UpdatePasswordRequest());
-
-        // requestURI 추가
-        model.addAttribute("requestURI", request.getRequestURI());
-
-        return "mypage/change-password";
-    }
-
-    // 비밀번호 변경 처리
-    @PostMapping("/password/change")
-    @Operation(summary = "비밀번호 변경 처리", description = "비밀번호를 변경합니다.")
-    public String changePassword(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @ModelAttribute UpdatePasswordRequest request,
-            BindingResult bindingResult,
-            Model model,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest servletRequest) {  // HttpServletRequest 추가
-
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        if (bindingResult.hasErrors()) {
-            // requestURI 추가
-            model.addAttribute("requestURI", servletRequest.getRequestURI());
-            return "mypage/change-password";
-        }
-
-        try {
-            String email = userDetails.getUsername();
-            myPageService.updatePassword(email, request);
-            redirectAttributes.addFlashAttribute("message", "비밀번호가 변경되었습니다.");
-            return REDIRECT_MYPAGE;
-        } catch (IllegalArgumentException e) {
-            log.warn("비밀번호 변경 실패: {}", e.getMessage());
-            model.addAttribute("error", e.getMessage());
-            // requestURI 추가
-            model.addAttribute("requestURI", servletRequest.getRequestURI());
-            return "mypage/change-password";
-        } catch (Exception e) {
-            log.error("비밀번호 변경 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
-            model.addAttribute("error", "비밀번호 변경 중 오류가 발생했습니다.");
-            // requestURI 추가
-            model.addAttribute("requestURI", servletRequest.getRequestURI());
-            return "mypage/change-password";
-        }
-    }
-
-    // 알림 설정 페이지
-    @GetMapping("/notifications")
-    @Operation(summary = "알림 설정 페이지", description = "알림 설정 폼을 표시합니다.")
-    public String showNotificationsPage(
-            @AuthenticationPrincipal UserDetails userDetails,
-            Model model,
-            HttpServletRequest request) {  // HttpServletRequest 추가
-
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        try {
-            String email = userDetails.getUsername();
-            var response = myPageService.getMyPageInfo(email);
-
-            UpdateNotificationRequest notificationRequest = UpdateNotificationRequest.builder()
-                    .boardNotificationAgree(response.getBoardNotificationAgree())
-                    .weatherAlertAgree(response.getWeatherAlertAgree())
-                    .build();
-
-            model.addAttribute("notificationRequest", notificationRequest);
-            model.addAttribute("myPage", response);
-
-            // requestURI 추가
-            model.addAttribute("requestURI", request.getRequestURI());
-
-            return "mypage/notifications";
-        } catch (Exception e) {
-            log.error("알림 설정 페이지 로딩 중 오류 발생: {}", e.getMessage(), e);
-            return REDIRECT_MYPAGE;
-        }
-    }
-
-    // 알림 설정 처리
-    @PostMapping("/notifications")
-    @Operation(summary = "알림 설정 처리", description = "알림 설정을 업데이트합니다.")
-    public String updateNotifications(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @ModelAttribute UpdateNotificationRequest request,
-            BindingResult bindingResult,
-            Model model,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest servletRequest) {  // HttpServletRequest 추가
-
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        if (bindingResult.hasErrors()) {
-            // requestURI 추가
-            model.addAttribute("requestURI", servletRequest.getRequestURI());
-            return "mypage/notifications";
-        }
-
-        try {
-            String email = userDetails.getUsername();
-            myPageService.updateNotificationSettings(email, request);
-            redirectAttributes.addFlashAttribute("message", "알림 설정이 업데이트되었습니다.");
-        } catch (Exception e) {
-            log.error("알림 설정 업데이트 중 오류 발생: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "알림 설정 업데이트 중 오류가 발생했습니다.");
-        }
-
-        return REDIRECT_MYPAGE;
-    }
-
-    // 프로필 이미지 업로드 처리
-    @PostMapping("/profile-image/upload")
-    @Operation(summary = "프로필 이미지 업로드 처리", description = "프로필 이미지를 업로드합니다.")
-    public String uploadProfileImage(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam("file") MultipartFile file,
-            Model model,
+            @RequestParam(value = "file", required = false) MultipartFile file,
             RedirectAttributes redirectAttributes) {
 
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        if (file.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "파일이 비어있습니다.");
-            return "redirect:/mypage/profile/edit";
-        }
-
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.contains(".")) {
-            redirectAttributes.addFlashAttribute("error", "올바른 파일 형식이 아닙니다.");
-            return "redirect:/mypage/profile/edit";
-        }
-
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
-
-        if (!ALLOWED_EXTENSIONS.contains(fileExtension)) {
-            redirectAttributes.addFlashAttribute("error",
-                    "지원하지 않는 파일 형식입니다. JPG, JPEG, PNG, GIF, WebP만 업로드 가능합니다.");
-            return "redirect:/mypage/profile/edit";
-        }
-
-        if (file.getSize() > MAX_FILE_SIZE) {
-            redirectAttributes.addFlashAttribute("error", "파일 크기는 5MB를 초과할 수 없습니다.");
-            return "redirect:/mypage/profile/edit";
-        }
-
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        try {
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-        } catch (IOException e) {
-            log.error("디렉토리 생성 실패: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "디렉토리 생성 중 오류가 발생했습니다.");
-            return "redirect:/mypage/profile/edit";
-        }
-
-        String newFilename = UUID.randomUUID() + fileExtension;
-        Path filePath = uploadPath.resolve(newFilename);
-
-        try {
-            Files.copy(file.getInputStream(), filePath);
-            log.info("프로필 이미지 저장 성공: {}", newFilename);
-        } catch (IOException e) {
-            log.error("파일 저장 중 오류 발생: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "파일 저장 중 오류가 발생했습니다.");
-            return "redirect:/mypage/profile/edit";
-        }
-
-        // 이미지 URL 생성 및 멤버 정보 업데이트
-        String imageUrl = "/uploads/" + newFilename;
-        String email = userDetails.getUsername();
-
-        try {
-            UpdateMemberRequest updateRequest = UpdateMemberRequest.builder()
-                    .profileImage(imageUrl)
-                    .build();
-            myPageService.updateMemberForMyPage(email, updateRequest);
-            redirectAttributes.addFlashAttribute("message", "프로필 이미지가 업로드되었습니다.");
-        } catch (Exception e) {
-            log.error("프로필 이미지 업데이트 중 오류 발생: {}", e.getMessage(), e);
-            // 업로드된 파일 삭제 시도
-            try {
-                Files.deleteIfExists(filePath);
-            } catch (IOException ex) {
-                log.error("실패한 파일 삭제 중 오류: {}", ex.getMessage(), ex);
-            }
-            redirectAttributes.addFlashAttribute("error", "프로필 이미지 업데이트 중 오류가 발생했습니다.");
-        }
-
-        return REDIRECT_MYPAGE;
-    }
-
-    // 약관 동의 수정 페이지
-    @GetMapping("/agreements")
-    @Operation(summary = "약관 동의 수정 페이지", description = "약관 동의 수정 폼을 표시합니다.")
-    public String showAgreementsPage(
-            @AuthenticationPrincipal UserDetails userDetails,
-            Model model,
-            HttpServletRequest request) {  // HttpServletRequest 추가
-
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        try {
-            String email = userDetails.getUsername();
-            var response = myPageService.getMyPageInfo(email);
-
-            UpdateAgreementRequest agreementRequest = UpdateAgreementRequest.builder()
-                    .termsOfServiceAgree(response.getTermsOfServiceAgree())
-                    .privacyPolicyAgree(response.getPrivacyPolicyAgree())
-                    .build();
-
-            model.addAttribute("agreementRequest", agreementRequest);
-            model.addAttribute("myPage", response);
-
-            // requestURI 추가
-            model.addAttribute("requestURI", request.getRequestURI());
-
-            return "mypage/agreements";
-        } catch (Exception e) {
-            log.error("약관 동의 페이지 로딩 중 오류 발생: {}", e.getMessage(), e);
-            return REDIRECT_MYPAGE;
-        }
-    }
-
-    // 약관 동의 수정 처리
-    @PostMapping("/agreements")
-    @Operation(summary = "약관 동의 수정 처리", description = "약관 동의 여부를 수정합니다.")
-    public String updateAgreements(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @ModelAttribute UpdateAgreementRequest request,
-            BindingResult bindingResult,
-            Model model,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest servletRequest) {  // HttpServletRequest 추가
-
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
+        if (userDetails == null) return "redirect:/login";
 
         if (bindingResult.hasErrors()) {
-            // requestURI 추가
-            model.addAttribute("requestURI", servletRequest.getRequestURI());
-            return "mypage/agreements";
+            redirectAttributes.addFlashAttribute("error", "입력값이 올바르지 않습니다.");
+            return "redirect:/mypage";
         }
 
         try {
             String email = userDetails.getUsername();
-            myPageService.updateAgreementForMyPage(email, request);
-            redirectAttributes.addFlashAttribute("message", "약관 동의가 수정되었습니다.");
+
+            // 1. 파일 업로드 처리
+            if (file != null && !file.isEmpty()) {
+                String validationError = validateFile(file);
+                if (validationError != null) {
+                    redirectAttributes.addFlashAttribute("error", validationError);
+                    return "redirect:/mypage";
+                }
+                String imageUrl = saveProfileImage(file);
+                if (imageUrl != null) {
+                    request.setProfileImage(imageUrl);
+                }
+            }
+
+            // 2. 서비스 호출
+            myPageService.updateMemberForMyPage(email, request);
+            redirectAttributes.addFlashAttribute("message", "프로필이 수정되었습니다.");
+
         } catch (Exception e) {
-            log.error("약관 동의 수정 중 오류 발생: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "약관 동의 수정 중 오류가 발생했습니다.");
+            log.error("프로필 수정 오류", e);
+            redirectAttributes.addFlashAttribute("error", "프로필 수정 중 오류가 발생했습니다.");
         }
 
-        return REDIRECT_MYPAGE;
+        return "redirect:/mypage";
     }
 
-    // 내 게시물 보기
-    @GetMapping("/posts")
-    @Operation(summary = "내 게시물 보기", description = "내가 작성한 커뮤니티 게시물을 표시합니다.")
-    public String showMyPosts(
+    /**
+     * 비밀번호 변경 처리 (요청하신 기능 유지)
+     */
+    @PostMapping("/password/change")
+    public String changePassword(
             @AuthenticationPrincipal UserDetails userDetails,
-            Model model,
-            HttpServletRequest request) {  // HttpServletRequest 추가
+            @Valid @ModelAttribute("passwordRequest") UpdatePasswordRequest request,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
 
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
+        if (userDetails == null) return "redirect:/login";
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", "비밀번호 형식이 올바르지 않습니다.");
+            return "redirect:/mypage";
         }
 
         try {
-            String email = userDetails.getUsername();
-            var response = myPageService.getMyPageInfo(email);
-
-            model.addAttribute("myPosts", response.getMyCommunityPosts());
-            model.addAttribute("postCount", response.getPostCount());
-
-            // requestURI 추가
-            model.addAttribute("requestURI", request.getRequestURI());
-
-            return "mypage/my-posts";
+            myPageService.updatePassword(userDetails.getUsername(), request);
+            redirectAttributes.addFlashAttribute("message", "비밀번호가 변경되었습니다.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         } catch (Exception e) {
-            log.error("내 게시물 조회 중 오류 발생: {}", e.getMessage(), e);
-            return REDIRECT_MYPAGE;
+            redirectAttributes.addFlashAttribute("error", "비밀번호 변경 실패");
         }
+        return "redirect:/mypage";
     }
 
-    // 게시물 삭제
+    /**
+     * 알림 설정 변경 처리 (요청하신 기능 유지)
+     */
+    @PostMapping("/notifications")
+    public String updateNotifications(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @ModelAttribute("notificationRequest") UpdateNotificationRequest request,
+            RedirectAttributes redirectAttributes) {
+
+        if (userDetails == null) return "redirect:/login";
+
+        try {
+            myPageService.updateNotificationSettings(userDetails.getUsername(), request);
+            redirectAttributes.addFlashAttribute("message", "알림 설정이 저장되었습니다.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "알림 설정 저장 실패");
+        }
+        return "redirect:/mypage";
+    }
+
+    /**
+     * 게시글 삭제 (마이페이지 내)
+     */
     @PostMapping("/posts/{postId}/delete")
-    @Operation(summary = "내 게시물 삭제", description = "내가 작성한 게시물을 삭제합니다.")
     public String deleteMyPost(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long postId,
             RedirectAttributes redirectAttributes) {
 
-        if (userDetails == null) {
-            return ERROR_UNAUTHORIZED;
-        }
+        if (userDetails == null) return "redirect:/login";
 
         try {
-            String email = userDetails.getUsername();
-            myPageService.deleteMyPost(email, postId);
-            redirectAttributes.addFlashAttribute("message", "게시물이 삭제되었습니다.");
-        } catch (IllegalArgumentException e) {
-            log.warn("게시물 삭제 실패: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            myPageService.deleteMyPost(userDetails.getUsername(), postId);
+            redirectAttributes.addFlashAttribute("message", "게시글이 삭제되었습니다.");
         } catch (Exception e) {
-            log.error("게시물 삭제 중 오류 발생: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "게시물 삭제 중 오류가 발생했습니다.");
+            redirectAttributes.addFlashAttribute("error", "게시글 삭제 실패");
         }
-
-        return "redirect:/mypage/posts";
+        return "redirect:/mypage";
     }
 
-    // 신고한 게시물 보기
-    @GetMapping("/reports")
-    @Operation(summary = "신고한 게시물 보기", description = "내가 신고한 게시물을 표시합니다.")
-    public String showMyReports(
-            @AuthenticationPrincipal UserDetails userDetails,
-            Model model,
-            HttpServletRequest request) {  // HttpServletRequest 추가
+    // --- Helper Methods ---
 
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        try {
-            String email = userDetails.getUsername();
-            var response = myPageService.getMyPageInfo(email);
-
-            model.addAttribute("reportedPosts", response.getReportedPosts());
-            model.addAttribute("reportCount", response.getReportCount());
-
-            // requestURI 추가
-            model.addAttribute("requestURI", request.getRequestURI());
-
-            return "mypage/my-reports";
-        } catch (Exception e) {
-            log.error("신고한 게시물 조회 중 오류 발생: {}", e.getMessage(), e);
-            return REDIRECT_MYPAGE;
-        }
+    private String validateFile(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.contains(".")) return "잘못된 파일입니다.";
+        String ext = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(ext)) return "지원하지 않는 이미지 형식입니다.";
+        if (file.getSize() > MAX_FILE_SIZE) return "파일 크기는 5MB 이하여야 합니다.";
+        return null;
     }
 
-    // 게시물 신고하기 페이지
-    @GetMapping("/report/{postId}")
-    @Operation(summary = "게시물 신고하기 페이지", description = "게시물 신고 폼을 표시합니다.")
-    public String showReportPostPage(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long postId,
-            Model model,
-            HttpServletRequest request) {  // HttpServletRequest 추가
+    private String saveProfileImage(MultipartFile file) throws IOException {
+        String ext = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".")).toLowerCase();
+        String newFilename = UUID.randomUUID() + ext;
+        Path uploadPath = Paths.get(UPLOAD_DIR);
 
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
+        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
 
-        model.addAttribute("postId", postId);
-        model.addAttribute("reportTypes", ReportType.values());
-        model.addAttribute("reportRequest", new ReportRequest());
+        Path filePath = uploadPath.resolve(newFilename);
+        Files.copy(file.getInputStream(), filePath);
 
-        // requestURI 추가
-        model.addAttribute("requestURI", request.getRequestURI());
-
-        return "mypage/report-post";
-    }
-
-    // 게시물 신고 처리
-    @PostMapping("/report/{postId}")
-    @Operation(summary = "게시물 신고 처리", description = "게시물을 신고합니다.")
-    public String reportPost(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long postId,
-            @Valid @ModelAttribute ReportRequest request,
-            BindingResult bindingResult,
-            Model model,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest servletRequest) {  // HttpServletRequest 추가
-
-        if (userDetails == null) {
-            model.addAttribute("error", "로그인이 필요합니다.");
-            return ERROR_UNAUTHORIZED;
-        }
-
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("postId", postId);
-            model.addAttribute("reportTypes", ReportType.values());
-
-            // requestURI 추가
-            model.addAttribute("requestURI", servletRequest.getRequestURI());
-
-            return "mypage/report-post";
-        }
-
-        try {
-            String email = userDetails.getUsername();
-            var member = myPageService.getMyPageInfo(email);
-
-            // 게시물 ID 설정
-            request.setBoardId(postId);
-            reportService.createReport(member.getMemberId(), request);
-
-            redirectAttributes.addFlashAttribute("message", "게시물이 신고되었습니다.");
-        } catch (IllegalArgumentException e) {
-            log.warn("게시물 신고 실패: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        } catch (Exception e) {
-            log.error("신고 처리 중 오류 발생: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "신고 처리 중 오류가 발생했습니다.");
-        }
-
-        return "redirect:/mypage/reports";
-    }
-
-    // 신고 취소
-    @PostMapping("/reports/{reportId}/cancel")
-    @Operation(summary = "신고 취소", description = "대기 중인 신고를 취소합니다.")
-    public String cancelReport(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long reportId,
-            RedirectAttributes redirectAttributes) {
-
-        if (userDetails == null) {
-            return ERROR_UNAUTHORIZED;
-        }
-
-        try {
-            String email = userDetails.getUsername();
-            myPageService.cancelMyReport(email, reportId);
-            redirectAttributes.addFlashAttribute("message", "신고가 취소되었습니다.");
-        } catch (IllegalArgumentException e) {
-            log.warn("신고 취소 실패: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        } catch (Exception e) {
-            log.error("신고 취소 중 오류 발생: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "신고 취소 중 오류가 발생했습니다.");
-        }
-
-        return "redirect:/mypage/reports";
+        return "/uploads/" + newFilename;
     }
 }

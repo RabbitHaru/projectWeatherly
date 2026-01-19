@@ -38,10 +38,11 @@ public interface BoardService {
     List<BoardResponse> searchMyBoardsByTitle(Long memberId, String keyword);
     Board getBoardEntity(Long boardId);
     List<BoardResponse> getBoardsByIds(List<Long> boardIds);
-
+    boolean isLiked(Long boardId, Long userId);
     // 좋아요 관련
     boolean toggleLike(Long boardId, Long memberId);
     int getLikeCount(Long boardId);
     void increaseViewCount(Long boardId);
+    int getViewCount(Long boardId);
     Page<BoardResponse> getMyBoards(Long memberId, Pageable pageable);
 }

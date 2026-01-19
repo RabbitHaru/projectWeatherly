@@ -1,6 +1,6 @@
 package me.shinsunyoung.projectweatherly.board.repository;
 
-import me.shinsunyoung.projectweatherly.board.entity.Comment;
+import me.shinsunyoung.projectweatherly.board.domain.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

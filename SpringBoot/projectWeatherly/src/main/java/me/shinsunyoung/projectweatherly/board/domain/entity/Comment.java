@@ -1,9 +1,10 @@
-package me.shinsunyoung.projectweatherly.board.entity;
+package me.shinsunyoung.projectweatherly.board.domain.entity;
 
-import jakarta.persistence.*;
 import lombok.*;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
+import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,27 +22,39 @@ public class Comment {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false)
-    private String writer;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
+    @Column(nullable = false)
+    private Integer likeCount = 0;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+    // 편의 메서드
+    public void setMember(Member member) {
+        this.member = member;
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    public void setLikeCount(Integer likeCount) {
+        this.likeCount = likeCount;
+    }
+
+    public Integer getLikeCount() {
+        return likeCount != null ? likeCount : 0;
+    }
+
+    // writer 필드가 필요한 경우
+    @Transient
+    public String getWriter() {
+        return member != null ? member.getNickname() : "익명";
     }
 }
