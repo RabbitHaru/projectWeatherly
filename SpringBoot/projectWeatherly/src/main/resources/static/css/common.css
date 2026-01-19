@@ -229,8 +229,17 @@ body.dark-mode .control-btn {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     border-radius: 10px;
     z-index: 1000;
-    margin-top: 10px;
     overflow: hidden;
+}
+
+.dropdown:hover .dropdown-content::before {
+    content: "";
+    position: absolute;
+    top: -10px; /* 위쪽으로 투명 영역 확장 */
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: transparent;
 }
 
 body.dark-mode .dropdown-content {
