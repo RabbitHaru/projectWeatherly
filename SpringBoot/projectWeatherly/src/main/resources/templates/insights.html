@@ -12,14 +12,23 @@
 <div th:replace="layout/header :: header"></div>
 
 <main class="dashboard-main">
-    <div class="page-header">
-        <h1><i class="fas fa-chart-line"></i> 기상 데이터 인사이트</h1>
-        <p>빅데이터 분석을 통한 날씨 트렌드와 옷차림 통계입니다.</p>
+
+    <div class="location-header">
+        <div class="location-badge-large">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="display-region-name" th:text="${regionName}">부산광역시</span>
+            <span class="divider">|</span>
+            <span id="display-station-name" th:text="${stationName}">연산동 측정소</span>
+
+            <button class="btn-sync-location" onclick="syncLocation()" title="현재 위치로 업데이트">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
     </div>
 
     <section class="dashboard-section highlight">
         <div class="section-header center">
-            <h3><i class="fas fa-temperature-high"></i> 주간 기온 변화 트렌드</h3>
+            <h3 class="large-title"><i class="fas fa-temperature-high"></i> 주간 기온 변화 트렌드</h3>
         </div>
         <div class="chart-container-lg">
             <canvas id="tempChart"></canvas>
@@ -27,117 +36,52 @@
     </section>
 
     <div class="stats-grid two-columns">
+
         <section class="dashboard-section">
             <div class="section-header">
-                <h3><i class="fas fa-tshirt"></i> 이번 주 추천 옷차림 비율</h3>
+                <h3><i class="fas fa-history"></i> 시간별 대기질 추이 (12H)</h3>
+                <span id="dust-badge" class="status-badge">분석중</span>
             </div>
             <div class="chart-container-sm">
-                <canvas id="outfitChart"></canvas>
+                <canvas id="airQualityChart"></canvas>
             </div>
             <div class="insight-text">
-                <p>이번 주는 <strong>'자켓/조끼(Level 4)'</strong>가 가장 많이 추천되었습니다.</p>
+                <p id="dust-msg">최근 대기질 흐름을 분석하고 있습니다.</p>
             </div>
         </section>
 
         <section class="dashboard-section">
             <div class="section-header">
-                <h3><i class="fas fa-umbrella"></i> 주간 강수 확률 분석</h3>
+                <h3><i class="fas fa-wind"></i> 습도 및 바람 분석</h3>
             </div>
             <div class="chart-container-sm">
-                <canvas id="rainChart"></canvas>
+                <canvas id="envChart"></canvas>
             </div>
             <div class="insight-text">
-                <p>주말에는 <strong>비가 올 확률</strong>이 높으니 우산을 챙기세요.</p>
+                <p>오늘의 <strong>습도</strong>와 <strong>바람</strong> 정보를 확인하세요.</p>
             </div>
         </section>
+
     </div>
 </main>
 
 <div th:replace="layout/footer :: footer"></div>
 
-<script>
-    // 1. 기온 차트 (Line Chart)
-    const ctxTemp = document.getElementById('tempChart');
-    // 폰트 컬러 설정 (흰색)
-    Chart.defaults.color = '#fff';
-    Chart.defaults.borderColor = 'rgba(255,255,255,0.2)';
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const serverMaxTemps = /*[[${maxTemps}]]*/ [];
+    const serverMinTemps = /*[[${minTemps}]]*/ [];
+    const serverPm10Data = /*[[${pm10Data}]]*/ [];
+    const serverPm25Data = /*[[${pm25Data}]]*/ [];
 
-    new Chart(ctxTemp, {
-        type: 'line',
-        data: {
-            labels: ['월', '화', '수', '목', '금', '토', '일'],
-            datasets: [{
-                label: '최고기온',
-                data: [22, 24, 21, 19, 18, 17, 20],
-                borderColor: '#ff7675', // 밝은 빨강
-                backgroundColor: 'rgba(255, 118, 117, 0.2)',
-                tension: 0.4,
-                fill: true
-            }, {
-                label: '최저기온',
-                data: [15, 16, 14, 12, 10, 9, 13],
-                borderColor: '#74b9ff', // 밝은 파랑
-                backgroundColor: 'rgba(116, 185, 255, 0.2)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { labels: { color: 'white' } }
-            },
-            scales: {
-                x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-            }
-        }
-    });
-
-    // 2. 옷차림 차트 (Doughnut Chart)
-    const ctxOutfit = document.getElementById('outfitChart');
-    new Chart(ctxOutfit, {
-        type: 'doughnut',
-        data: {
-            labels: ['반팔', '긴팔', '자켓', '코트'],
-            datasets: [{
-                data: [10, 30, 50, 10],
-                backgroundColor: ['#ff9f43', '#2ecc71', '#54a0ff', '#5f27cd'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            plugins: {
-                legend: { labels: { color: '#333' } } // 여기는 흰 배경이라 어두운 글씨
-            },
-            cutout: '60%'
-        }
-    });
-
-    // 3. 강수 확률 차트 (Bar Chart)
-    const ctxRain = document.getElementById('rainChart');
-    new Chart(ctxRain, {
-        type: 'bar',
-        data: {
-            labels: ['월', '화', '수', '목', '금', '토', '일'],
-            datasets: [{
-                label: '강수확률(%)',
-                data: [0, 0, 20, 10, 30, 80, 60],
-                backgroundColor: '#0984e3',
-                borderRadius: 5
-            }]
-        },
-        options: {
-            plugins: {
-                legend: { display: false, labels: { color: '#333' } }
-            },
-            scales: {
-                x: { ticks: { color: '#666' } },
-                y: { beginAtZero: true, max: 100, ticks: { color: '#666' } }
-            }
-        }
-    });
+    const serverHumidityData = /*[[${humidityData}]]*/ [];
+    const serverWindData = /*[[${windData}]]*/ [];
+    const serverHourLabels = /*[[${hourLabels}]]*/ [];
+    /*]]>*/
 </script>
+
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/insights.js}"></script>
+
 </body>
 </html>
