@@ -267,33 +267,6 @@
 
 <div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // [수정] 다크모드, 시간 업데이트는 common.js에서 자동으로 실행되므로 제거함
-
-        // 카드 호버 효과만 남김
-        setupCardInteractions();
-
-        // [수정] common.js의 bindGpsButton 함수 활용 (중복 로직 제거)
-        if (typeof bindGpsButton === 'function') {
-            bindGpsButton('gps-sync-btn', function (lat, lon) {
-                // 성공 시 콜백: 페이지를 해당 좌표로 이동(새로고침)
-                window.location.href = `/outfit?lat=${lat}&lon=${lon}`;
-            });
-        }
-    });
-
-    function setupCardInteractions() {
-        const dayCards = document.querySelectorAll('.day-card');
-        dayCards.forEach(card => {
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-5px)';
-            });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0)';
-            });
-        });
-    }
-</script>
+<script th:src="@{/js/outfit.js}"></script>
 </body>
 </html>

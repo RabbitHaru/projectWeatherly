@@ -16,13 +16,6 @@
 <div th:replace="layout/header :: header"></div>
 
 <main class="outfit-detail-main">
-    <section class="page-header">
-        <div class="page-title">
-            <i class="fas fa-info-circle"></i>
-            옷차림 상세 추천
-        </div>
-    </section>
-
     <section class="todays-outfit-section">
         <div class="todays-outfit-card">
             <div class="todays-outfit-header">
@@ -153,6 +146,7 @@
                     <div class="category-item"><div class="category-header bottom">BOTTOM</div><ul class="outfit-list"><li>반바지</li><li>짧은 치마</li></ul></div>
                 </div>
             </div>
+
             <div class="temp-card" th:classappend="${weather.current.feelsLike >= 23 and weather.current.feelsLike < 28} ? 'current'">
                 <div class="temp-header">
                     <div class="temp-range">23~27°C</div>
@@ -264,6 +258,6 @@
 </main>
 
 <div th:replace="layout/footer :: footer"></div>
-<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/outfit-detail.js}"></script>
 </body>
 </html>
