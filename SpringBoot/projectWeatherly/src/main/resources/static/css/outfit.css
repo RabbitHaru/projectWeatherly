@@ -1,1066 +1,462 @@
 /* ===== OUTFIT PAGE STYLES ===== */
-/* 메인 컨테이너 - 가로 길이 증가 */
+
+/* 1. 메인 컨테이너 */
 .outfit-main {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 30px auto;
-    padding: 0 25px;
+    padding: 0 20px;
 }
 
-/* 페이지 헤더 */
-.page-header {
+.page-header { display: none; }
+
+/* 2. 공통 섹션 스타일 (보라색 테마) */
+.current-info-card,
+.level-guide-section,
+.outfit-forecast {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px; /* var(--border-radius) 대신 직접 값 적용 (변수 누락 방지) */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 35px;
+    margin-bottom: 30px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    border: none;
+}
+
+/* 배경 패턴 (여기가 깨졌던 부분일 수 있음) */
+.current-info-card::before,
+.level-guide-section::before,
+.outfit-forecast::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+/* 다크모드 대응 */
+body.dark-mode .current-info-card,
+body.dark-mode .level-guide-section,
+body.dark-mode .outfit-forecast {
+    background: linear-gradient(135deg, #2a2a4a 0%, #1e1e3a 100%);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.section-header {
     text-align: center;
-    margin-bottom: 50px;
-    padding-bottom: 25px;
-    border-bottom: 2px solid rgba(52, 152, 219, 0.1);
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 2;
 }
 
-.page-title {
-    font-size: 2.8rem;
-    color: var(--secondary-color);
-    margin-bottom: 15px;
+.section-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 10px;
 }
 
-body.dark-mode .page-title {
-    color: var(--dark-text);
+.section-subtitle {
+    margin-top: 5px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
 }
 
-.page-subtitle {
-    font-size: 1.2rem;
-    color: #7f8c8d;
-    margin-bottom: 10px;
-    line-height: 1.6;
-}
-
-body.dark-mode .page-subtitle {
-    color: #bdc3c7;
-}
-
-/* 현재 날씨 및 추천 - 핵심 영역 */
-.current-info-card {
-    background: var(--light-card);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-light);
-    padding: 35px;
-    margin-bottom: 50px;
-    border: 2px solid rgba(52, 152, 219, 0.1);
-}
-
-body.dark-mode .current-info-card {
-    background: var(--dark-card);
-    border: 2px solid rgba(52, 152, 219, 0.2);
-}
-
-/* 위치 및 날씨 정보 */
+/* 3. 메인 카드 내부 */
 .location-weather {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 35px;
+    margin-bottom: 30px;
     padding-bottom: 30px;
-    border-bottom: 2px solid var(--light-border);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 2;
 }
+.location-info { flex: 1; }
 
-body.dark-mode .location-weather {
-    border-bottom-color: var(--dark-border);
+.location-header-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
 }
-
-.location-info {
-    flex: 1;
-}
-
 .location-title {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.location-name {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 700;
-    color: var(--secondary-color);
+    color: white;
+    margin: 0;
 }
+.location-title i { margin-right: 10px; }
 
-body.dark-mode .location-name {
-    color: var(--dark-text);
+.location-control-btn.gps-sync-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    height: 40px;
+    white-space: nowrap;
 }
+.location-control-btn.gps-sync-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.location-control-btn.gps-sync-btn i { color: #2ecc71; font-size: 1rem; }
 
-.location-change-btn {
+.weather-brief { display: flex; flex-direction: column; gap: 10px; }
+.current-time-badge {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 20px;
-    background: #f1f8ff;
-    border: 1px solid #cce5ff;
-    border-radius: 25px;
-    color: var(--primary-color);
+    gap: 8px;
     font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--transition);
-    margin-left: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 15px;
+    border-radius: 20px;
+    width: fit-content;
 }
 
-body.dark-mode .location-change-btn {
-    background: rgba(52, 152, 219, 0.1);
-    border-color: rgba(52, 152, 219, 0.3);
-    color: #a0d2ff;
-}
-
-.location-change-btn:hover {
-    background: #e1f0ff;
-    transform: translateY(-2px);
-}
-
-body.dark-mode .location-change-btn:hover {
-    background: rgba(52, 152, 219, 0.2);
-}
-
-.weather-brief {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.current-time {
-    font-size: 1.2rem;
-    color: #7f8c8d;
-    font-weight: 500;
-}
-
-body.dark-mode .current-time {
-    color: #bdc3c7;
-}
-
-.weather-details {
+.weather-details-row {
     display: flex;
     align-items: center;
-    gap: 25px;
-    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 5px;
 }
-
 .current-temp {
-    font-size: 2.5rem;
+    font-size: 4rem;
     font-weight: 800;
-    color: var(--accent-color);
+    color: white;
+    letter-spacing: -2px;
+    line-height: 1;
 }
-
+.current-temp small {
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-left: 5px;
+    opacity: 0.9;
+}
 .weather-desc {
     font-size: 1.4rem;
-    color: var(--primary-color);
+    color: white;
     font-weight: 600;
-    padding: 8px 20px;
-    background: rgba(52, 152, 219, 0.1);
-    border-radius: 20px;
+    padding-left: 20px;
+    border-left: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.feels-like {
-    background: #f1f8ff;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-size: 1.1rem;
-    color: var(--primary-color);
-    font-weight: 600;
-}
-
-body.dark-mode .feels-like {
-    background: rgba(52, 152, 219, 0.1);
-    color: #a0d2ff;
-}
-
-/* 대표 의상 아이콘 (추천 결과) */
 .main-outfit-icon {
-    text-align: center;
-    padding-left: 40px;
-    border-left: 2px solid var(--light-border);
     min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-left: 40px;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
 }
-
-body.dark-mode .main-outfit-icon {
-    border-left-color: var(--dark-border);
-}
-
 .outfit-icon-wrapper {
-    width: 120px;
-    height: 120px;
-    background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+    width: 110px;
+    height: 110px;
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 20px;
-    box-shadow: var(--shadow-medium);
+    margin-bottom: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(5px);
     transition: transform 0.3s ease;
 }
+.outfit-icon-wrapper:hover { transform: scale(1.05) rotate(5deg); }
+.outfit-icon-wrapper i { font-size: 3.5rem; color: white; }
+.outfit-label { font-size: 1.3rem; font-weight: 700; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-.outfit-icon-wrapper:hover {
-    transform: scale(1.05);
-}
-
-.outfit-icon-wrapper i {
-    font-size: 3.5rem;
-    color: white;
-}
-
-.outfit-label {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--secondary-color);
-    max-width: 180px;
-    line-height: 1.4;
-}
-
-body.dark-mode .outfit-label {
-    color: var(--dark-text);
-}
-
-/* 옷차림 결정 카드 */
+/* 4. 옷차림 결정 카드 */
 .outfit-decision-card {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: var(--border-radius);
-    padding: 30px;
-    border: 1px solid var(--light-border);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 0;
 }
-
-body.dark-mode .outfit-decision-card {
-    background: linear-gradient(135deg, #2a2a4a 0%, #1e1e3a 100%);
-    border-color: var(--dark-border);
-}
-
 .decision-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-    gap: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
-
 .decision-header h3 {
     margin: 0;
+    font-size: 1.3rem;
+    color: white;
     display: flex;
     align-items: center;
-    gap: 15px;
-    font-size: 1.5rem;
-    color: var(--secondary-color);
+    gap: 10px;
 }
 
-body.dark-mode .decision-header h3 {
-    color: var(--dark-text);
-}
-
-.decision-level {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.level-label {
-    font-size: 1.1rem;
-    color: #7f8c8d;
-    font-weight: 500;
-}
-
-body.dark-mode .level-label {
-    color: #bdc3c7;
-}
-
+/* 레벨 배지 */
 .level-badge {
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-size: 1rem;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.95rem;
     font-weight: 700;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    background-size: 200% auto;
 }
-
-.level-2 {
-    background: rgba(52, 152, 219, 0.2);
-    color: var(--primary-color);
-    border: 2px solid rgba(52, 152, 219, 0.3);
-}
-
-/* 헤더 액션 버튼 */
-.header-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-}
+.level-badge.level-1 { background: linear-gradient(to right, #ff416c, #ff4b2b); }
+.level-badge.level-2 { background: linear-gradient(to right, #f12711, #f5af19); }
+.level-badge.level-3 { background: linear-gradient(to right, #56ab2f, #a8e063); }
+.level-badge.level-4 { background: linear-gradient(to right, #36d1dc, #5b86e5); }
+.level-badge.level-5 { background: linear-gradient(to right, #0f2027, #2c5364); }
 
 .detail-btn {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 25px;
-    background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.2);
     color: white;
-    text-decoration: none;
-    border-radius: 30px;
-    font-size: 1.1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    font-size: 0.9rem;
     font-weight: 600;
-    transition: var(--transition);
-    box-shadow: var(--shadow-light);
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
+.detail-btn:hover { background: white; color: #667eea; }
 
-.detail-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-medium);
-    background: linear-gradient(135deg, #29b6f6, #039be5);
-}
-
-body.dark-mode .detail-btn {
-    background: linear-gradient(135deg, #2a3c4a, #1a2a3a);
-}
-
-body.dark-mode .detail-btn:hover {
-    background: linear-gradient(135deg, #1a2a3a, #0a1a2a);
-}
-
-/* 결정 요약 */
 .decision-summary {
-    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.15);
     padding: 20px;
-    background: white;
-    border-radius: 15px;
-    border-left: 5px solid var(--primary-color);
-    text-align: center;
+    border-radius: 10px;
+    border-left: 4px solid white;
+    margin-bottom: 25px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
 }
+.quote-icon { font-size: 1.2rem; color: rgba(255,255,255,0.7); }
+.decision-summary p { margin: 0; color: white; font-size: 1.15rem; font-weight: 500; line-height: 1.5; }
 
-body.dark-mode .decision-summary {
-    background: #34495e;
-}
-
-.decision-summary p {
-    margin: 0;
-    color: #555;
-    line-height: 1.8;
-    font-size: 1.3rem;
-    font-weight: 500;
-}
-
-body.dark-mode .decision-summary p {
-    color: #ddd;
-}
-
-/* 날씨 요인 - 주요/보조 구분 */
+/* 판단 요인 (작은 카드들) */
 .weather-factors {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 25px;
-}
-
-.factor-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    padding: 25px;
-    background: white;
-    border-radius: 15px;
-    box-shadow: var(--shadow-light);
-    text-align: center;
-    transition: var(--transition);
-}
-
-body.dark-mode .factor-item {
-    background: #34495e;
-}
-
-.factor-item.primary {
-    border: 2px solid rgba(52, 152, 219, 0.3);
-}
-
-.factor-item.secondary {
-    border: 1px solid rgba(155, 89, 182, 0.1);
-    opacity: 0.9;
-}
-
-body.dark-mode .factor-item.secondary {
-    border-color: rgba(155, 89, 182, 0.3);
-}
-
-.factor-item:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-medium);
-}
-
-.factor-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(52, 152, 219, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.factor-item.primary .factor-icon {
-    background: rgba(52, 152, 219, 0.2);
-}
-
-.factor-item.secondary .factor-icon {
-    background: rgba(155, 89, 182, 0.1);
-}
-
-.factor-icon i {
-    font-size: 1.8rem;
-    color: var(--primary-color);
-}
-
-.factor-item.secondary .factor-icon i {
-    color: #9b59b6;
-}
-
-.factor-content {
-    width: 100%;
-}
-
-.factor-name {
-    font-size: 0.95rem;
-    color: #7f8c8d;
-    margin-bottom: 8px;
-    font-weight: 500;
-}
-
-body.dark-mode .factor-name {
-    color: #bdc3c7;
-}
-
-.factor-item.primary .factor-name {
-    color: var(--primary-color);
-    font-weight: 600;
-}
-
-.factor-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--secondary-color);
-}
-
-body.dark-mode .factor-value {
-    color: var(--dark-text);
-}
-
-.factor-item.primary .factor-value {
-    color: var(--primary-color);
-}
-
-/* 옷차림 레벨 가이드 섹션 */
-.level-guide-section {
-    background: var(--light-card);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-light);
-    padding: 35px;
-    margin-bottom: 50px;
-    border: 2px solid rgba(52, 152, 219, 0.1);
-}
-
-body.dark-mode .level-guide-section {
-    background: var(--dark-card);
-    border: 2px solid rgba(52, 152, 219, 0.2);
-}
-
-.level-guide-section .section-header {
-    text-align: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid rgba(52, 152, 219, 0.2);
-}
-
-.level-guide-section .section-header h3 {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    font-size: 1.8rem;
-    color: var(--secondary-color);
-}
-
-body.dark-mode .level-guide-section .section-header h3 {
-    color: var(--dark-text);
-}
-
-.section-subtitle {
-    font-size: 1.1rem;
-    color: #7f8c8d;
-    margin-top: 10px;
-    margin-bottom: 0;
-    font-weight: 400;
-}
-
-body.dark-mode .section-subtitle {
-    color: #bdc3c7;
-}
-
-.level-guide {
-    background: #f8f9fa;
-    border-radius: var(--border-radius);
-    padding: 30px;
-    border: 1px solid var(--light-border);
-}
-
-body.dark-mode .level-guide {
-    background: #34495e;
-    border-color: var(--dark-border);
-}
-
-.level-items {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
     gap: 20px;
 }
 
-.level-item {
+.factor-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
-    padding: 20px;
-    background: white;
-    border-radius: 15px;
+    gap: 10px;
     text-align: center;
-    position: relative;
-    transition: var(--transition);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s;
+}
+.factor-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px);
+}
+.factor-item.primary {
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-body.dark-mode .level-item {
-    background: #2c3e50;
-}
-
-.level-item:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-light);
-}
-
-.outfit-icon-small {
-    width: 50px;
-    height: 50px;
-    background: rgba(52, 152, 219, 0.1);
+.factor-icon {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 1.2rem;
 }
+.factor-name { font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); }
+.factor-value { font-size: 1.2rem; font-weight: 700; color: white; }
+.factor-value small { font-size: 0.8rem; font-weight: 400; margin-left: 2px; opacity: 0.8; }
 
-.outfit-icon-small i {
-    font-size: 1.5rem;
-    color: var(--primary-color);
-}
-
-.level-item .level-indicator {
-    width: 100%;
-    height: 8px;
-    border-radius: 4px;
-    margin: 10px 0;
-}
-
-.level-desc {
-    width: 100%;
-}
-
-.level-desc strong {
-    display: block;
-    font-size: 1.1rem;
-    color: var(--secondary-color);
-    margin-bottom: 8px;
-    font-weight: 700;
-}
-
-body.dark-mode .level-desc strong {
-    color: var(--dark-text);
-}
-
-.level-desc span {
-    display: block;
-    font-size: 0.9rem;
-    color: #7f8c8d;
-    line-height: 1.5;
-    word-break: keep-all;
-}
-
-body.dark-mode .level-desc span {
-    color: #bdc3c7;
-}
-
-/* 4일간 옷차림 추천 - 미래 예측 영역 */
-.outfit-forecast {
-    background: var(--light-card);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-light);
-    padding: 35px;
-    margin-bottom: 50px;
-    border: 2px solid rgba(155, 89, 182, 0.1);
-}
-
-body.dark-mode .outfit-forecast {
-    background: var(--dark-card);
-    border: 2px solid rgba(155, 89, 182, 0.2);
-}
-
-.outfit-forecast .section-header {
-    text-align: center;
-    margin-bottom: 35px;
-    padding-bottom: 25px;
-    border-bottom: 2px solid rgba(155, 89, 182, 0.2);
-}
-
-.outfit-forecast .section-header h3 {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    font-size: 1.8rem;
-    color: var(--secondary-color);
-}
-
-body.dark-mode .outfit-forecast .section-header h3 {
-    color: var(--dark-text);
-}
-
-/* 날짜별 카드 */
-.forecast-days {
+/* 5. 레벨 가이드 & 예보 */
+.level-items {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 25px;
-    margin-bottom: 30px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
 }
-
-.day-card {
-    background: #f8f9fa;
-    border-radius: var(--border-radius);
-    padding: 25px;
-    transition: var(--transition);
-    border: 2px solid #e9ecef;
+.level-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 12px;
     text-align: center;
-    min-height: 320px;
+    transition: transform 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
-
-body.dark-mode .day-card {
-    background: #34495e;
-    border-color: #4a6278;
+.level-item:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-.day-card.today {
-    border: 3px solid var(--primary-color);
-    box-shadow: var(--shadow-medium);
-    transform: scale(1.05);
-}
-
-.day-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-medium);
-}
-
-.day-card.today:hover {
-    transform: translateY(-8px) scale(1.05);
-}
-
-.day-header {
-    margin-bottom: 25px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid #dee2e6;
-    min-height: 70px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-body.dark-mode .day-header {
-    border-bottom-color: #4a6278;
-}
-
-.day-name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--secondary-color);
-    margin-bottom: 5px;
-    word-break: keep-all;
-    white-space: nowrap;
-}
-
-body.dark-mode .day-name {
-    color: var(--dark-text);
-}
-
-.day-date {
-    font-size: 1rem;
-    color: #7f8c8d;
-    font-weight: 500;
-}
-
-body.dark-mode .day-date {
-    color: #bdc3c7;
-}
-
-/* 날씨와 옷차림 */
-.weather-outfit {
-    margin-bottom: 25px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.weather-summary {
-    margin-bottom: 30px;
-}
-
-.weather-icon {
+.level-indicator {
+    height: 6px;
+    border-radius: 3px;
     margin-bottom: 15px;
+    width: 100%;
 }
+.level-indicator.level-1 { background: linear-gradient(to right, #ff416c, #ff4b2b); }
+.level-indicator.level-2 { background: linear-gradient(to right, #f12711, #f5af19); }
+.level-indicator.level-3 { background: linear-gradient(to right, #56ab2f, #a8e063); }
+.level-indicator.level-4 { background: linear-gradient(to right, #36d1dc, #5b86e5); }
+.level-indicator.level-5 { background: linear-gradient(to right, #0f2027, #2c5364); }
 
-.weather-icon i {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-}
-
-.temp-range {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    font-size: 1.2rem;
-}
-
-.temp-high {
-    font-weight: 700;
-    color: var(--accent-color);
-}
-
-.temp-low {
-    color: var(--primary-color);
-    opacity: 0.8;
-}
-
-.outfit-summary {
-    padding: 20px;
-    background: white;
-    border-radius: 15px;
-    margin-top: 15px;
-}
-
-body.dark-mode .outfit-summary {
-    background: #2c3e50;
-}
-
-.outfit-icon {
-    width: 70px;
-    height: 70px;
-    background: rgba(52, 152, 219, 0.1);
+.outfit-icon-small {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 15px;
+    margin: 0 auto 10px;
+    color: white;
 }
+.outfit-icon-small i { font-size: 1.5rem; color: white; }
+.level-desc strong { display: block; color: white; margin-bottom: 3px; font-weight: 700; }
+.level-desc span { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); }
 
-.outfit-icon i {
-    font-size: 2rem;
-    color: var(--primary-color);
+.forecast-days {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
 }
-
-.outfit-name {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--secondary-color);
-    margin-bottom: 10px;
-    word-break: keep-all;
+.day-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 280px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
-
-body.dark-mode .outfit-name {
-    color: var(--dark-text);
+.day-card:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
+.day-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+.day-name { font-size: 1.2rem; font-weight: 700; color: white; }
+.day-date { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); }
+.weather-outfit { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+.temp-range { font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; color: white; }
+.temp-high { color: #ff7675; }
+.temp-low { color: #74b9ff; }
+.divider { color: rgba(255, 255, 255, 0.5); margin: 0 5px; }
 
+.outfit-summary {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.outfit-icon { margin-bottom: 5px; font-size: 1.5rem; color: white; }
+.outfit-name { font-weight: 700; color: white; margin-bottom: 5px; }
 .outfit-tip {
-    font-size: 0.9rem;
-    color: #7f8c8d;
-    font-style: italic;
-    padding: 8px 15px;
-    background: #f1f8ff;
-    border-radius: 20px;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
     display: inline-block;
-    margin-top: 5px;
-    word-break: keep-all;
-    font-weight: 500;
 }
+.outfit-level { margin-top: 15px; }
+.level-text { font-size: 0.85rem; color: white; font-weight: 600; display: block; margin-top: 5px; }
 
-body.dark-mode .outfit-tip {
-    color: #bdc3c7;
-    background: rgba(52, 152, 219, 0.1);
-}
-
-/* 옷차림 레벨 */
-.outfit-level {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 2px solid #dee2e6;
-}
-
-body.dark-mode .outfit-level {
-    border-top-color: #4a6278;
-}
-
-.level-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--secondary-color);
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-body.dark-mode .level-title {
-    color: var(--dark-text);
-}
-
-.level-indicator {
-    width: 100%;
-    height: 10px;
-    border-radius: 5px;
-    background: #e9ecef;
-    margin-bottom: 10px;
-}
-
-body.dark-mode .level-indicator {
-    background: #4a6278;
-}
-
-.level-1 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 20%, #e9ecef 20%);
-}
-
-.level-2 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 40%, #e9ecef 40%);
-}
-
-.level-3 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 60%, #e9ecef 60%);
-}
-
-.level-4 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 80%, #e9ecef 80%);
-}
-
-.level-5 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 100%, #e9ecef 100%);
-}
-
-body.dark-mode .level-1 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 20%, #4a6278 20%);
-}
-
-body.dark-mode .level-2 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 40%, #4a6278 40%);
-}
-
-body.dark-mode .level-3 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 60%, #4a6278 60%);
-}
-
-body.dark-mode .level-4 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 80%, #4a6278 80%);
-}
-
-body.dark-mode .level-5 {
-    background: linear-gradient(90deg, #4fc3f7 0%, #4fc3f7 100%, #4a6278 100%);
-}
-
-.level-text {
-    font-size: 0.9rem;
-    color: #7f8c8d;
-    font-weight: 500;
-    text-align: center;
-    display: block;
-}
-
-body.dark-mode .level-text {
-    color: #bdc3c7;
-}
-
-/* 반응형 디자인 */
-@media (max-width: 1200px) {
-    .outfit-main {
-        max-width: 1100px;
-    }
-
-    .forecast-days {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .level-items {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
+/* 6. 반응형 (Media Queries) */
 @media (max-width: 992px) {
-    .outfit-main {
-        max-width: 900px;
-    }
-
-    .location-weather {
-        flex-direction: column;
-        gap: 30px;
-    }
-
-    .main-outfit-icon {
-        padding-left: 0;
-        border-left: none;
-        border-top: 2px solid var(--light-border);
-        padding-top: 30px;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    body.dark-mode .main-outfit-icon {
-        border-top-color: var(--dark-border);
-    }
-
-    .weather-factors {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .forecast-days {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .level-items {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .location-weather { flex-direction: column; align-items: center; text-align: center; }
+    .main-outfit-icon { border-left: none; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 25px; width: 100%; margin-top: 10px; }
+    .location-title { justify-content: center; }
+    .weather-desc { border-left: none; padding-left: 0; margin-top: 5px; display: block; }
+    .weather-details-row { flex-direction: column; gap: 5px; }
+    .weather-factors { grid-template-columns: repeat(2, 1fr); }
 }
-
 @media (max-width: 768px) {
-    .outfit-main {
-        max-width: 100%;
-        padding: 0 20px;
-        margin: 25px auto;
-    }
-
-    .forecast-days {
-        grid-template-columns: 1fr;
-        max-width: 450px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .level-items {
-        grid-template-columns: 1fr;
-    }
-
-    .page-title {
-        font-size: 2.2rem;
-    }
-
-    .current-info-card,
-    .level-guide-section,
-    .outfit-forecast {
-        padding: 25px;
-    }
-
-    .decision-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
-    .weather-factors {
-        grid-template-columns: 1fr;
-    }
+    .outfit-main { padding: 0 15px; }
+    .current-info-card, .level-guide-section, .outfit-forecast { padding: 25px 20px; }
+    .location-header-row { flex-direction: column; gap: 10px; }
+    .location-control-btn.gps-sync-btn { margin-left: 0; }
+    .current-temp { font-size: 3rem; }
+    .decision-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .forecast-days, .level-items, .weather-factors { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 576px) {
-    .outfit-main {
-        padding: 0 15px;
-    }
+/* 7. 미세먼지 상태별 테두리 및 텍스트 색상 (추가) */
 
-    .forecast-days {
-        max-width: 100%;
-    }
-
-    .current-info-card,
-    .level-guide-section,
-    .outfit-forecast {
-        padding: 20px;
-    }
-
-    .page-title {
-        font-size: 2rem;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .weather-details {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
-    .location-title {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
-    .location-change-btn {
-        margin-left: 0;
-    }
-
-    .day-card {
-        min-height: 300px;
-    }
-
-    .day-name {
-        font-size: 1.4rem;
-    }
+/* 좋음 (Good) - 초록색 */
+.factor-item.status-good {
+    border: 1px solid #2ecc71 !important; /* 테두리 강제 적용 */
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.2); /* 살짝 빛나는 효과 */
+}
+.factor-item.status-good .factor-value,
+.factor-item.status-good .factor-icon {
+    color: #2ecc71 !important;
 }
 
-@media (max-width: 480px) {
-    .page-title {
-        font-size: 1.8rem;
-    }
-
-    .day-card {
-        padding: 20px;
-    }
-
-    .outfit-summary {
-        padding: 15px;
-    }
+/* 보통 (Average) - 노란색 */
+.factor-item.status-average {
+    border: 1px solid #f1c40f !important;
+}
+.factor-item.status-average .factor-value,
+.factor-item.status-average .factor-icon {
+    color: #f1c40f !important;
 }
 
-/* 다크모드 추가 스타일 */
-body.dark-mode .current-info-card,
-body.dark-mode .level-guide-section,
-body.dark-mode .outfit-forecast {
-    border-width: 2px;
+/* 나쁨 (Bad) - 빨간색 */
+.factor-item.status-bad {
+    border: 1px solid #ff6b6b !important;
+    background: rgba(255, 107, 107, 0.1); /* 배경도 살짝 붉게 */
 }
-
-body.dark-mode .day-card {
-    border: 2px solid #4a4a6d;
-}
-
-body.dark-mode .factor-item {
-    border: 1px solid #4a4a6d;
-}
-
-body.dark-mode .level-item {
-    border: 1px solid #4a4a6d;
-}
-
-/* 간결한 애니메이션 */
-.current-info-card,
-.level-guide-section,
-.outfit-forecast,
-.day-card,
-.factor-item,
-.level-guide {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+.factor-item.status-bad .factor-value,
+.factor-item.status-bad .factor-icon {
+    color: #ff6b6b !important;
 }
