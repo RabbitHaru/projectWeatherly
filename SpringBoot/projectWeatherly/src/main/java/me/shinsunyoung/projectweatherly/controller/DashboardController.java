@@ -37,53 +37,71 @@ public class DashboardController {
         AirQualityResponseDTO air = null;
 
         // 1. GPS 좌표가 있으면 우선 시도
-        try {
-            if (lat != null && lon != null) {
-                log.info("GPS 좌표 수신: lat={}, lon={}", lat, lon);
+        if (lat != null && lon != null) {
+            try {
                 weather = weatherService.getWeatherByGps(lat, lon);
-                air = airQualityService.getAirQualityByGps(lat, lon);
+            } catch (Exception e) {
+                log.error("GPS 날씨 조회 실패: {}", e.getMessage());
             }
-        } catch (Exception e) {
-            log.error("GPS 위치 동기화 실패 (IP로 대체): {}", e.getMessage());
-            weather = null;
-            air = null;
+
+            try {
+                air = airQualityService.getAirQualityByGps(lat, lon);
+            } catch (Exception e) {
+                log.error("GPS 미세먼지 조회 실패: {}", e.getMessage());
+            }
         }
 
-        // 2. 데이터가 없으면(GPS 미입력 or 에러) IP 기반 조회
-        if (weather == null || air == null) {
-            weather = weatherService.getWeatherByIp(request);
-            air = airQualityService.getAirQualityByIp(request);
+        // 2. 날씨 데이터가 없으면 IP 기반으로 조회 (미세먼지가 없어도 날씨가 있으면 유지!)
+        if (weather == null) {
+            try {
+                weather = weatherService.getWeatherByIp(request);
+            } catch (Exception e) {
+                log.error("IP 날씨 조회 실패", e);
+            }
         }
 
-        // 3. 지역 정보 표시
-        model.addAttribute("regionName", weather.getRegionName());
+        // 3. 미세먼지 데이터가 없으면 IP 기반으로 재시도 (선택 사항)
+        if (air == null) {
+            try {
+                air = airQualityService.getAirQualityByIp(request);
+            } catch (Exception e) {
+                log.error("IP 미세먼지 조회 실패", e);
+            }
+        }
+
+        // 4. 모델 데이터 담기 (weather가 null일 경우 방어 로직)
+        if (weather != null) {
+            model.addAttribute("regionName", weather.getRegionName());
+        } else {
+            model.addAttribute("regionName", "위치 정보 없음");
+        }
+
         String station = (air != null && air.getStationName() != null) ? air.getStationName() : "측정소";
         model.addAttribute("stationName", station + " 측정소");
 
-        // 4. [주간 기온] 데이터 채우기 (Padding Logic)
+        // --- (이하 차트 데이터 처리 로직은 기존과 동일) ---
+
         List<Double> maxTemps = new ArrayList<>();
         List<Double> minTemps = new ArrayList<>();
 
         if (weather != null && weather.getDaily() != null) {
             for (var day : weather.getDaily()) {
-                maxTemps.add(day.getMaxTemp());
-                minTemps.add(day.getMinTemp());
+                if (day.getMaxTemp() != null) maxTemps.add(day.getMaxTemp());
+                if (day.getMinTemp() != null) minTemps.add(day.getMinTemp());
             }
         }
-        // 데이터 부족 시 채우기
+
         while (maxTemps.size() < 7) {
             double lastMax = maxTemps.isEmpty() ? 20.0 : maxTemps.get(maxTemps.size() - 1);
             double lastMin = minTemps.isEmpty() ? 10.0 : minTemps.get(minTemps.size() - 1);
             maxTemps.add(lastMax);
             minTemps.add(lastMin);
         }
-        // 7개로 자르기
         if (maxTemps.size() > 7) {
             maxTemps = maxTemps.subList(0, 7);
             minTemps = minTemps.subList(0, 7);
         }
 
-        // 5. [미세먼지] 12시간 추이 (시뮬레이션 데이터)
         List<Integer> pm10Data = new ArrayList<>();
         List<Integer> pm25Data = new ArrayList<>();
         int currentPm10 = (air != null && air.getPm10() != null) ? air.getPm10().getValue() : 30;
@@ -96,7 +114,6 @@ public class DashboardController {
         pm10Data.set(11, currentPm10);
         pm25Data.set(11, currentPm25);
 
-        // 6. [습도/바람] 시간별 예보 활용
         List<Double> humidityData = new ArrayList<>();
         List<Double> windData = new ArrayList<>();
         List<String> hourLabels = new ArrayList<>();
@@ -111,7 +128,7 @@ public class DashboardController {
                 count++;
             }
         }
-        // 데이터 안전장치
+
         if (humidityData.isEmpty()) {
             for(int i=0; i<6; i++) {
                 humidityData.add(50.0);
@@ -120,7 +137,6 @@ public class DashboardController {
             }
         }
 
-        // 7. 모델 전송
         model.addAttribute("maxTemps", maxTemps);
         model.addAttribute("minTemps", minTemps);
         model.addAttribute("pm10Data", pm10Data);

@@ -21,6 +21,7 @@
     border-radius: 50px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     border: 1px solid #eee;
+    transition: background 0.3s, border-color 0.3s; /* 다크모드 전환 애니메이션 */
 }
 
 .location-title-row {
@@ -55,41 +56,6 @@
     margin-top: 15px;
     color: #95a5a6;
     font-size: 0.95rem;
-}
-
-/* [NEW] 동기화 버튼 스타일 (인덱스 느낌) */
-.gps-sync-btn {
-    background: rgba(102, 126, 234, 0.1); /* 연한 보라색 배경 */
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    color: #667eea;
-    padding: 6px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-left: 20px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s ease;
-}
-
-.gps-sync-btn:hover {
-    background: rgba(102, 126, 234, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.15);
-}
-
-.gps-sync-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.gps-sync-btn.sync-error {
-    background: #ffebee;
-    color: #e74c3c;
-    border-color: #ffcdd2;
 }
 
 /* 2. 섹션 공통 스타일 */
@@ -178,7 +144,50 @@
 .status-badge.active { background-color: #e8f5e9; color: #2e7d32; }
 .status-badge.banned { background-color: #ffebee; color: #c62828; }
 
-/* 5. 다크 모드 */
+/* ==========================================================================
+   [수정] GPS 동기화 버튼 (Outfit 페이지 스타일 이식)
+   ========================================================================== */
+.gps-sync-btn {
+    /* 기본(라이트모드)에서는 흰 배경에 깔끔한 회색 테두리 */
+    background: white !important;
+    border: 1px solid #e0e0e0 !important;
+    color: #555 !important;
+
+    padding: 8px 16px; /* Outfit과 동일한 크기 */
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-left: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    height: 40px; /* 높이 통일 */
+    white-space: nowrap;
+}
+
+/* 아이콘 초록색 */
+.gps-sync-btn i {
+    color: #2ecc71 !important;
+    font-size: 1rem;
+}
+
+.gps-sync-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.gps-sync-btn:disabled {
+    color: #999 !important;
+    cursor: not-allowed;
+    background-color: #f9f9f9 !important;
+}
+
+/* ==========================================================================
+   [핵심] 다크 모드 대응 (Outfit 페이지의 '반투명 유리' 스타일 적용)
+   ========================================================================== */
 body.dark-mode .dashboard-section {
     background-color: #2c3e50;
     color: #ecf0f1;
@@ -192,4 +201,28 @@ body.dark-mode .location-title-row {
 }
 body.dark-mode .insight-text {
     color: #bdc3c7;
+}
+
+/* 다크모드 GPS 버튼: Outfit 페이지와 똑같은 'Glassmorphism' */
+body.dark-mode .gps-sync-btn {
+    background: rgba(255, 255, 255, 0.1) !important;  /* 반투명 배경 */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* 반투명 흰색 테두리 */
+    color: white !important; /* 흰색 글씨 */
+    box-shadow: none;
+    backdrop-filter: blur(5px); /* 유리 효과 */
+}
+
+body.dark-mode .gps-sync-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important; /* 호버 시 조금 더 밝게 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .gps-sync-btn i {
+    color: #2ecc71 !important; /* 아이콘은 여전히 초록색 포인트 */
+}
+
+body.dark-mode .gps-sync-btn:disabled {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #7f8c8d !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
 }

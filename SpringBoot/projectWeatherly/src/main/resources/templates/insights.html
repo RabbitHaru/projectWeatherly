@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weatherly - 기상 인사이트</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -22,7 +22,7 @@
                 <span class="divider">|</span>
                 <span id="display-station-name" th:text="${stationName}" class="station-text">연산동 측정소</span>
 
-                <button class="gps-sync-btn" onclick="syncLocation()" title="현재 위치로 동기화">
+                <button class="gps-sync-btn" id="gps-sync-btn" title="현재 위치로 동기화">
                     <i class="fas fa-satellite"></i>
                     <span class="btn-text">위치 동기화</span>
                 </button>
