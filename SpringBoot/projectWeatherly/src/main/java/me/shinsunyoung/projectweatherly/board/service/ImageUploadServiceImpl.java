@@ -26,7 +26,7 @@ public class ImageUploadServiceImpl implements ImageUploadService {
     @Value("${image.upload.dir:uploads}")
     private String uploadDir;
 
-    @Value("${image.max-file-size:61440}") // 60KB in bytes
+    @Value("${image.max-file-size:5120000}") // 60KB in bytes
     private long maxFileSize;
 
     @Value("${image.allowed-extensions:jpg,jpeg,png,gif,bmp,webp}")

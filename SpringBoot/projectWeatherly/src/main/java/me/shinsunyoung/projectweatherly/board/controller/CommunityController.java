@@ -8,6 +8,8 @@ import me.shinsunyoung.projectweatherly.board.dto.BoardResponse;
 import me.shinsunyoung.projectweatherly.board.dto.BoardUpdateRequest;
 import me.shinsunyoung.projectweatherly.board.service.BoardService;
 import me.shinsunyoung.projectweatherly.member.dto.UserSecurityDTO;
+import me.shinsunyoung.projectweatherly.util.FileNameUtil;
+import me.shinsunyoung.projectweatherly.util.FileUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -33,6 +35,7 @@ import java.util.Map;
 public class CommunityController {
 
     private final BoardService boardService;
+    private final FileUtil fileUtil;
 
     /**
      * 커뮤니티 메인 페이지
@@ -129,6 +132,8 @@ public class CommunityController {
         if (user == null || user.getUser() == null) return "redirect:/login";
 
         try {
+            List<FileNameUtil> fileNames = fileUtil.uploadFile(boardRequest.getImageFiles());
+
             BoardResponse response = boardService.createBoard(user.getUser().getId(), boardRequest);
             redirectAttributes.addFlashAttribute("message", "게시글이 작성되었습니다.");
             return "redirect:/community/boards/" + response.getId();
@@ -160,7 +165,7 @@ public class CommunityController {
                 board.setIsAuthor(board.getMemberId().equals(user.getUser().getId()));
                 try {
                     // BoardService에 isLiked 메서드가 있다면 호출, 없다면 주석 처리하거나 false 유지
-                    isLiked = boardService.isLiked(id, user.getUser().getId());
+                    board.setLiked(boardService.isLiked(id, user.getUser().getId()));
                 } catch (Exception e) {
                     log.debug("좋아요 확인 불가 (로그인 안함 또는 메서드 없음): {}", e.getMessage());
                 }
@@ -169,7 +174,7 @@ public class CommunityController {
             }
 
             model.addAttribute("board", board);
-            model.addAttribute("isLiked", isLiked); // View로 별도 전달
+
 
             return "view";
         } catch (Exception e) {

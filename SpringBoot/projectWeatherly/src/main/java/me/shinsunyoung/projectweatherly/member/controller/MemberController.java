@@ -311,11 +311,12 @@ public class MemberController {
     @Operation(summary = "마이페이지", description = "마이페이지 정보를 표시합니다.")
     public String getMyPageInfo(
             @AuthenticationPrincipal UserDetails userDetails,
+            int page,
             Model model) {
 
         try {
             Long memberId = getCurrentMemberId(userDetails);
-            MyPageResponse myPageResponse = memberService.getMyPageInfo(memberId);
+            MyPageResponse myPageResponse = memberService.getMyPageInfo(memberId,page);
             model.addAttribute("myPage", myPageResponse);
             return "members/my-page";
         } catch (me.shinsunyoung.projectweatherly.member.exception.MemberException e) {
@@ -329,11 +330,12 @@ public class MemberController {
     @Operation(summary = "마이페이지 수정 페이지", description = "마이페이지 정보 수정 폼을 표시합니다.")
     public String showMyPageEditPage(
             @AuthenticationPrincipal UserDetails userDetails,
+            int page,
             Model model) {
 
         try {
             Long memberId = getCurrentMemberId(userDetails);
-            MyPageResponse myPageResponse = memberService.getMyPageInfo(memberId);
+            MyPageResponse myPageResponse = memberService.getMyPageInfo(memberId,page);
             model.addAttribute("myPage", myPageResponse);
             model.addAttribute("updateRequest", new UpdateMemberRequest());
             return "members/edit-my-page";

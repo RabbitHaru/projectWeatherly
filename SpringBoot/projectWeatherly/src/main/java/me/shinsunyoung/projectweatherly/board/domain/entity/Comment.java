@@ -5,6 +5,9 @@ import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -33,9 +36,11 @@ public class Comment {
     @Column(nullable = false)
     private Integer likeCount = 0;
 
+    @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column
     private LocalDateTime updatedAt;
 

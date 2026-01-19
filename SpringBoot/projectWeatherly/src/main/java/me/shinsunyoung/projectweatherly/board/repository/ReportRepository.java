@@ -1,6 +1,8 @@
 package me.shinsunyoung.projectweatherly.board.repository;
 
 import me.shinsunyoung.projectweatherly.board.domain.entity.Report;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,7 +36,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     @Query("SELECT r FROM Report r WHERE r.targetId = :boardId AND r.type = 'post'")
     List<Report> findByBoardId(@Param("boardId") Long boardId);
 
-    Optional<Report> findByIdAndReporterId(Long id, Long reporterId);
+    Page<Report> findByReporterId(Long reporterId, Pageable pageable);
 
     List<Report> findByStatus(String status);
 }

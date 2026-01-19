@@ -24,7 +24,7 @@ public class MyPageService {
      */
     public MyPageResponse getMyPageInfo(String email) {
         Long memberId = getMemberIdByEmail(email);
-        return memberService.getMyPageInfo(memberId);
+        return memberService.getMyPageInfo(memberId, 1);
     }
 
     /**

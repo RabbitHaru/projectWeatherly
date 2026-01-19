@@ -100,7 +100,7 @@
                     <div class="post-list" th:unless="${myPage.myCommunityPosts == null or myPage.myCommunityPosts.isEmpty()}">
                         <div th:each="post : ${myPage.myCommunityPosts}" style="display: flex; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #f1f3f5; align-items: center;">
                             <div>
-                                <a th:href="@{/community/boards/{id}(id=${post.id})}" style="text-decoration: none; color: #333; font-weight: 500; font-size: 1.1rem;">
+                                <a th:href="@{/community/boards/{id}(id=${post.postId})}" style="text-decoration: none; color: #333; font-weight: 500; font-size: 1.1rem;">
                                     <span th:text="${post.title}">게시글 제목</span>
                                 </a>
                                 <div style="font-size: 0.85rem; color: #868e96; margin-top: 5px;">
@@ -109,7 +109,7 @@
                                     좋아요 <span th:text="${post.likeCount}">0</span>
                                 </div>
                             </div>
-                            <form th:action="@{/mypage/posts/{id}/delete(id=${post.id})}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                            <form th:action="@{/mypage/posts/{id}/delete(id=${post.postId})}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
                                 <button type="submit" style="background: none; border: none; color: #fa5252; cursor: pointer; font-size: 0.9rem;">
                                     <i class="fas fa-trash-alt"></i> 삭제
                                 </button>
@@ -145,13 +145,13 @@
             <div id="tab-notification" class="tab-content">
                 <div class="section-card">
                     <div class="section-title"><i class="fas fa-bell"></i> 알림 설정</div>
-                    <form th:action="@{/mypage/notifications}" method="post" th:object="${notificationRequest}">
+                    <form th:action="@{/mypage/notifications}" method="post">
                         <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
-                            <input type="checkbox" th:field="*{weatherAlertAgree}" id="weatherAlert">
+                            <input type="checkbox" th:field="${myPage.weatherAlertAgree}" id="weatherAlert">
                             <label for="weatherAlert">날씨 알림 수신 (중요 기상 특보 등)</label>
                         </div>
                         <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
-                            <input type="checkbox" th:field="*{boardNotificationAgree}" id="boardNoti">
+                            <input type="checkbox" th:field="${myPage.boardNotificationAgree}" id="boardNoti">
                             <label for="boardNoti">커뮤니티 활동 알림 (내 글 댓글 등)</label>
                         </div>
                         <button type="submit" class="btn" style="margin-top: 20px; background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">

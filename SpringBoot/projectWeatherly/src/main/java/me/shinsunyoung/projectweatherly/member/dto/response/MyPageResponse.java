@@ -53,6 +53,7 @@ public class MyPageResponse {
                 .privacyPolicyAgree(memberResponse.getPrivacyPolicyAgree()) // ✅ 개인정보 동의
                 .boardNotificationAgree(memberResponse.getBoardNotificationAgree()) // ✅ 게시물 알림 설정
                 .weatherAlertAgree(memberResponse.getWeatherAlertAgree()) // ✅ 날씨 알림 설정
+
                 .commentCount(0)
                 .likeCount(0)
                 .postCount(0)

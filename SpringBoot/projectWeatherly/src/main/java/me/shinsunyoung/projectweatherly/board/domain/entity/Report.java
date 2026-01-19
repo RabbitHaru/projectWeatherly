@@ -60,4 +60,17 @@ public class Report {
     public boolean isCompleted() {
         return "COMPLETED".equals(this.status);
     }
+
+    // === [추가된 부분] 저장 전 자동 실행되어 필수 값을 채워줍니다 ===
+    @PrePersist
+    public void prePersist() {
+        // 생성 일시가 없으면 현재 시간으로 설정
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        // 상태가 없으면 'PENDING'(대기중)으로 설정
+        if (this.status == null) {
+            this.status = "PENDING";
+        }
+    }
 }

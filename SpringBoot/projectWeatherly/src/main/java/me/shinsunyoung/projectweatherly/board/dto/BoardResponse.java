@@ -36,6 +36,8 @@ public class BoardResponse {
     private List<String> images;
     private String thumbnailUrl;
 
+    private boolean isLiked;
+
 
 
     // ✅ 기본값 false로 설정

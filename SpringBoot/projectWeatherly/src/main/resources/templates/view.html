@@ -96,7 +96,7 @@
             </form>
         </div>
         <div class="view-right-actions">
-            <button class="action-btn like-btn" id="like-btn" th:onclick="'toggleLike()'" th:classappend="${isLiked} ? 'liked' : ''">
+            <button class="action-btn like-btn" id="like-btn" th:onclick="'toggleLike()'" th:classappend="${board.isLiked} ? 'liked' : ''">
                 <i class="fas fa-heart"></i> <span id="like-count" th:text="${board.likeCount}">0</span>
             </button>
             <button class="action-btn report-btn" th:onclick="'openReportModal(\'POST\', ' + ${board.id} + ')'"><i class="fas fa-flag"></i> 신고</button>
@@ -145,7 +145,7 @@
 
                 <form th:action="@{/community/boards/{boardId}/comments/{commentId}/like(boardId=${board.id}, commentId=${comment.id})}"
                       method="post" class="comment-like-form">
-                    <button type="submit" class="comment-like-btn" th:classappend="${comment.isLiked} ? 'liked' : ''">
+                    <button type="submit" class="comment-like-btn" th:classappend="${board.isLiked} ? 'liked' : ''">
                         <i class="fas fa-heart"></i> <span th:text="${comment.likeCount}">0</span>
                     </button>
                 </form>
@@ -165,7 +165,7 @@
         <form th:action="@{/community/reports/create}" method="post">
             <div class="report-modal-header">
                 <h2 class="report-modal-title">신고하기</h2>
-                <button type="button" class="report-modal-close" onclick="closeReportModal()">&times;</button>
+
             </div>
 
             <input type="hidden" name="type" id="report-type">

@@ -2,17 +2,22 @@ package me.shinsunyoung.projectweatherly.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
+import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
+import me.shinsunyoung.projectweatherly.board.repository.ReportRepository;
 import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Agreement;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import me.shinsunyoung.projectweatherly.member.dto.request.*;
-import me.shinsunyoung.projectweatherly.member.dto.response.LoginResponse;
-import me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse;
-import me.shinsunyoung.projectweatherly.member.dto.response.MyPageResponse;
+import me.shinsunyoung.projectweatherly.member.dto.response.*;
 import me.shinsunyoung.projectweatherly.member.exception.MemberException;
 import me.shinsunyoung.projectweatherly.member.repository.AgreementRepository;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -31,6 +37,8 @@ public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final AgreementRepository agreementRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BoardRepository boardRepository;
+    private final ReportRepository reportRepository;
 
     // ==================== UserDetailsService 구현 ====================
     @Override
@@ -64,7 +72,7 @@ public class MemberService implements UserDetailsService {
         Member member = memberRepository.findByEmailAndIsActiveTrue(email)
                 .orElseThrow(() -> new MemberException("회원을 찾을 수 없습니다."));
 
-        return getMyPageInfo(member.getId());
+        return getMyPageInfo(member.getId(),1);
     }
 
     /**
@@ -236,10 +244,18 @@ public class MemberService implements UserDetailsService {
                 .build();
     }
 
-    public MyPageResponse getMyPageInfo(Long memberId) {
+    public MyPageResponse getMyPageInfo(Long memberId,int page) {
         MemberResponse memberResponse = getMemberById(memberId);
         MyPageResponse response = MyPageResponse.fromMemberResponse(memberResponse);
+        Member member = memberRepository.findById(memberId).get();
+        Pageable pageable = PageRequest.of(page-1, 10).withSort(Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<CommunityPostResponse>  boardList= boardRepository.findByMember(member,pageable).stream().map(CommunityPostResponse::new).toList();
 
+        List<ReportedPostResponse>  reportList= reportRepository.findByReporterId(member.getId(),pageable)
+                .stream().map(ReportedPostResponse::new)
+                .toList();
+        response.setMyCommunityPosts(boardList);
+        response.setReportedPosts(reportList);
         // TODO: 실제 게시물, 댓글, 좋아요 수 조회 로직 추가
         response.setPostCount(0);
         response.setCommentCount(0);
@@ -263,13 +279,13 @@ public class MemberService implements UserDetailsService {
 
         memberRepository.save(member);
 
-        return getMyPageInfo(memberId);
+        return getMyPageInfo(memberId,1);
     }
 
     @Transactional
     public MyPageResponse updateAgreementForMyPage(Long memberId, UpdateAgreementRequest request) {
         updateAgreement(memberId, request);
-        return getMyPageInfo(memberId);
+        return getMyPageInfo(memberId,1);
     }
 
     /**
@@ -288,6 +304,6 @@ public class MemberService implements UserDetailsService {
 
         agreementRepository.save(agreement);
 
-        return getMyPageInfo(memberId);
+        return getMyPageInfo(memberId,1);
     }
 }

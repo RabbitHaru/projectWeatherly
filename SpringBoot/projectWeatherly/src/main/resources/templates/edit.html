@@ -105,7 +105,7 @@
                 </div>
                 <div class="existing-images-list" id="existing-images-list">
                     <div th:each="image, stat : ${board.images}" class="existing-image-item">
-                        <img th:src="@{${image}}" alt="기존 이미지" onerror="this.style.display='none'">
+                        <img th:src="@{/community/images/post/{image}(image=${image})}" alt="기존 이미지" onerror="this.style.display='none'">
                         <div class="existing-image-info">
                             <span>이미지 <span th:text="${stat.count}">1</span></span>
                             <label class="image-delete-checkbox">
