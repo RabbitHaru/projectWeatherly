@@ -215,22 +215,22 @@ public class LocationService {
         if (regionName == null) return defaultRegionCode;
 
         switch (regionName) {
-            case "서울특별시": return "1100000000";
-            case "부산광역시": return "2600000000";
-            case "인천광역시": return "2800000000";
-            case "대구광역시": return "2700000000";
-            case "대전광역시": return "3000000000";
-            case "광주광역시": return "2900000000";
-            case "울산광역시": return "3100000000";
+            case "서울": return "1100000000";
+            case "부산": return "2600000000";
+            case "인천": return "2800000000";
+            case "대구": return "2700000000";
+            case "대전": return "3000000000";
+            case "광주": return "2900000000";
+            case "울산": return "3100000000";
             case "경기도": return "4100000000";
             case "강원도": return "4200000000";
-            case "충청북도": return "4300000000";
-            case "충청남도": return "4400000000";
-            case "전라북도": return "4500000000";
-            case "전라남도": return "4600000000";
-            case "경상북도": return "4700000000";
-            case "경상남도": return "4800000000";
-            case "제주특별자치도": return "5000000000";
+            case "충북": return "4300000000";
+            case "충남": return "4400000000";
+            case "전북": return "4500000000";
+            case "전남": return "4600000000";
+            case "경북": return "4700000000";
+            case "경남": return "4800000000";
+            case "제주": return "5000000000";
             default: return defaultRegionCode;
         }
     }
