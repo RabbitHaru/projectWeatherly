@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weatherly - 기상 인사이트</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div th:replace="layout/header :: header"></div>
+
+<main class="dashboard-main">
+
+    <div class="location-header">
+        <div class="location-display-wrapper">
+            <h2 class="location-title-row">
+                <i class="fas fa-map-marker-alt location-icon"></i>
+                <span id="display-region-name" th:text="${regionName}">부산광역시</span>
+                <span class="divider">|</span>
+                <span id="display-station-name" th:text="${stationName}" class="station-text">연산동 측정소</span>
+
+                <button class="gps-sync-btn" id="gps-sync-btn" title="현재 위치로 동기화">
+                    <i class="fas fa-satellite"></i>
+                    <span class="btn-text">위치 동기화</span>
+                </button>
+            </h2>
+        </div>
+        <p class="location-desc">해당 지역의 실시간 기상청 및 에어코리아 데이터를 분석한 결과입니다.</p>
+    </div>
+
+    <section class="dashboard-section highlight">
+        <div class="section-header center">
+            <h3 class="large-title"><i class="fas fa-temperature-high"></i> 주간 기온 변화 트렌드</h3>
+        </div>
+        <div class="chart-container-lg">
+            <canvas id="tempChart"></canvas>
+        </div>
+    </section>
+
+    <div class="stats-grid two-columns">
+
+        <section class="dashboard-section">
+            <div class="section-header">
+                <h3><i class="fas fa-history"></i> 시간별 대기질 추이 (12H)</h3>
+                <span id="dust-badge" class="status-badge">분석중</span>
+            </div>
+            <div class="chart-container-sm">
+                <canvas id="airQualityChart"></canvas>
+            </div>
+            <div class="insight-text">
+                <p id="dust-msg">최근 대기질 흐름을 분석하고 있습니다.</p>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-header">
+                <h3><i class="fas fa-wind"></i> 습도 및 바람 분석</h3>
+            </div>
+            <div class="chart-container-sm">
+                <canvas id="envChart"></canvas>
+            </div>
+            <div class="insight-text">
+                <p>오늘의 <strong>습도</strong>와 <strong>바람</strong> 정보를 확인하세요.</p>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<div th:replace="layout/footer :: footer"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const serverMaxTemps = /*[[${maxTemps}]]*/ [];
+    const serverMinTemps = /*[[${minTemps}]]*/ [];
+    const serverPm10Data = /*[[${pm10Data}]]*/ [];
+    const serverPm25Data = /*[[${pm25Data}]]*/ [];
+
+    const serverHumidityData = /*[[${humidityData}]]*/ [];
+    const serverWindData = /*[[${windData}]]*/ [];
+    const serverHourLabels = /*[[${hourLabels}]]*/ [];
+    /*]]>*/
+</script>
+
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/insights.js}"></script>
+
+</body>
+</html>

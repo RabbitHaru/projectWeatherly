@@ -1,29 +1,41 @@
-/* fine-dust.css - 미세먼지 페이지 전용 스타일 */
+/* ==========================================================================
+   Weatherly Fine Dust Stylesheet (Color Fixed)
+   ========================================================================== */
 
-/* 대형 배지 스타일 */
 .large-badge {
     font-size: 1.5rem;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-weight: 700;
-    min-width: 100px;
-    text-align: center;
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-weight: 800;
     display: inline-block;
+    min-width: 120px;
+    text-align: center;
 }
 
-/* 확장된 대기질 요약 (보라색 그라데이션 배경 위) */
+/* 헤더 우측 정렬 */
+.weather-status-container {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.weather-condition {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+/* 실시간 상세 */
 .air-quality-summary.expanded {
     padding: 30px;
     margin-top: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
-body.dark-mode .air-quality-summary.expanded {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-/* 대기질 상세 그리드 */
 .aqi-detailed-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -31,51 +43,28 @@ body.dark-mode .air-quality-summary.expanded {
     margin-top: 25px;
 }
 
-@media (max-width: 1200px) {
-    .aqi-detailed-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* 대기질 상세 카드 */
 .aqi-detail-card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: var(--border-radius);
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
     padding: 25px;
-    backdrop-filter: blur(10px);
-    transition: var(--transition);
-    border: 2px solid transparent;
-}
-
-body.dark-mode .aqi-detail-card {
-    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: 0.3s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .aqi-detail-card:hover {
     transform: translateY(-5px);
-    box-shadow: var(--shadow-medium);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .aqi-detail-header {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.aqi-detail-header h4 {
-    margin: 0;
-    font-size: 1.2rem;
-    color: white;
-}
-
-.aqi-detail-header i {
-    font-size: 1.8rem;
-    opacity: 0.9;
-    color: white;
+    gap: 10px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
 }
 
 .aqi-detail-body {
@@ -83,252 +72,186 @@ body.dark-mode .aqi-detail-card {
 }
 
 .aqi-detail-value {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 10px;
+    font-size: 2.2rem;
+    font-weight: 800;
     color: white;
+    margin-bottom: 10px;
 }
 
+/* [중요] 상태 뱃지 색상 */
 .aqi-detail-status {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-bottom: 10px;
-    padding: 8px 20px;
+    padding: 6px 18px;
     border-radius: 20px;
+    font-weight: 800;
+    font-size: 1rem;
     display: inline-block;
+    background: #eee;
+    color: #333;
+}
+
+.aqi-detail-status.aqi-good {
+    background-color: var(--success-color);
     color: white;
 }
 
-.aqi-detail-grade {
-    font-size: 1rem;
-    opacity: 0.9;
-    color: rgba(255, 255, 255, 0.8);
+.aqi-detail-status.aqi-moderate {
+    background-color: var(--warning-color);
+    color: #333;
 }
 
-/* 건강 조언 섹션 */
+.aqi-detail-status.aqi-bad {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.aqi-detail-status.aqi-very-bad {
+    background-color: #8e44ad;
+    color: white;
+}
+
+/* 예보 카드 (넓은 형태) */
+.aqi-forecast-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.aqi-forecast-day {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+    align-items: center;
+}
+
+body.dark-mode .aqi-forecast-day {
+    background: #2a2a4a;
+    border-color: #3a3a5d;
+    color: white;
+}
+
+.forecast-date {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+}
+
+body.dark-mode .forecast-date {
+    color: white;
+}
+
+.forecast-overall {
+    font-size: 1.2rem;
+    font-weight: 800;
+    padding: 8px 30px;
+    border-radius: 30px;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.forecast-details {
+    display: flex;
+    gap: 20px;
+    font-size: 1.1rem;
+    color: #555;
+    font-weight: 600;
+    justify-content: center;
+}
+
+body.dark-mode .forecast-details {
+    color: #ddd;
+}
+
+.forecast-advice {
+    font-size: 1rem;
+    color: #666;
+    margin-top: 10px;
+    background: #f8f9fa; /* 라이트 모드 배경 */
+    padding: 15px;
+    border-radius: 15px;
+    width: 100%;
+}
+
+body.dark-mode .forecast-advice {
+    background: #34495e; /* [중요] 다크 모드 배경 (어두운 색) */
+    color: #ccc;         /* 글자색 (밝은 회색) */
+}
+
+/* 기타 섹션 */
 .health-advice-section {
     background: var(--light-card);
-    border-radius: var(--border-radius);
+    border-radius: 20px;
     box-shadow: var(--shadow-light);
-    overflow: hidden;
+    padding: 30px;
     margin-top: 30px;
 }
 
 body.dark-mode .health-advice-section {
-    background: var(--dark-card);
+    background: #25253d;
 }
 
-.health-advice-section .card-header {
-    background: #f8f9fa;
-    padding: 25px;
-    border-bottom: 1px solid var(--light-border);
-}
-
-body.dark-mode .health-advice-section .card-header {
-    background: #34495e;
-    border-bottom: 1px solid var(--dark-border);
-}
-
-.health-advice-section .card-header h3 {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-size: 1.4rem;
-    color: var(--secondary-color);
-}
-
-body.dark-mode .health-advice-section .card-header h3 {
-    color: var(--dark-text);
-}
-
-.health-advice-content {
-    padding: 30px;
-}
-
-/* 건강 조언 카드 */
 .advice-card {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 30px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     gap: 25px;
-    padding: 30px;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    border-radius: var(--border-radius);
-    color: white;
     margin-bottom: 30px;
 }
 
-.advice-icon {
-    font-size: 3rem;
-}
-
-.advice-text {
-    flex: 1;
-}
-
-.advice-text h4 {
-    margin: 0 0 10px 0;
-    font-size: 1.5rem;
-}
-
-.advice-text p {
-    margin: 0;
-    font-size: 1.1rem;
-    line-height: 1.6;
-}
-
-/* 팁 그리드 */
 .tips-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 
-@media (max-width: 768px) {
-    .tips-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
 .tip-card {
     background: #f8f9fa;
-    border-radius: var(--border-radius-sm);
     padding: 25px;
-    transition: var(--transition);
-    border-left: 4px solid var(--primary-color);
+    border-radius: 20px;
+    border-left: 5px solid var(--primary-color);
+    transition: 0.3s;
 }
 
 body.dark-mode .tip-card {
-    background: #34495e;
+    background: #2a2a4a;
+    border-left-color: #4fc3f7;
 }
 
-.tip-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-light);
-}
-
-.tip-card i {
-    font-size: 2rem;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
-.tip-card h5 {
-    margin: 0 0 10px 0;
-    font-size: 1.2rem;
-    color: var(--secondary-color);
-}
-
-body.dark-mode .tip-card h5 {
-    color: var(--dark-text);
-}
-
-.tip-card p {
-    margin: 0;
-    color: #666;
-    line-height: 1.5;
-}
-
-body.dark-mode .tip-card p {
-    color: #bdc3c7;
-}
-
-/* 대기질 예보 컨테이너 */
-.aqi-forecast-container {
-    padding: 20px 0;
-}
-
-/* 업데이트 시간 */
-.update-time {
-    font-size: 0.9rem;
-    opacity: 0.8;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* 측정소 정보 */
-.station-info p {
-    margin: 10px 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--light-text);
-}
-
-body.dark-mode .station-info p {
-    color: var(--dark-text);
-}
-
-.station-info strong {
-    color: var(--primary-color);
-}
-
-/* 관련 링크 */
-.related-links {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.related-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 15px;
-    background: #f8f9fa;
-    border-radius: var(--border-radius-sm);
-    text-decoration: none;
-    color: var(--primary-color);
-    transition: var(--transition);
-}
-
-body.dark-mode .related-link {
-    background: #34495e;
-    color: #4fc3f7;
-}
-
-.related-link:hover {
-    background: var(--primary-color);
-    color: white;
-    transform: translateX(5px);
-}
-
-/* 지역별 대기질 리스트 */
+/* 사이드바 */
 .regional-aqi-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .regional-aqi-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
+    padding: 15px 20px;
     background: #f8f9fa;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
 body.dark-mode .regional-aqi-item {
-    background: #34495e;
-}
-
-.regional-aqi-item:hover {
-    transform: translateX(3px);
-}
-
-.regional-aqi-name {
-    font-weight: 600;
-    color: var(--light-text);
-}
-
-body.dark-mode .regional-aqi-name {
-    color: var(--dark-text);
+    background: #2a2a4a;
 }
 
 .regional-aqi-badge {
     padding: 5px 15px;
-    border-radius: 15px;
+    border-radius: 20px;
     font-size: 0.9rem;
     font-weight: 600;
     min-width: 70px;
@@ -336,207 +259,45 @@ body.dark-mode .regional-aqi-name {
     color: white;
 }
 
-/* ========================================================= */
-/* [수정됨] 대기질 예보 일별 카드 (라이트/다크 모드 색상 분리) */
-/* ========================================================= */
-
-/* 기본(라이트 모드) 스타일 */
-.aqi-forecast-day {
-    background: #ffffff; /* 흰색 배경 */
-    border-radius: var(--border-radius);
-    padding: 25px;
-    margin-bottom: 15px;
-    border: 1px solid #e9ecef; /* 연한 회색 테두리 */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    transition: var(--transition);
+.related-links {
+    display: flex;
+    flex-direction: column; /* 세로로 정렬 */
+    gap: 10px; /* 버튼 사이 간격 */
 }
 
-/* 다크 모드 스타일 */
-body.dark-mode .aqi-forecast-day {
-    background: rgba(255, 255, 255, 0.05); /* 반투명 배경 */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: none;
+.related-link {
+    display: block;
+    width: 100%;
+    padding: 12px 0;
+    text-align: center;
+    background-color: #f8f9fa; /* 기본: 밝은 회색 배경 */
+    color: var(--secondary-color); /* 글자색: 진한 남색 */
+    text-decoration: none; /* 밑줄 제거 */
+    border-radius: 12px; /* 둥근 모서리 */
+    font-weight: 700; /* 굵은 글씨 */
+    border: 1px solid #e9ecef; /* 얇은 테두리 */
+    transition: all 0.3s ease; /* 부드러운 애니메이션 */
+    cursor: pointer;
 }
 
-.aqi-forecast-day:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-light);
+/* 마우스 올렸을 때 (Hover) */
+.related-link:hover {
+    background-color: var(--primary-color); /* 파란색 배경으로 변경 */
+    color: white; /* 흰색 글씨 */
+    border-color: var(--primary-color);
+    transform: translateY(-3px); /* 살짝 위로 뜸 */
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); /* 그림자 효과 */
+}
+
+/* 다크모드 대응 */
+body.dark-mode .related-link {
+    background-color: #2a2a4a; /* 어두운 배경 */
+    color: #e0e0e0; /* 밝은 글씨 */
+    border-color: #3a3a5d; /* 어두운 테두리 */
+}
+
+body.dark-mode .related-link:hover {
+    background-color: var(--primary-color); /* 호버 시 파란색 유지 */
+    color: white;
     border-color: var(--primary-color);
 }
-
-/* 날짜 텍스트 */
-.forecast-date {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #2c3e50; /* 라이트 모드: 어두운 색 */
-}
-
-body.dark-mode .forecast-date {
-    color: #ffffff; /* 다크 모드: 흰색 */
-}
-
-/* 종합 등급 배지 */
-.forecast-overall {
-    display: inline-block;
-    padding: 10px 25px;
-    border-radius: 25px;
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: white; /* 배지 안의 글자는 항상 흰색 */
-}
-
-/* 상세 내용 텍스트 */
-.forecast-details p {
-    margin: 8px 0;
-    color: #555; /* 라이트 모드: 진한 회색 */
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-body.dark-mode .forecast-details p {
-    color: rgba(255, 255, 255, 0.9); /* 다크 모드: 밝은 회색 */
-}
-
-.forecast-details i {
-    width: 20px;
-    text-align: center;
-    color: var(--primary-color);
-}
-
-/* 예보 조언 (긴 글) */
-.forecast-advice {
-    margin-top: 15px !important;
-    padding-top: 15px;
-    border-top: 1px solid #eee; /* 라이트 모드 구분선 */
-    font-style: italic;
-    color: #666; /* 라이트 모드 글자색 */
-    line-height: 1.6;
-}
-
-body.dark-mode .forecast-advice {
-    border-top: 1px solid rgba(255, 255, 255, 0.2); /* 다크 모드 구분선 */
-    color: rgba(255, 255, 255, 0.8); /* 다크 모드 글자색 */
-}
-
-/* ========================================================= */
-
-/* 상태별 색상 클래스 */
-.aqi-good {
-    background: var(--success-color);
-    color: white;
-}
-
-.aqi-moderate {
-    background: var(--warning-color);
-    color: #333;
-}
-
-body.dark-mode .aqi-moderate {
-    color: white;
-}
-
-.aqi-bad {
-    background: var(--danger-color);
-    color: white;
-}
-
-.aqi-very-bad {
-    background: #8e44ad;
-    color: white;
-}
-
-/* 대기질 지수별 테마 색상 */
-.aqi-detail-card.khai { border-color: rgba(52, 152, 219, 0.3); }
-.aqi-detail-card.pm10 { border-color: rgba(231, 76, 60, 0.3); }
-.aqi-detail-card.pm25 { border-color: rgba(155, 89, 182, 0.3); }
-.aqi-detail-card.o3 { border-color: rgba(46, 204, 113, 0.3); }
-.aqi-detail-card.no2 { border-color: rgba(241, 196, 15, 0.3); }
-.aqi-detail-card.co { border-color: rgba(52, 73, 94, 0.3); }
-
-/* 상태 아이콘 색상 */
-.status-icon.safe { color: var(--success-color); }
-.status-icon.warning { color: var(--warning-color); }
-.status-icon.danger { color: var(--danger-color); }
-
-/* 측정소 아이콘 */
-.station-info i {
-    color: var(--primary-color);
-    width: 20px;
-    text-align: center;
-}
-
-/* 애니메이션 */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.aqi-detail-card,
-.advice-card,
-.tip-card,
-.aqi-forecast-day {
-    animation: fadeIn 0.5s ease-out;
-}
-
-/* 로딩 상태 */
-#fine-dust-loading .loading-content {
-    background: rgba(0, 0, 0, 0.9);
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-}
-
-/* 동기화 버튼 상태 */
-.gps-sync-btn.sync-success {
-    background-color: var(--success-color, #2ecc71) !important;
-    color: white !important;
-}
-
-.gps-sync-btn.sync-error {
-    background-color: var(--error-color, #e74c3c) !important;
-    color: white !important;
-}
-
-/* 탭 콘텐츠 애니메이션 */
-.tab-content {
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* 반응형 조정 */
-@media (max-width: 768px) {
-    .aqi-detailed-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .aqi-forecast-container {
-        grid-template-columns: 1fr !important;
-    }
-
-    .aqi-detail-value {
-        font-size: 2rem;
-    }
-
-    .advice-card {
-        flex-direction: column;
-        text-align: center;
-        gap: 15px;
-    }
-
-    .advice-icon {
-        font-size: 2.5rem;
-    }
-}
-
-.aqi-detail-card:nth-child(2) { animation-delay: 0.1s; }
-.aqi-detail-card:nth-child(3) { animation-delay: 0.2s; }
-.aqi-detail-card:nth-child(4) { animation-delay: 0.3s; }
-.aqi-detail-card:nth-child(5) { animation-delay: 0.4s; }
-.aqi-detail-card:nth-child(6) { animation-delay: 0.5s; }

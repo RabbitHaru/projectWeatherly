@@ -1,4 +1,3 @@
-<!-- templates/layout/header.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
@@ -7,13 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${pageTitle} + ' - Weatherly'">Weatherly</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/main.css}">
-    <!-- favicon 추가 -->
-    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
 </head>
 <body>
-<!-- 헤더 영역 -->
-<header class="main-header">
+<header class="main-header" th:fragment="header">
     <div class="header-container">
         <div class="header-left">
             <a href="/" class="logo">
@@ -23,16 +19,16 @@
         </div>
 
         <nav class="header-center">
-
-
             <ul class="main-menu">
-                <li><a href="/" class="menu-item" th:classappend="${requestURI != null and (requestURI.equals('/') or requestURI.equals(''))} ? 'active' : ''"><i class="fas fa-home"></i>홈</a></li>
-                <li><a href="/fine-dust" class="menu-item" th:classappend="${requestURI != null and requestURI.contains('fine-dust')} ? 'active' : ''"><i class="fas fa-wind"></i>미세먼지</a></li>
-                <li><a href="/outfit" class="menu-item" th:classappend="${requestURI != null and requestURI.contains('outfit')} ? 'active' : ''"><i class="fas fa-tshirt"></i> 옷차림</a></li>
-                <li><a href="/community" class="menu-item" th:classappend="${requestURI != null and requestURI.contains('community')} ? 'active' : ''"><i class="fas fa-comments"></i>커뮤니티</a></li>
-
+                <li><a href="/" class="menu-item"><i class="fas fa-home"></i> 홈</a></li>
+                <li><a href="/fine-dust" class="menu-item"><i class="fas fa-wind"></i> 미세먼지</a></li>
+                <li><a href="/outfit" class="menu-item"><i class="fas fa-tshirt"></i> 옷차림</a></li>
+                <li><a href="/community" class="menu-item"><i class="fas fa-comments"></i> 커뮤니티</a></li>
+                <li><a href="/insights" class="menu-item"><i class="fas fa-chart-line"></i> 기상 통계</a></li>
+                <li><a href="/admin" class="menu-item"><i class="fas fa-cog"></i> 관리자</a></li>
             </ul>
         </nav>
+
         <div class="header-right">
             <div class="user-greeting" sec:authorize="isAuthenticated()">
                 <span class="greeting-text">안녕하세요, <strong th:text="${nickname}"></strong>님!</span>
@@ -43,11 +39,9 @@
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge">0</span>
                 </button>
-
                 <button class="control-btn favorites-btn" title="즐겨찾기">
                     <i class="fas fa-star"></i>
                 </button>
-
                 <button class="control-btn darkmode-toggle" id="darkmode-toggle" title="다크모드 전환">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -67,10 +61,12 @@
                     <a href="/logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</a>
                 </div>
                 <div class="dropdown-content" sec:authorize="isAnonymous()">
-                    <a href="/login"><i class="fas fa-sign-out-alt"></i> 로그인</a>
-                    <a href="/signup"><i class="fas fa-sign-out-alt"></i> 회원가입</a>
+                    <a href="/login"><i class="fas fa-sign-in-alt"></i> 로그인</a>
+                    <a href="/signup"><i class="fas fa-user-plus"></i> 회원가입</a>
                 </div>
             </div>
         </div>
     </div>
 </header>
+</body>
+</html>

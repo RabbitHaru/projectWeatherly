@@ -1,4 +1,4 @@
-package me.shinsunyoung.projectweatherly.clothing.enums;
+package me.shinsunyoung.projectweatherly.outfit.enums;
 
 public enum TemperatureRange {
 

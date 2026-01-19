@@ -1,6 +1,6 @@
-package me.shinsunyoung.projectweatherly.clothing.service;
+package me.shinsunyoung.projectweatherly.outfit.service;
 
-import me.shinsunyoung.projectweatherly.clothing.enums.TemperatureRange;
+import me.shinsunyoung.projectweatherly.outfit.enums.TemperatureRange;
 
 public class TemperatureRangeResolver {
     public static TemperatureRange resolve(double temp){
