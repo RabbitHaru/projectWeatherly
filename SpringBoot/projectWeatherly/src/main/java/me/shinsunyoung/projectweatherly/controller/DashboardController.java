@@ -2,7 +2,7 @@ package me.shinsunyoung.projectweatherly.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j; // 로그 확인용 추가
+import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDTO;
 import me.shinsunyoung.projectweatherly.airquality.service.AirQualityService;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDTO;
@@ -36,22 +36,20 @@ public class DashboardController {
         WeatherResponseDTO weather = null;
         AirQualityResponseDTO air = null;
 
-        // [핵심 수정] GPS 시도 중 에러가 나도 페이지가 죽지 않도록 방어(Try-Catch)
+        // 1. GPS 좌표가 있으면 우선 시도
         try {
             if (lat != null && lon != null) {
                 log.info("GPS 좌표 수신: lat={}, lon={}", lat, lon);
-                // 1. GPS 기반 조회 시도
                 weather = weatherService.getWeatherByGps(lat, lon);
                 air = airQualityService.getAirQualityByGps(lat, lon);
             }
         } catch (Exception e) {
-            log.error("GPS 위치 동기화 실패 (IP로 대체합니다): {}", e.getMessage());
-            // 에러 발생 시 weather/air를 null로 두어 아래에서 IP로 재조회하게 함
+            log.error("GPS 위치 동기화 실패 (IP로 대체): {}", e.getMessage());
             weather = null;
             air = null;
         }
 
-        // 2. 데이터가 없거나 에러가 났다면 -> IP 기반으로 조회 (Fallback)
+        // 2. 데이터가 없으면(GPS 미입력 or 에러) IP 기반 조회
         if (weather == null || air == null) {
             weather = weatherService.getWeatherByIp(request);
             air = airQualityService.getAirQualityByIp(request);
@@ -62,7 +60,7 @@ public class DashboardController {
         String station = (air != null && air.getStationName() != null) ? air.getStationName() : "측정소";
         model.addAttribute("stationName", station + " 측정소");
 
-        // 4. [주간 기온] 데이터 채우기 (Padding)
+        // 4. [주간 기온] 데이터 채우기 (Padding Logic)
         List<Double> maxTemps = new ArrayList<>();
         List<Double> minTemps = new ArrayList<>();
 
@@ -72,18 +70,20 @@ public class DashboardController {
                 minTemps.add(day.getMinTemp());
             }
         }
+        // 데이터 부족 시 채우기
         while (maxTemps.size() < 7) {
             double lastMax = maxTemps.isEmpty() ? 20.0 : maxTemps.get(maxTemps.size() - 1);
             double lastMin = minTemps.isEmpty() ? 10.0 : minTemps.get(minTemps.size() - 1);
             maxTemps.add(lastMax);
             minTemps.add(lastMin);
         }
+        // 7개로 자르기
         if (maxTemps.size() > 7) {
             maxTemps = maxTemps.subList(0, 7);
             minTemps = minTemps.subList(0, 7);
         }
 
-        // 5. [미세먼지] 12시간 추이
+        // 5. [미세먼지] 12시간 추이 (시뮬레이션 데이터)
         List<Integer> pm10Data = new ArrayList<>();
         List<Integer> pm25Data = new ArrayList<>();
         int currentPm10 = (air != null && air.getPm10() != null) ? air.getPm10().getValue() : 30;
@@ -96,7 +96,7 @@ public class DashboardController {
         pm10Data.set(11, currentPm10);
         pm25Data.set(11, currentPm25);
 
-        // 6. [습도/바람] 시간별 예보
+        // 6. [습도/바람] 시간별 예보 활용
         List<Double> humidityData = new ArrayList<>();
         List<Double> windData = new ArrayList<>();
         List<String> hourLabels = new ArrayList<>();

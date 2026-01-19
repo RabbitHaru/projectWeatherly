@@ -54,10 +54,10 @@ function initTemperatureChart() {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { beginAtZero: false, grace: '10%', ticks: { color: 'white' } },
-                x: { ticks: { color: 'white' } }
+                y: {beginAtZero: false, grace: '10%', ticks: {color: 'white'}},
+                x: {ticks: {color: 'white'}}
             },
-            plugins: { tooltip: { mode: 'index', intersect: false } }
+            plugins: {tooltip: {mode: 'index', intersect: false}}
         }
     });
 }
@@ -69,8 +69,8 @@ function initAirQualityChart() {
     const pm10Data = typeof serverPm10Data !== 'undefined' ? serverPm10Data : [];
     const pm25Data = typeof serverPm25Data !== 'undefined' ? serverPm25Data : [];
     const timeLabels = [];
-    for(let i=11; i>=0; i--) {
-        i===0 ? timeLabels.push('현재') : timeLabels.push(i + 'H 전');
+    for (let i = 11; i >= 0; i--) {
+        i === 0 ? timeLabels.push('현재') : timeLabels.push(i + 'H 전');
     }
 
     new Chart(ctx, {
@@ -102,23 +102,26 @@ function initAirQualityChart() {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { beginAtZero: true, ticks: { color: '#666' }, grid: { color: '#eee' } },
-                x: { ticks: { display: false }, grid: { display: false } }
+                y: {beginAtZero: true, ticks: {color: '#666'}, grid: {color: '#eee'}},
+                x: {ticks: {display: false}, grid: {display: false}}
             },
-            plugins: { legend: { labels: { color: '#333' } } }
+            plugins: {legend: {labels: {color: '#333'}}}
         }
     });
 
     if (pm10Data.length > 0) updateDustStatus(pm10Data[pm10Data.length - 1]);
 }
 
-// 3. 습도 및 바람 분석
+// 3. 습도 및 바람 분석 차트 (범례 추가 수정)
 function initEnvChart() {
     const ctx = document.getElementById('envChart');
     if (!ctx) return;
+
+    // 데이터 가져오기
     const humidityData = typeof serverHumidityData !== 'undefined' ? serverHumidityData : [];
     const windData = typeof serverWindData !== 'undefined' ? serverWindData : [];
     const labels = typeof serverHourLabels !== 'undefined' ? serverHourLabels : [];
+
     const darkTextColor = '#666';
 
     new Chart(ctx, {
@@ -127,7 +130,7 @@ function initEnvChart() {
             labels: labels,
             datasets: [
                 {
-                    label: '습도(%)',
+                    label: '습도(%)', // 범례에 나올 이름
                     data: humidityData,
                     backgroundColor: 'rgba(52, 152, 219, 0.5)',
                     borderColor: '#3498db',
@@ -137,7 +140,7 @@ function initEnvChart() {
                 },
                 {
                     type: 'line',
-                    label: '풍속(m/s)',
+                    label: '풍속(m/s)', // 범례에 나올 이름
                     data: windData,
                     borderColor: '#2ecc71',
                     backgroundColor: 'rgba(46, 204, 113, 0.1)',
@@ -151,18 +154,48 @@ function initEnvChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { tooltip: { mode: 'index', intersect: false } },
+            plugins: {
+                // [수정] 범례(Legend) 표시 설정 추가
+                legend: {
+                    display: true, // 범례 표시 켜기
+                    position: 'top', // 위치: 상단
+                    labels: {
+                        color: '#333', // 글자색 (진한 회색)
+                        font: {size: 11}, // 글자 크기
+                        usePointStyle: true, // 포인트 스타일 사용 (원형/사각형 등)
+                        boxWidth: 8 // 아이콘 크기 조절
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
             scales: {
-                x: { ticks: { color: darkTextColor, maxTicksLimit: 6 }, grid: { display: false } },
+                x: {
+                    ticks: {color: darkTextColor, maxTicksLimit: 6},
+                    grid: {display: false}
+                },
                 y: {
-                    type: 'linear', display: true, position: 'left', min: 0, max: 100,
-                    title: { display: true, text: '습도(%)' },
-                    ticks: { color: '#3498db' }, grid: { color: '#eee' }
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    min: 0,
+                    max: 100,
+                    // Y축 제목 (혹시 너무 복잡하면 display: false로 꺼도 됩니다)
+                    title: {display: false, text: '습도(%)'},
+                    ticks: {color: '#3498db'},
+                    grid: {color: '#eee'}
                 },
                 y1: {
-                    type: 'linear', display: true, position: 'right', min: 0, grace: '20%',
-                    title: { display: true, text: '풍속(m/s)' },
-                    grid: { drawOnChartArea: false }, ticks: { color: '#2ecc71' }
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    min: 0,
+                    grace: '20%',
+                    title: {display: false, text: '풍속(m/s)'},
+                    grid: {drawOnChartArea: false},
+                    ticks: {color: '#2ecc71'}
                 }
             }
         }
@@ -193,26 +226,37 @@ function updateDustStatus(value) {
 
 // [NEW] 위치 동기화 함수
 function syncLocation() {
+    const btn = document.querySelector('.gps-sync-btn');
+    const originalContent = btn.innerHTML;
+
     if (!navigator.geolocation) {
         alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
         return;
     }
 
-    // 버튼 회전 애니메이션 효과
-    const btnIcon = document.querySelector('.btn-sync-location i');
-    if(btnIcon) btnIcon.classList.add('fa-spin');
+    // 로딩 상태 표시
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span class="btn-text">위치 확인 중...</span>';
+    btn.disabled = true;
 
     navigator.geolocation.getCurrentPosition(
         (position) => {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
-            // 좌표를 포함하여 페이지 새로고침 (Controller가 받아서 처리함)
+            // 좌표 포함하여 페이지 이동
             window.location.href = `/insights?lat=${lat}&lon=${lon}`;
         },
         (error) => {
-            if(btnIcon) btnIcon.classList.remove('fa-spin');
             console.error('위치 확인 실패:', error);
-            alert('위치 정보를 가져올 수 없습니다. 권한을 확인해주세요.');
-        }
+            // 에러 표시
+            btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span class="btn-text">실패</span>';
+            btn.classList.add('sync-error');
+
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                btn.classList.remove('sync-error');
+            }, 2000);
+        },
+        {timeout: 10000}
     );
 }

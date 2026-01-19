@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+          rel="stylesheet">
 
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/outfit.css}">
@@ -90,8 +91,16 @@
 
                 <div class="decision-summary">
                     <i class="fas fa-quote-left quote-icon"></i>
-                    <p th:text="${outfit?.summary ?: '날씨 정보를 불러오는 중입니다.'}">
-                        체감온도가 23도라 선선하니 얇은 겉옷을 챙기세요.
+                    <p>
+                        <span th:text="${outfit?.summary}">옷차림 멘트</span>
+
+                        <th:block
+                                th:if="${airQuality != null and airQuality.pm10 != null and airQuality.pm10.grade != null}">
+                        <span th:if="${airQuality.pm10.grade == '3' or airQuality.pm10.grade == '4'}"
+                              style="color: #ff7675; font-weight: bold; margin-left: 5px;">
+                             <br>😷 미세먼지가 나쁩니다. 마스크를 꼭 챙기세요!
+                        </span>
+                        </th:block>
                     </p>
                 </div>
 
@@ -128,8 +137,8 @@
                             <div class="factor-name">미세먼지</div>
                             <div class="factor-value">
                                 <span th:if="${airQuality?.pm10 != null}"
-                                      th:text="${airQuality.pm10 <= 30 ? '좋음' : (airQuality.pm10 <= 80 ? '보통' : '나쁨')}"
-                                      th:classappend="${airQuality.pm10 <= 30 ? 'text-success' : (airQuality.pm10 <= 80 ? 'text-warning' : 'text-danger')}">
+                                      th:text="${airQuality.pm10.value <= 30 ? '좋음' : (airQuality.pm10.value <= 80 ? '보통' : '나쁨')}"
+                                      th:classappend="${airQuality.pm10.value <= 30 ? 'text-success' : (airQuality.pm10.value <= 80 ? 'text-warning' : 'text-danger')}">
                                     보통
                                 </span>
                                 <span th:unless="${airQuality?.pm10 != null}">-</span>
@@ -270,7 +279,7 @@
             body.classList.add('dark-mode');
             updateDarkModeIcon(true);
         }
-        if(darkModeToggle) {
+        if (darkModeToggle) {
             darkModeToggle.addEventListener('click', function () {
                 const isCurrentlyDark = body.classList.contains('dark-mode');
                 if (isCurrentlyDark) {
@@ -289,7 +298,7 @@
     function updateDarkModeIcon(isDarkMode) {
         const icon = document.querySelector('#darkmode-toggle i');
         const button = document.getElementById('darkmode-toggle');
-        if(!icon || !button) return;
+        if (!icon || !button) return;
         if (isDarkMode) {
             icon.className = 'fas fa-sun';
             button.title = '라이트모드';
