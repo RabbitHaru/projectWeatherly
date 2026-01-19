@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/outfit.css}">
 </head>
 <body>
@@ -38,7 +38,8 @@
                     <div class="weather-brief">
                         <div class="current-time-badge">
                             <i class="far fa-clock"></i>
-                            <span class="current-time" th:text="${currentTime ?: '-'}">2023년 10월 20일</span>
+                            <span class="current-time" id="current-time"
+                                  th:text="${currentTime ?: '-'}">2023년 10월 20일</span>
                         </div>
 
                         <div class="weather-details-row">
@@ -96,10 +97,10 @@
 
                         <th:block
                                 th:if="${airQuality != null and airQuality.pm10 != null and airQuality.pm10.grade != null}">
-                        <span th:if="${airQuality.pm10.grade == '3' or airQuality.pm10.grade == '4'}"
-                              style="color: #ff7675; font-weight: bold; margin-left: 5px;">
-                             <br>😷 미세먼지가 나쁩니다. 마스크를 꼭 챙기세요!
-                        </span>
+                            <span th:if="${airQuality.pm10.grade == '3' or airQuality.pm10.grade == '4'}"
+                                  style="color: #ff7675; font-weight: bold; margin-left: 5px;">
+                                 <br>😷 미세먼지가 나쁩니다. 마스크를 꼭 챙기세요!
+                            </span>
                         </th:block>
                     </p>
                 </div>
@@ -131,15 +132,19 @@
                         </div>
                     </div>
 
-                    <div class="factor-item secondary">
+                    <div class="factor-item"
+                         th:classappend="${airQuality?.pm10 != null ?
+                            (airQuality.pm10.value <= 30 ? 'status-good' :
+                            (airQuality.pm10.value <= 80 ? 'status-average' : 'status-bad')) : 'secondary'}">
+
                         <div class="factor-icon"><i class="fas fa-smog"></i></div>
                         <div class="factor-content">
                             <div class="factor-name">미세먼지</div>
                             <div class="factor-value">
                                 <span th:if="${airQuality?.pm10 != null}"
-                                      th:text="${airQuality.pm10.value <= 30 ? '좋음' : (airQuality.pm10.value <= 80 ? '보통' : '나쁨')}"
-                                      th:classappend="${airQuality.pm10.value <= 30 ? 'text-success' : (airQuality.pm10.value <= 80 ? 'text-warning' : 'text-danger')}">
-                                    보통
+                                      th:text="${airQuality.pm10.value <= 30 ? '좋음' :
+                                               (airQuality.pm10.value <= 80 ? '보통' : '나쁨')}">
+                                    -
                                 </span>
                                 <span th:unless="${airQuality?.pm10 != null}">-</span>
                             </div>
@@ -264,114 +269,19 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        initDarkMode();
-        updateCurrentTime();
-        setInterval(updateCurrentTime, 60000);
-        setupGpsSync();
-        setupCardInteractions();
-    });
+        // [수정] 다크모드, 시간 업데이트는 common.js에서 자동으로 실행되므로 제거함
 
-    function initDarkMode() {
-        const darkModeToggle = document.getElementById('darkmode-toggle');
-        const body = document.body;
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (isDarkMode) {
-            body.classList.add('dark-mode');
-            updateDarkModeIcon(true);
-        }
-        if (darkModeToggle) {
-            darkModeToggle.addEventListener('click', function () {
-                const isCurrentlyDark = body.classList.contains('dark-mode');
-                if (isCurrentlyDark) {
-                    body.classList.remove('dark-mode');
-                    localStorage.setItem('darkMode', 'false');
-                    updateDarkModeIcon(false);
-                } else {
-                    body.classList.add('dark-mode');
-                    localStorage.setItem('darkMode', 'true');
-                    updateDarkModeIcon(true);
-                }
+        // 카드 호버 효과만 남김
+        setupCardInteractions();
+
+        // [수정] common.js의 bindGpsButton 함수 활용 (중복 로직 제거)
+        if (typeof bindGpsButton === 'function') {
+            bindGpsButton('gps-sync-btn', function (lat, lon) {
+                // 성공 시 콜백: 페이지를 해당 좌표로 이동(새로고침)
+                window.location.href = `/outfit?lat=${lat}&lon=${lon}`;
             });
         }
-    }
-
-    function updateDarkModeIcon(isDarkMode) {
-        const icon = document.querySelector('#darkmode-toggle i');
-        const button = document.getElementById('darkmode-toggle');
-        if (!icon || !button) return;
-        if (isDarkMode) {
-            icon.className = 'fas fa-sun';
-            button.title = '라이트모드';
-        } else {
-            icon.className = 'fas fa-moon';
-            button.title = '다크모드';
-        }
-    }
-
-    function updateCurrentTime() {
-        const now = new Date();
-        const options = {
-            year: 'numeric', month: 'long', day: 'numeric',
-            weekday: 'long', hour: '2-digit', minute: '2-digit'
-        };
-        const timeElements = document.querySelectorAll('.current-time');
-        timeElements.forEach(el => {
-            el.textContent = now.toLocaleDateString('ko-KR', options);
-        });
-    }
-
-    function setupGpsSync() {
-        const gpsBtn = document.querySelector('.gps-sync-btn');
-        if (!gpsBtn) return;
-
-        gpsBtn.addEventListener('click', function () {
-            const originalHTML = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span class="btn-text">위치 확인 중...</span>';
-            this.disabled = true;
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    async function (position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        try {
-                            const response = await fetch(`/api/weather/sync-location?latitude=${lat}&longitude=${lng}`, {
-                                method: 'POST',
-                                headers: {'Content-Type': 'application/json'}
-                            });
-                            const data = await response.json();
-                            if (data.success) {
-                                window.location.reload();
-                            } else {
-                                throw new Error(data.message || '실패');
-                            }
-                        } catch (error) {
-                            console.error('동기화 실패:', error);
-                            showBtnError(gpsBtn, originalHTML);
-                        }
-                    },
-                    function (error) {
-                        console.error('GPS 오류:', error);
-                        showBtnError(gpsBtn, originalHTML);
-                    },
-                    {enableHighAccuracy: true, timeout: 10000}
-                );
-            } else {
-                alert('GPS 미지원');
-                showBtnError(gpsBtn, originalHTML);
-            }
-        });
-    }
-
-    function showBtnError(btn, originalHTML) {
-        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span class="btn-text">실패</span>';
-        btn.classList.add('sync-error');
-        setTimeout(() => {
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-            btn.classList.remove('sync-error');
-        }, 2000);
-    }
+    });
 
     function setupCardInteractions() {
         const dayCards = document.querySelectorAll('.day-card');

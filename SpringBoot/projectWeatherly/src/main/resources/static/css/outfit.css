@@ -14,8 +14,8 @@
 .level-guide-section,
 .outfit-forecast {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-medium);
+    border-radius: 20px; /* var(--border-radius) 대신 직접 값 적용 (변수 누락 방지) */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     padding: 35px;
     margin-bottom: 30px;
     color: white;
@@ -24,7 +24,7 @@
     border: none;
 }
 
-/* 배경 패턴 */
+/* 배경 패턴 (여기가 깨졌던 부분일 수 있음) */
 .current-info-card::before,
 .level-guide-section::before,
 .outfit-forecast::before {
@@ -40,6 +40,7 @@
     pointer-events: none;
 }
 
+/* 다크모드 대응 */
 body.dark-mode .current-info-card,
 body.dark-mode .level-guide-section,
 body.dark-mode .outfit-forecast {
@@ -113,7 +114,7 @@ body.dark-mode .outfit-forecast {
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: var(--transition);
+    transition: all 0.3s ease;
     backdrop-filter: blur(5px);
     height: 40px;
     white-space: nowrap;
@@ -248,7 +249,7 @@ body.dark-mode .outfit-forecast {
     text-decoration: none;
     transition: all 0.2s ease;
 }
-.detail-btn:hover { background: white; color: var(--primary-color); }
+.detail-btn:hover { background: white; color: #667eea; }
 
 .decision-summary {
     background: rgba(255, 255, 255, 0.15);
@@ -269,9 +270,9 @@ body.dark-mode .outfit-forecast {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
 }
-/* [수정] 모든 factor-item(체감온도 포함)을 동일한 배경색으로 통일 */
+
 .factor-item {
-    background: rgba(255, 255, 255, 0.1); /* 투명도 0.1로 통일 */
+    background: rgba(255, 255, 255, 0.1);
     padding: 15px;
     border-radius: 12px;
     display: flex;
@@ -286,10 +287,8 @@ body.dark-mode .outfit-forecast {
     background: rgba(255, 255, 255, 0.2);
     transform: translateY(-3px);
 }
-/* [수정] primary 클래스의 배경색 제거 (테두리 강조만 유지하거나 동일하게) */
 .factor-item.primary {
-    /* background 속성 제거 -> factor-item의 0.1 투명도 상속 */
-    border: 1px solid rgba(255, 255, 255, 0.3); /* 테두리만 살짝 강조 */
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .factor-icon {
@@ -306,9 +305,6 @@ body.dark-mode .outfit-forecast {
 .factor-name { font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); }
 .factor-value { font-size: 1.2rem; font-weight: 700; color: white; }
 .factor-value small { font-size: 0.8rem; font-weight: 400; margin-left: 2px; opacity: 0.8; }
-.text-success { color: #2ecc71 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-.text-warning { color: #f1c40f !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-.text-danger { color: #ff6b6b !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 
 /* 5. 레벨 가이드 & 예보 */
 .level-items {
@@ -374,7 +370,7 @@ body.dark-mode .outfit-forecast {
     flex-direction: column;
     justify-content: space-between;
     min-height: 280px;
-    transition: var(--transition);
+    transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .day-card:hover {
@@ -415,7 +411,7 @@ body.dark-mode .outfit-forecast {
 .outfit-level { margin-top: 15px; }
 .level-text { font-size: 0.85rem; color: white; font-weight: 600; display: block; margin-top: 5px; }
 
-/* 6. 반응형 */
+/* 6. 반응형 (Media Queries) */
 @media (max-width: 992px) {
     .location-weather { flex-direction: column; align-items: center; text-align: center; }
     .main-outfit-icon { border-left: none; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 25px; width: 100%; margin-top: 10px; }
@@ -432,4 +428,35 @@ body.dark-mode .outfit-forecast {
     .current-temp { font-size: 3rem; }
     .decision-header { flex-direction: column; align-items: flex-start; gap: 10px; }
     .forecast-days, .level-items, .weather-factors { grid-template-columns: 1fr; }
+}
+
+/* 7. 미세먼지 상태별 테두리 및 텍스트 색상 (추가) */
+
+/* 좋음 (Good) - 초록색 */
+.factor-item.status-good {
+    border: 1px solid #2ecc71 !important; /* 테두리 강제 적용 */
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.2); /* 살짝 빛나는 효과 */
+}
+.factor-item.status-good .factor-value,
+.factor-item.status-good .factor-icon {
+    color: #2ecc71 !important;
+}
+
+/* 보통 (Average) - 노란색 */
+.factor-item.status-average {
+    border: 1px solid #f1c40f !important;
+}
+.factor-item.status-average .factor-value,
+.factor-item.status-average .factor-icon {
+    color: #f1c40f !important;
+}
+
+/* 나쁨 (Bad) - 빨간색 */
+.factor-item.status-bad {
+    border: 1px solid #ff6b6b !important;
+    background: rgba(255, 107, 107, 0.1); /* 배경도 살짝 붉게 */
+}
+.factor-item.status-bad .factor-value,
+.factor-item.status-bad .factor-icon {
+    color: #ff6b6b !important;
 }
