@@ -9,12 +9,32 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/signup.css">
     <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        /* [추가된 스타일] 빨간색 에러 메시지 박스 */
+        .error-box {
+            display: none; /* 기본적으로 숨김 */
+            color: #e74c3c; /* 빨간색 텍스트 */
+            font-size: 0.9rem;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fdecea; /* 연한 빨간 배경 */
+            border: 1px solid #fadbd8;
+            border-radius: 5px;
+            align-items: center;
+            gap: 8px;
+        }
+        /* 에러가 있을 때만 보이게 하는 클래스 */
+        .error-box.show {
+            display: flex;
+        }
+        .error-box i {
+            font-size: 1.1rem;
+        }
+    </style>
 </head>
 <body>
-<!-- 헤더 -->
-<header  th:replace="layout/header :: header"></header>
+<header th:replace="layout/header :: header"></header>
 
-<!-- 메인 컨텐츠 -->
 <main class="signup-container">
     <div class="signup-card">
         <div class="signup-header">
@@ -23,7 +43,9 @@
         </div>
 
         <form id="loginForm" class="signup-form" th:action="@{/login}" method="post">
-            <!-- 소셜 로그인 섹션 -->
+
+            <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
             <div class="social-signup">
                 <p class="social-title">소셜 계정으로 간편 로그인</p>
                 <div class="social-buttons">
@@ -42,35 +64,35 @@
                 </div>
             </div>
 
-            <!-- 기본 정보 입력 -->
             <div class="form-section">
                 <h2><i class="fas fa-id-card"></i> 로그인</h2>
 
                 <div class="form-group">
-                    <label for="user_id">아이디 <span class="required">*</span></label>
+                    <label for="user_id">이메일 <span class="required">*</span></label>
                     <div class="input-with-validation">
-                        <input type="text" id="user_id" name="username" placeholder="예: mmm123" required>
+                        <input type="text" id="user_id" name="username" placeholder="예: user@example.com" required>
                     </div>
                     <div class="validation-message" id="idMessage"></div>
                 </div>
 
-
-
-
                 <div class="form-group">
                     <label for="user_password">비밀번호 <span class="required">*</span></label>
-                    <input type="password" id="user_password" name="password" placeholder="영문, 숫자, 특수문자 포함 8자 이상" required>
+                    <input type="password" id="user_password" name="password" placeholder="비밀번호 입력" required>
                     <div class="validation-message" id="passwordMessage"></div>
                 </div>
 
+                <div id="loginErrorMsg" class="error-box" th:classappend="${param.error} ? 'show' : ''">
+                    <i class="fas fa-times-circle"></i>
+                    <span>아이디 또는 비밀번호가 일치하지 않습니다.</span>
+                </div>
 
             </div>
-            <!-- 폼 버튼 -->
+
             <div class="form-buttons">
                 <button type="submit" class="submit-btn">
                     <i class="fas fa-user-check"></i> 로그인
                 </button>
-                <button type="submit" class="cancel-btn" >
+                <button type="button" class="cancel-btn" onclick="history.back()">
                     <i class="fas fa-times"></i> 취소
                 </button>
             </div>
@@ -82,9 +104,9 @@
     </div>
 </main>
 
-<!-- 푸터 -->
 <div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
-<script src="/js/signup.js"></script>
+<script src="/js/login.js"></script>
+
 </body>
 </html>

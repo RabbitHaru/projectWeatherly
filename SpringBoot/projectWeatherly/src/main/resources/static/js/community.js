@@ -1,91 +1,91 @@
-// 페이지 로드 시 다크모드 상태 복원
-document.addEventListener('DOMContentLoaded', function() {
-    const darkMode = localStorage.getItem('darkMode');
-    const toggleBtn = document.getElementById('darkmode-toggle');
-
-    if (darkMode === 'enabled') {
-        enableDarkMode();
-    } else {
-        disableDarkMode();
-    }
-
-    // 다크모드 토글 버튼 이벤트 리스너
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', toggleDarkMode);
-    }
-});
-
-// 다크모드 활성화 함수
-function enableDarkMode() {
-    document.body.classList.add('dark-mode');
-    const toggleBtn = document.getElementById('darkmode-toggle');
-    if (toggleBtn) {
-        toggleBtn.querySelector('i').className = 'fas fa-sun';
-        toggleBtn.title = '라이트모드 전환';
-    }
-    localStorage.setItem('darkMode', 'enabled');
-
-    // 모든 이미지에 어두운 효과 적용
-    document.querySelectorAll('img').forEach(img => {
-        if (!img.classList.contains('no-dark-filter')) {
-            img.style.filter = 'brightness(0.7) contrast(1.1)';
-        }
-    });
-}
-
-// 다크모드 비활성화 함수
-function disableDarkMode() {
-    document.body.classList.remove('dark-mode');
-    const toggleBtn = document.getElementById('darkmode-toggle');
-    if (toggleBtn) {
-        toggleBtn.querySelector('i').className = 'fas fa-moon';
-        toggleBtn.title = '다크모드 전환';
-    }
-    localStorage.setItem('darkMode', 'disabled');
-
-    // 이미지 효과 제거
-    document.querySelectorAll('img').forEach(img => {
-        img.style.filter = '';
-    });
-}
-
-// 다크모드 토글 함수
-function toggleDarkMode() {
-    if (document.body.classList.contains('dark-mode')) {
-        disableDarkMode();
-    } else {
-        enableDarkMode();
-    }
-}
-
-// 모든 페이지에서 공통으로 사용할 다크모드 초기화 함수
-window.initializeDarkMode = function() {
-    const darkMode = localStorage.getItem('darkMode');
-    const toggleBtn = document.getElementById('darkmode-toggle');
-
-    if (darkMode === 'enabled') {
-        document.body.classList.add('dark-mode');
-        if (toggleBtn) {
-            toggleBtn.querySelector('i').className = 'fas fa-sun';
-            toggleBtn.title = '라이트모드 전환';
-        }
-    } else {
-        document.body.classList.remove('dark-mode');
-        if (toggleBtn) {
-            toggleBtn.querySelector('i').className = 'fas fa-moon';
-            toggleBtn.title = '다크모드 전환';
-        }
-    }
-
-    // 토글 버튼 이벤트 리스너
-    if (toggleBtn) {
-        toggleBtn.removeEventListener('click', toggleDarkMode);
-        toggleBtn.addEventListener('click', toggleDarkMode);
-    }
-};
+// // 페이지 로드 시 다크모드 상태 복원
+// document.addEventListener('DOMContentLoaded', function() {
+//     const darkMode = localStorage.getItem('darkMode');
+//     const toggleBtn = document.getElementById('darkmode-toggle');
+//
+//     if (darkMode === 'enabled') {
+//         enableDarkMode();
+//     } else {
+//         disableDarkMode();
+//     }
+//
+//     // 다크모드 토글 버튼 이벤트 리스너
+//     if (toggleBtn) {
+//         toggleBtn.addEventListener('click', toggleDarkMode);
+//     }
+// });
+//
+// // 다크모드 활성화 함수
+// function enableDarkMode() {
+//     document.body.classList.add('dark-mode');
+//     const toggleBtn = document.getElementById('darkmode-toggle');
+//     if (toggleBtn) {
+//         toggleBtn.querySelector('i').className = 'fas fa-sun';
+//         toggleBtn.title = '라이트모드 전환';
+//     }
+//     localStorage.setItem('darkMode', 'enabled');
+//
+//     // 모든 이미지에 어두운 효과 적용
+//     document.querySelectorAll('img').forEach(img => {
+//         if (!img.classList.contains('no-dark-filter')) {
+//             img.style.filter = 'brightness(0.7) contrast(1.1)';
+//         }
+//     });
+// }
+//
+// // 다크모드 비활성화 함수
+// function disableDarkMode() {
+//     document.body.classList.remove('dark-mode');
+//     const toggleBtn = document.getElementById('darkmode-toggle');
+//     if (toggleBtn) {
+//         toggleBtn.querySelector('i').className = 'fas fa-moon';
+//         toggleBtn.title = '다크모드 전환';
+//     }
+//     localStorage.setItem('darkMode', 'disabled');
+//
+//     // 이미지 효과 제거
+//     document.querySelectorAll('img').forEach(img => {
+//         img.style.filter = '';
+//     });
+// }
+//
+// // 다크모드 토글 함수
+// function toggleDarkMode() {
+//     if (document.body.classList.contains('dark-mode')) {
+//         disableDarkMode();
+//     } else {
+//         enableDarkMode();
+//     }
+// }
+//
+// // 모든 페이지에서 공통으로 사용할 다크모드 초기화 함수
+// window.initializeDarkMode = function() {
+//     const darkMode = localStorage.getItem('darkMode');
+//     const toggleBtn = document.getElementById('darkmode-toggle');
+//
+//     if (darkMode === 'enabled') {
+//         document.body.classList.add('dark-mode');
+//         if (toggleBtn) {
+//             toggleBtn.querySelector('i').className = 'fas fa-sun';
+//             toggleBtn.title = '라이트모드 전환';
+//         }
+//     } else {
+//         document.body.classList.remove('dark-mode');
+//         if (toggleBtn) {
+//             toggleBtn.querySelector('i').className = 'fas fa-moon';
+//             toggleBtn.title = '다크모드 전환';
+//         }
+//     }
+//
+//     // 토글 버튼 이벤트 리스너
+//     if (toggleBtn) {
+//         toggleBtn.removeEventListener('click', toggleDarkMode);
+//         toggleBtn.addEventListener('click', toggleDarkMode);
+//     }
+// };
 
 // 현재 페이지에서도 초기화 실행
-window.initializeDarkMode();
+// window.initializeDarkMode();
 
 // 기존 이벤트 리스너들은 유지하면서 다크모드 토글만 제거
 // 검색 기능 (엔터키로 검색)

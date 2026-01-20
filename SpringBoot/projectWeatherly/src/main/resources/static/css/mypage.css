@@ -845,3 +845,19 @@ body.dark-mode .remove-btn:hover {
         align-self: flex-end;
     }
 }
+/* 추가 스타일: 섹션 구분 및 카드 디자인 보강 */
+.mypage-grid { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; margin-top: 2rem; }
+.section-card { background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+.section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 2px solid #f1f3f5; }
+.form-group { margin-bottom: 1.5rem; }
+.form-label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #495057; }
+.form-input { width: 100%; padding: 10px; border: 1px solid #dee2e6; border-radius: 8px; }
+
+/* 탭 메뉴 스타일 */
+.nav-tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid #dee2e6; }
+.nav-item { padding: 10px 20px; cursor: pointer; color: #868e96; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s; }
+.nav-item.active { color: #667eea; border-bottom-color: #667eea; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+@media (max-width: 768px) { .mypage-grid { grid-template-columns: 1fr; } }

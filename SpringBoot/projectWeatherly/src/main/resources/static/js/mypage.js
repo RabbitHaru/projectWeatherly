@@ -462,3 +462,34 @@ function initializeDarkMode() {
         }
     });
 }
+// 프로필 편집 모드 토글
+function toggleEditMode(showEdit) {
+    document.getElementById('profileView').style.display = showEdit ? 'none' : 'block';
+    document.getElementById('profileEdit').style.display = showEdit ? 'block' : 'none';
+}
+
+// 이미지 미리보기
+function previewFile(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImage').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// 탭 전환
+function switchTab(tabName) {
+    // 모든 탭 컨텐츠 숨김
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    // 모든 탭 버튼 비활성화 스타일
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    // 선택된 탭 활성화
+    document.getElementById('tab-' + tabName).classList.add('active');
+    // 클릭된 버튼 스타일 활성화 (event.target 사용 시 텍스트 노드 클릭 주의, 여기선 간단히 텍스트 매칭 혹은 인덱스로 처리 가능하지만 순서대로 함)
+    const tabs = ['posts', 'password', 'notification', 'reports'];
+    const index = tabs.indexOf(tabName);
+    document.querySelectorAll('.nav-item')[index].classList.add('active');
+}
