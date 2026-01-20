@@ -5,6 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDTO;
 import me.shinsunyoung.projectweatherly.airquality.service.AirQualityService;
+import me.shinsunyoung.projectweatherly.board.domain.entity.Report;
+import me.shinsunyoung.projectweatherly.board.domain.enums.ReportStatus;
+import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
+import me.shinsunyoung.projectweatherly.board.repository.ReportRepository;
+import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
+import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDTO;
 import me.shinsunyoung.projectweatherly.weather.service.WeatherService;
 import org.springframework.stereotype.Controller;
@@ -12,6 +18,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,14 +27,49 @@ import java.util.List;
 @Slf4j
 public class DashboardController {
 
+    // 날씨 & 대기질 서비스 (Insights 페이지용)
     private final WeatherService weatherService;
     private final AirQualityService airQualityService;
 
+    // [추가] 리포지토리 (Admin 페이지 DB 연동용)
+    private final MemberRepository memberRepository;
+    private final BoardRepository boardRepository;
+    private final ReportRepository reportRepository;
+
+    /**
+     * [관리자 대시보드 페이지]
+     * - 실제 DB 데이터를 조회하여 통계 및 관리 리스트를 표시합니다.
+     */
     @GetMapping("/admin")
     public String adminPage(Model model) {
+        // 1. [상단 통계 카드]
+        // - 대기 중인 신고 건수 (Enum -> String 변환)
+        long pendingReports = reportRepository.countByStatus(ReportStatus.PENDING.name());
+        // - 전체 회원 수
+        long totalMembers = memberRepository.count();
+        // - 오늘 작성된 게시글 수 (오늘 0시 0분 0초 이후)
+        long todayPosts = boardRepository.countByCreatedAtAfter(LocalDate.now().atStartOfDay());
+
+        // 2. [테이블] 최근 가입 회원 (최신순 5명)
+        List<Member> recentMembers = memberRepository.findTop5ByOrderByCreatedAtDesc();
+
+        // 3. [테이블] 최근 신고 내역 (최신순 5건)
+        List<Report> recentReports = reportRepository.findTop5ByOrderByCreatedAtDesc();
+
+        // 4. 모델에 담아서 뷰(HTML)로 전달
+        model.addAttribute("pendingReports", pendingReports);
+        model.addAttribute("totalMembers", totalMembers);
+        model.addAttribute("todayPosts", todayPosts);
+        model.addAttribute("recentMembers", recentMembers);
+        model.addAttribute("recentReports", recentReports);
+
         return "admin";
     }
 
+    /**
+     * [기상 인사이트 페이지]
+     * - 날씨/대기질 차트 데이터 및 GPS 위치 연동
+     */
     @GetMapping("/insights")
     public String insightsPage(HttpServletRequest request, Model model,
                                @RequestParam(required = false) Double lat,
@@ -60,7 +102,7 @@ public class DashboardController {
             }
         }
 
-        // 3. 미세먼지 데이터가 없으면 IP 기반으로 재시도 (선택 사항)
+        // 3. 미세먼지 데이터가 없으면 IP 기반으로 재시도
         if (air == null) {
             try {
                 air = airQualityService.getAirQualityByIp(request);
@@ -69,7 +111,7 @@ public class DashboardController {
             }
         }
 
-        // 4. 모델 데이터 담기 (weather가 null일 경우 방어 로직)
+        // 4. 모델 데이터 담기
         if (weather != null) {
             model.addAttribute("regionName", weather.getRegionName());
         } else {
@@ -79,8 +121,7 @@ public class DashboardController {
         String station = (air != null && air.getStationName() != null) ? air.getStationName() : "측정소";
         model.addAttribute("stationName", station + " 측정소");
 
-        // --- (이하 차트 데이터 처리 로직은 기존과 동일) ---
-
+        // --- 차트 데이터 처리 (기존 로직 유지) ---
         List<Double> maxTemps = new ArrayList<>();
         List<Double> minTemps = new ArrayList<>();
 
@@ -91,17 +132,20 @@ public class DashboardController {
             }
         }
 
+        // 데이터 부족 시 채우기 (그래프 깨짐 방지)
         while (maxTemps.size() < 7) {
             double lastMax = maxTemps.isEmpty() ? 20.0 : maxTemps.get(maxTemps.size() - 1);
             double lastMin = minTemps.isEmpty() ? 10.0 : minTemps.get(minTemps.size() - 1);
             maxTemps.add(lastMax);
             minTemps.add(lastMin);
         }
+        // 7일치만 자르기
         if (maxTemps.size() > 7) {
             maxTemps = maxTemps.subList(0, 7);
             minTemps = minTemps.subList(0, 7);
         }
 
+        // 미세먼지 시뮬레이션 데이터 (현재 값 기준 변동)
         List<Integer> pm10Data = new ArrayList<>();
         List<Integer> pm25Data = new ArrayList<>();
         int currentPm10 = (air != null && air.getPm10() != null) ? air.getPm10().getValue() : 30;
@@ -111,9 +155,11 @@ public class DashboardController {
             pm10Data.add(Math.max(0, currentPm10 + (int)(Math.random() * 10 - 5)));
             pm25Data.add(Math.max(0, currentPm25 + (int)(Math.random() * 6 - 3)));
         }
+        // 마지막 값은 실제 현재 값으로 맞춤
         pm10Data.set(11, currentPm10);
         pm25Data.set(11, currentPm25);
 
+        // 습도/바람 데이터
         List<Double> humidityData = new ArrayList<>();
         List<Double> windData = new ArrayList<>();
         List<String> hourLabels = new ArrayList<>();

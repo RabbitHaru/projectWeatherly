@@ -1,4 +1,4 @@
-package me.shinsunyoung.projectweatherly.member.util;
+package me.shinsunyoung.projectweatherly.util;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;

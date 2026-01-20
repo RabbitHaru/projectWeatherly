@@ -8,7 +8,6 @@ import me.shinsunyoung.projectweatherly.common.service.LocationService;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDTO;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDTO;
 import me.shinsunyoung.projectweatherly.weather.service.WeatherService;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +21,7 @@ public class WeatherController {
     private final WeatherService weatherService;
     private final LocationService locationService;
 
+    // 1. 현재 위치 날씨
     @GetMapping("/current")
     public CompletableFuture<ApiResponse<WeatherResponseDTO>> getCurrentWeather(HttpServletRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -30,6 +30,7 @@ public class WeatherController {
         });
     }
 
+    // 2. GPS 기반 날씨
     @PostMapping("/gps")
     public CompletableFuture<ApiResponse<WeatherResponseDTO>> getWeatherByGps(
             @RequestParam Double latitude,
@@ -40,6 +41,7 @@ public class WeatherController {
         });
     }
 
+    // 3. 지역 날씨
     @GetMapping("/region/{regionCode}")
     public CompletableFuture<ApiResponse<WeatherResponseDTO>> getWeatherByRegion(
             @PathVariable String regionCode) {
@@ -49,6 +51,7 @@ public class WeatherController {
         });
     }
 
+    // 4. 지역 날씨 (가벼운 버전)
     @GetMapping("/region/{regionCode}/lite")
     public CompletableFuture<ApiResponse<WeatherResponseDTO>> getWeatherByRegionLite(
             @PathVariable String regionCode) {
@@ -58,6 +61,7 @@ public class WeatherController {
         });
     }
 
+    // 5. 위치 동기화
     @PostMapping("/sync-location")
     public ApiResponse<LocationDTO> syncLocation(
             @RequestParam(required = false) Double latitude,
@@ -71,10 +75,10 @@ public class WeatherController {
             String clientIp = locationService.getClientIp(request);
             location = locationService.getLocationByIp(clientIp);
         }
-
         return ApiResponse.success("위치 동기화 완료", location);
     }
 
+    // 6. 상세 예보
     @PostMapping("/forecast")
     public CompletableFuture<ApiResponse<WeatherResponseDTO>> getWeatherForecast(
             @RequestBody WeatherRequestDTO requestDto) {
@@ -84,15 +88,19 @@ public class WeatherController {
         });
     }
 
+     //  [수정됨] 전국 날씨 지도용 비교 API
+
     @GetMapping("/compare")
     public CompletableFuture<ApiResponse<List<WeatherResponseDTO>>> compareWeather(
             @RequestParam List<String> regionCodes) {
         return CompletableFuture.supplyAsync(() -> {
-            List<WeatherResponseDTO> results = weatherService.compareWeather(regionCodes);
+            // [핵심] 여기서 Lite 버전을 호출합니다.
+            List<WeatherResponseDTO> results = weatherService.compareWeatherLite(regionCodes);
             return ApiResponse.success(results);
         });
     }
 
+    // (기존의 /compare/lite는 위 메서드와 중복되지만, 호환성을 위해 남겨두어도 됩니다)
     @GetMapping("/compare/lite")
     public CompletableFuture<ApiResponse<List<WeatherResponseDTO>>> compareWeatherLite(
             @RequestParam List<String> regionCodes) {

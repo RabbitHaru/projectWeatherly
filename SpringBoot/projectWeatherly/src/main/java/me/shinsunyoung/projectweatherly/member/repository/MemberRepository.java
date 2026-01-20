@@ -102,4 +102,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query("SELECT COUNT(m) FROM Member m WHERE DATE(m.createdAt) = CURRENT_DATE")
     Long countNewMembersToday();
+
+    // [관리자용] 가장 최근에 가입한 회원 5명 조회
+    List<Member> findTop5ByOrderByCreatedAtDesc();
 }

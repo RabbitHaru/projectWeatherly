@@ -1,6 +1,10 @@
 /**
- * main.js - 메인 대시보드 (기존 HTML 구조 호환 패치)
+ * main.js - 메인 대시보드
  */
+
+// 전역 변수: 지도와 오버레이 객체 저장
+let kakaoMap = null;
+let mapOverlays = {};
 
 document.addEventListener('DOMContentLoaded', function () {
     updateCurrentTime();
@@ -11,6 +15,31 @@ document.addEventListener('DOMContentLoaded', function () {
         setInterval(loadDashboardData, 300000);
     }
 
+    // GPS 버튼 이벤트
+    if (typeof bindGpsButton === 'function') {
+        bindGpsButton('gps-sync-btn', async (lat, lng) => {
+            await loadWeatherDataByGPS(lat, lng);
+        });
+    }
+
+    // 카카오맵 스크립트 로드 확인 후 지도 초기화
+    checkKakaoMapLoop();
+});
+
+// [추가됨] 지역 클릭 시 메인 대시보드 변경 함수 (전역 함수로 선언)
+window.changeDashboardLocation = async function(lat, lng, name) {
+    console.log(`지역 변경: ${name} (${lat}, ${lng})`);
+
+    // 1. 로딩 표시 (선택 사항)
+    const locationTitle = document.getElementById('current-location');
+    if(locationTitle) locationTitle.innerText = `${name}로 이동 중...`;
+
+    // 2. 해당 좌표로 날씨 데이터 새로고침
+    await loadWeatherDataByGPS(lat, lng);
+
+    // 3. 화면 최상단으로 부드럽게 스크롤 이동
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
     if (typeof bindGpsButton === 'function') {
         bindGpsButton('gps-sync-btn', async (lat, lng) => {
             await loadWeatherDataByGPS(lat, lng);
@@ -18,8 +47,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+
+// 카카오맵 스크립트 로딩 대기 함수
+function checkKakaoMapLoop() {
+    if (window.kakao && window.kakao.maps) {
+        kakao.maps.load(() => initKakaoMap());
+    } else {
+        setTimeout(checkKakaoMapLoop, 500);
+    }
+}
+
+// [1] 대시보드 전체 데이터 로드
 async function loadDashboardData() {
     try {
+        showLoading();
         await Promise.all([
             loadWeatherData(),
             loadAirQualitySummary(),
@@ -28,13 +69,158 @@ async function loadDashboardData() {
         ]);
     } catch (error) {
         console.error('데이터 로드 실패:', error);
+    } finally {
+        hideLoading();
     }
 }
 
+// [2] 카카오맵 초기화 함수
+function initKakaoMap() {
+    const container = document.getElementById('kakao-map');
+    if (!container) return;
+
+    const options = {
+        center: new kakao.maps.LatLng(36.3, 127.8), // 대한민국 중심
+        level: 13, // 줌 레벨
+        draggable: true,
+        scrollwheel: true
+    };
+
+    kakaoMap = new kakao.maps.Map(container, options);
+
+    // 지도 생성 후 마커 표시
+    loadRegionalWeatherData();
+}
+
+// [3] 지역별 날씨 로드 + 지도 마커 표시 + [클릭 이벤트 추가]
+async function loadRegionalWeatherData() {
+    const listContainer = document.getElementById('regional-weather');
+
+    // 주요 도시 좌표
+    const regions = [
+        {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780},
+        {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845},
+        {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526},
+        {name: '대구', code: '2700000000', lat: 35.8714, lng: 128.6014},
+        {name: '부산', code: '2600000000', lat: 35.1796, lng: 129.0756},
+        {name: '제주', code: '5000000000', lat: 33.4996, lng: 126.5312},
+        {name: '독도', code: '', lat: 37.2429, lng: 131.8669}
+    ];
+
+    const regionCodes = regions.filter(r => r.code).map(r => r.code).join(',');
+
+    try {
+        let weatherData = [];
+        if (regionCodes) {
+            const res = await fetch(`${API_BASE_URL}/api/weather/compare?regionCodes=${regionCodes}`);
+            const result = await res.json();
+            if (result.success) weatherData = result.data;
+        }
+
+        if (listContainer) listContainer.innerHTML = '';
+
+        regions.forEach(region => {
+            let temp = '--';
+            let cond = '로딩중';
+            let iconClass = 'fas fa-spinner fa-spin';
+
+            if (region.name === '독도') {
+                temp = '15'; cond = '맑음'; iconClass = 'fas fa-flag';
+            } else {
+                const data = weatherData.find(d => d.regionCode === region.code);
+                if (data && data.current) {
+                    temp = Math.round(data.current.temperature);
+                    cond = data.current.weatherCondition;
+                    iconClass = getWeatherIconClass(cond);
+                }
+            }
+
+            // [핵심] 클릭 이벤트용 코드 생성
+            // changeDashboardLocation(위도, 경도, 이름) 함수를 호출합니다.
+            const clickAction = `onclick="changeDashboardLocation(${region.lat}, ${region.lng}, '${region.name}')"`;
+
+            // (A) 지도 오버레이 (말풍선) - 클릭 시 이동
+            if (kakaoMap) {
+                // a 태그나 div에 onclick을 달아줍니다.
+                const content = `
+                    <div class="customoverlay" ${clickAction} style="cursor: pointer;">
+                        <a href="javascript:void(0);">
+                            <span class="title">${region.name}</span>
+                            <div class="weather-content">
+                                <i class="${iconClass}" style="color:${getIconColor(iconClass)}"></i>
+                                <span class="temp">${temp}°</span>
+                            </div>
+                        </a>
+                    </div>`;
+
+                const position = new kakao.maps.LatLng(region.lat, region.lng);
+
+                if (mapOverlays[region.name]) {
+                    mapOverlays[region.name].setMap(null);
+                }
+
+                const customOverlay = new kakao.maps.CustomOverlay({
+                    map: kakaoMap,
+                    position: position,
+                    content: content,
+                    yAnchor: 1
+                });
+
+                mapOverlays[region.name] = customOverlay;
+            }
+
+            // (B) 사이드바 리스트 - 클릭 시 이동
+            if (listContainer && region.code) {
+                listContainer.innerHTML += `
+                    <div class="region-weather" ${clickAction} style="cursor: pointer;">
+                        <div class="region-info">
+                            <span class="region-name">${region.name}</span>
+                            <span class="region-weather-desc">${cond}</span>
+                        </div>
+                        <div class="region-temp">${temp}°</div>
+                    </div>`;
+            }
+        });
+
+    } catch (e) {
+        console.error('지역 날씨 로드 실패', e);
+    }
+}
+
+// 헬퍼 함수들
+function refreshMap() {
+    loadRegionalWeatherData();
+    const btn = document.querySelector('.map-control-btn i');
+    if(btn) {
+        btn.classList.add('fa-spin');
+        setTimeout(() => btn.classList.remove('fa-spin'), 1000);
+    }
+}
+
+function getIconColor(iconClass) {
+    if (iconClass.includes('sun')) return '#f39c12';
+    if (iconClass.includes('rain') || iconClass.includes('umbrella')) return '#3498db';
+    if (iconClass.includes('cloud')) return '#7f8c8d';
+    if (iconClass.includes('flag')) return '#e74c3c';
+    return '#333';
+}
+
+function getWeatherIconClass(condition) {
+    if (!condition) return 'fas fa-question';
+    if (condition.includes('맑음')) return 'fas fa-sun';
+    if (condition.includes('구름') || condition.includes('흐림')) return 'fas fa-cloud';
+    if (condition.includes('비')) return 'fas fa-umbrella';
+    if (condition.includes('눈')) return 'fas fa-snowflake';
+    return 'fas fa-cloud-sun';
+}
+
+// [4] 기타 데이터 로드 (기존 유지)
 async function loadWeatherData() {
     try {
         const res = await fetch(`${API_BASE_URL}/api/weather/current`);
         const data = await res.json();
+        if (data.success) updateWeatherUI(data.data);
+    } catch (e) { console.error(e); }
         if (data.success) {
             updateWeatherUI(data.data);
             // 날씨 로드 시 지역명 기반으로 미세먼지 예보도 로드
@@ -189,6 +375,7 @@ function updateWeatherUI(weather) {
 
     if (weather.regionName) txt('current-location', getFullSidoName(weather.regionName));
 
+    if (weather.regionName) txt('current-location', weather.regionName);
     if (weather.current) {
         html('current-temp', `${Math.round(weather.current.temperature)}<span class="temp-unit">°C</span>`);
         txt('weather-condition', weather.current.weatherCondition || '맑음');
@@ -197,9 +384,11 @@ function updateWeatherUI(weather) {
         txt('humidity', `${Math.round(weather.current.humidity) || '0'}%`);
         txt('precipitation', `${weather.current.precipitation || '0'} mm`);
     }
+
     if (weather.hourly) renderHourlyForecast(weather.hourly);
     if (weather.tomorrowHourly) renderTomorrowForecast(weather.tomorrowHourly);
     if (weather.daily) renderWeeklyForecast(weather.daily);
+
     updateForecastSummaries(weather);
 }
 
@@ -213,17 +402,23 @@ function updateForecastSummaries(weather) {
         txt('ultra-short-temp', `${Math.round(weather.hourly[0].temperature)}°C`);
         txt('ultra-short-humidity', `${Math.round(weather.hourly[0].humidity)}%`);
     }
+
     if (weather.daily && weather.daily.length > 1) {
         const tmr = weather.daily[1];
         txt('short-term-summary', `내일은 ${tmr.weatherCondition || '맑음'}이 예상됩니다.`);
         txt('short-term-max-temp', `${Math.round(tmr.maxTemp)}°C`);
         txt('short-term-min-temp', `${Math.round(tmr.minTemp)}°C`);
+    } else {
+        txt('short-term-summary', '정보 준비 중');
     }
+
     if (weather.daily && weather.daily.length > 2) {
         const wk = weather.daily[2];
         txt('mid-term-summary', `주간 기온은 ${Math.round(wk.minTemp)}~${Math.round(wk.maxTemp)}°C 사이를 유지하겠습니다.`);
         txt('weekly-precipitation', `${wk.precipitationProbability || 0}%`);
         txt('temp-trend', '평년 비슷');
+    } else {
+        txt('mid-term-summary', '정보 준비 중');
     }
 }
 
@@ -295,22 +490,4 @@ async function loadRegionalWeatherData() {
 async function loadCommunityData() {
     const container = document.getElementById('community-posts');
     if (container) container.innerHTML = `<div class="post-item"><h4 class="post-title">오늘 날씨 정말 좋네요!</h4></div><div class="post-item"><h4 class="post-title">주말 등산 가실 분?</h4></div>`;
-}
-
-function extractSidoName(full) {
-    if (!full) return '서울';
-    if (full.length === 2) return full;
-    const shortName = full.substring(0, 2);
-    return shortName;
-}
-
-function getFullSidoName(short) {
-    const map = {
-        '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시',
-        '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
-        '경기': '경기도', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
-        '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
-        '제주': '제주특별자치도'
-    };
-    return map[short] || short;
 }

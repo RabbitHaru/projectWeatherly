@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글쓰기 - Weatherly 커뮤니티</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/community.css}">
+    <link rel="stylesheet" th:href="@{/css/write.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+
+<body>
+<header th:replace="layout/header :: header"></header>
+
+<div class="container">
+    <div class="write-header-section">
+        <h1 class="write-title">새 글 작성</h1>
+        <p class="write-subtitle">커뮤니티에 새로운 이야기를 공유해보세요!</p>
+    </div>
+</div>
+
+<div class="container">
+    <form th:action="@{/community/boards/write}" method="post" enctype="multipart/form-data" class="write-form-container">
+
+        <div class="form-group mb-4">
+            <label for="title" class="form-label"><i class="fas fa-heading"></i> 제목</label>
+            <input type="text" id="title" name="title" class="form-input" placeholder="제목을 입력해주세요 (최대 100자)" maxlength="100" required>
+        </div>
+
+        <div class="form-group mb-4">
+            <label class="form-label"><i class="fas fa-tag"></i> 카테고리</label>
+            <div class="category-tags">
+                <button type="button" class="category-tag weather selected" data-category="weather"><i class="fas fa-cloud-sun"></i> 날씨</button>
+                <button type="button" class="category-tag dust" data-category="dust"><i class="fas fa-wind"></i> 미세먼지</button>
+                <button type="button" class="category-tag outfit" data-category="outfit"><i class="fas fa-tshirt"></i> 옷차림</button>
+                <button type="button" class="category-tag general" data-category="general"><i class="fas fa-comments"></i> 자유주제</button>
+            </div>
+            <input type="hidden" id="category" name="category" value="weather">
+        </div>
+
+        <div class="form-group mb-4">
+            <label for="content" class="form-label"><i class="fas fa-edit"></i> 내용</label>
+            <textarea id="content" name="content" class="form-textarea" placeholder="내용을 작성해주세요 (최소 10자)" required></textarea>
+            <div class="text-end mt-2"><span class="text-muted" id="content-counter">0자</span></div>
+        </div>
+
+        <div class="form-group mb-4">
+            <label class="form-label"><i class="fas fa-image"></i> 이미지 첨부 (선택사항)</label>
+            <div class="file-upload" id="file-upload-area">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <div class="file-upload-text">클릭하여 이미지 업로드</div>
+                <div class="file-upload-hint">최대 5MB, JPG, PNG, GIF 파일 지원</div>
+                <input type="file" id="image-upload" name="imageFiles" accept="image/*" multiple style="display: none;">
+            </div>
+            <div class="file-preview" id="file-preview"></div>
+        </div>
+
+        <div class="button-group">
+            <a th:href="@{/community}" class="cancel-btn"><i class="fas fa-times"></i> 취소</a>
+            <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> 등록하기</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.querySelectorAll('.category-tag').forEach(tag => {
+        tag.addEventListener('click', function() {
+            document.querySelectorAll('.category-tag').forEach(t => t.classList.remove('selected'));
+            this.classList.add('selected');
+            document.getElementById('category').value = this.dataset.category;
+        });
+    });
+
+    const contentTextarea = document.getElementById('content');
+    const contentCounter = document.getElementById('content-counter');
+    contentTextarea.addEventListener('input', function() {
+        const length = this.value.length;
+        contentCounter.textContent = `${length}자`;
+        contentCounter.style.color = length < 10 ? '#e74c3c' : '#6c757d';
+    });
+
+    const fileUploadArea = document.getElementById('file-upload-area');
+    const fileInput = document.getElementById('image-upload');
+    const filePreview = document.getElementById('file-preview');
+
+    fileUploadArea.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        filePreview.innerHTML = '';
+        Array.from(files).forEach(file => {
+            if (file.size > 5 * 1024 * 1024) return alert('파일 크기는 5MB를 초과할 수 없습니다.');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const item = document.createElement('div');
+                item.className = 'file-preview-item';
+                item.innerHTML = `<img src="${e.target.result}" alt="미리보기"><button class="file-remove-btn" type="button"><i class="fas fa-times"></i></button>`;
+                item.querySelector('button').addEventListener('click', () => item.remove());
+                filePreview.appendChild(item);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+</script>
+</body>
+</html>

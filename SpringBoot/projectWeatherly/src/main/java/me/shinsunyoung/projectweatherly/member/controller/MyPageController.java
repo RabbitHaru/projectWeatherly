@@ -2,163 +2,218 @@ package me.shinsunyoung.projectweatherly.member.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.shinsunyoung.projectweatherly.member.dto.request.UpdateAgreementRequest;
-import me.shinsunyoung.projectweatherly.member.dto.request.UpdateMemberRequest;
-import me.shinsunyoung.projectweatherly.member.dto.request.UpdateNotificationRequest;
-import me.shinsunyoung.projectweatherly.member.dto.response.ApiResponse2;
+import me.shinsunyoung.projectweatherly.member.dto.UserSecurityDTO;
+import me.shinsunyoung.projectweatherly.member.dto.request.*;
 import me.shinsunyoung.projectweatherly.member.dto.response.MyPageResponse;
-import me.shinsunyoung.projectweatherly.member.service.MemberService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import me.shinsunyoung.projectweatherly.member.service.MyPageService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-@RestController
+@Controller
 @RequestMapping("/mypage")
 @RequiredArgsConstructor
-@Tag(name = "마이페이지 API", description = "마이페이지 관련 기능 API")
+@Tag(name = "마이페이지 컨트롤러", description = "마이페이지 관련 기능")
 public class MyPageController {
 
-    private final MemberService memberService;
+    private final MyPageService myPageService;
+
+    // 파일 업로드 설정
     private static final String UPLOAD_DIR = "./uploads/";
+    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".jpg", ".jpeg", ".png", ".gif", ".webp");
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-    @GetMapping("/me")
-    @Operation(summary = "내 정보 조회", description = "현재 로그인한 회원의 정보를 조회합니다.")
-    public ResponseEntity<ApiResponse2<MyPageResponse>> getMyInfo(
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse2.error("로그인이 필요합니다."));
-        }
-
-        String email = userDetails.getUsername();
-        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
-                memberService.getMemberByEmail(email);
-        MyPageResponse response = memberService.getMyPageInfo(memberResponse.getMemberId());
-
-        return ResponseEntity.ok(ApiResponse2.success(response));
-    }
-
-    @PutMapping("/profile")
-    @Operation(summary = "프로필 수정", description = "닉네임 및 프로필 이미지를 수정합니다.")
-    public ResponseEntity<ApiResponse2<MyPageResponse>> updateProfile(
+    /**
+     * 마이페이지 메인 조회
+     * - 프로필 정보, 작성 글, 기타 설정 정보를 모두 모델에 담아 뷰로 전달
+     */
+    @GetMapping
+    @Operation(summary = "마이페이지 메인", description = "마이페이지 메인을 표시합니다.")
+    public String getMyInfo(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody UpdateMemberRequest request) {
+            Model model,
+            HttpServletRequest request) {
 
         if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse2.error("로그인이 필요합니다."));
+            return "redirect:/login";
         }
 
-        String email = userDetails.getUsername();
-        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
-                memberService.getMemberByEmail(email);
-        MyPageResponse response = memberService.updateMemberForMyPage(
-                memberResponse.getMemberId(), request);
-
-        return ResponseEntity.ok(ApiResponse2.success("프로필이 수정되었습니다.", response));
-    }
-
-    @PostMapping("/profile-image")
-    @Operation(summary = "프로필 이미지 업로드",
-            description = "프로필 이미지를 업로드하고 URL을 반환합니다.")
-    public ResponseEntity<ApiResponse2<String>> uploadProfileImage(
-            @RequestParam("file") MultipartFile file) throws IOException {
-
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse2.error("파일이 비어있습니다."));
-        }
-
-        // 파일 유효성 검사
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.contains(".")) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse2.error("올바른 파일 형식이 아닙니다."));
-        }
-
-        // 허용되는 이미지 확장자
-        String[] allowedExtensions = {".jpg", ".jpeg", ".png", ".gif"};
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
-
-        boolean isValidExtension = false;
-        for (String ext : allowedExtensions) {
-            if (ext.equals(fileExtension)) {
-                isValidExtension = true;
-                break;
-            }
-        }
-
-        if (!isValidExtension) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse2.error("지원하지 않는 파일 형식입니다. JPG, JPEG, PNG, GIF만 업로드 가능합니다."));
-        }
-
-        // 파일 크기 제한 (5MB)
-        long maxFileSize = 5 * 1024 * 1024; // 5MB
-        if (file.getSize() > maxFileSize) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse2.error("파일 크기는 5MB를 초과할 수 없습니다."));
-        }
-
-        // 파일 저장 디렉토리 생성
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // 고유한 파일명 생성
-        String newFilename = UUID.randomUUID().toString() + fileExtension;
-
-        // 파일 저장
-        Path filePath = uploadPath.resolve(newFilename);
         try {
-            Files.copy(file.getInputStream(), filePath);
-            log.info("파일 저장 성공: {}", newFilename);
-        } catch (IOException e) {
-            log.error("파일 저장 중 오류 발생: {}", e.getMessage());
-            return ResponseEntity.internalServerError()
-                    .body(ApiResponse2.error("파일 저장 중 오류가 발생했습니다."));
+            String email = userDetails.getUsername();
+            MyPageResponse memberResponse = myPageService.getMyPageInfo(email);
+
+            model.addAttribute("myPage", memberResponse);
+            model.addAttribute("requestURI", request.getRequestURI());
+
+            // 폼 바인딩용 빈 객체들 추가 (에러 방지)
+            if (!model.containsAttribute("passwordRequest")) {
+                model.addAttribute("passwordRequest", new UpdatePasswordRequest());
+            }
+            if (!model.containsAttribute("notificationRequest")) {
+                // 기존 설정값이 있다면 채워서 보냄 (Service에서 가져오는 로직 필요, 없다면 기본값)
+                model.addAttribute("notificationRequest", new UpdateNotificationRequest());
+            }
+
+            return "mypage";
+        } catch (Exception e) {
+            log.error("마이페이지 로딩 실패", e);
+            return "redirect:/";
         }
-
-        // 이미지 URL 생성
-        String imageUrl = "/uploads/" + newFilename;
-
-        return ResponseEntity.ok(ApiResponse2.success("이미지 업로드 성공", imageUrl));
     }
 
-    @PutMapping("/agreements")
-    @Operation(summary = "약관 동의 수정", description = "약관 동의 여부를 수정합니다.")
-    public ResponseEntity<ApiResponse2<MyPageResponse>> updateAgreements(
+    /**
+     * 프로필 수정 처리 (이미지 포함)
+     */
+    @PostMapping("/profile/edit")
+    public String updateProfile(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody UpdateAgreementRequest request) {
+            @Valid @ModelAttribute UpdateMemberRequest request,
+            BindingResult bindingResult,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            RedirectAttributes redirectAttributes) {
 
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse2.error("로그인이 필요합니다."));
+        if (userDetails == null) return "redirect:/login";
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", "입력값이 올바르지 않습니다.");
+            return "redirect:/mypage";
         }
 
-        String email = userDetails.getUsername();
-        me.shinsunyoung.projectweatherly.member.dto.response.MemberResponse memberResponse =
-                memberService.getMemberByEmail(email);
-        MyPageResponse response = memberService.updateAgreementForMyPage(
-                memberResponse.getMemberId(), request);
+        try {
+            String email = userDetails.getUsername();
 
-        return ResponseEntity.ok(ApiResponse2.success("약관 동의가 수정되었습니다.", response));
+            // 1. 파일 업로드 처리
+            if (file != null && !file.isEmpty()) {
+                String validationError = validateFile(file);
+                if (validationError != null) {
+                    redirectAttributes.addFlashAttribute("error", validationError);
+                    return "redirect:/mypage";
+                }
+                String imageUrl = saveProfileImage(file);
+                if (imageUrl != null) {
+                    request.setProfileImage(imageUrl);
+                }
+            }
+
+            // 2. 서비스 호출
+            myPageService.updateMemberForMyPage(email, request);
+            redirectAttributes.addFlashAttribute("message", "프로필이 수정되었습니다.");
+
+        } catch (Exception e) {
+            log.error("프로필 수정 오류", e);
+            redirectAttributes.addFlashAttribute("error", "프로필 수정 중 오류가 발생했습니다.");
+        }
+
+        return "redirect:/mypage";
     }
 
+    /**
+     * 비밀번호 변경 처리 (요청하신 기능 유지)
+     */
+    @PostMapping("/password/change")
+    public String changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @ModelAttribute("passwordRequest") UpdatePasswordRequest request,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
 
+        if (userDetails == null) return "redirect:/login";
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", "비밀번호 형식이 올바르지 않습니다.");
+            return "redirect:/mypage";
+        }
+
+        try {
+            myPageService.updatePassword(userDetails.getUsername(), request);
+            redirectAttributes.addFlashAttribute("message", "비밀번호가 변경되었습니다.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "비밀번호 변경 실패");
+        }
+        return "redirect:/mypage";
+    }
+
+    /**
+     * 알림 설정 변경 처리 (요청하신 기능 유지)
+     */
+    @PostMapping("/notifications")
+    public String updateNotifications(
+            @AuthenticationPrincipal UserSecurityDTO userDetails,
+            @ModelAttribute("notificationRequest") UpdateNotificationRequest request,
+            RedirectAttributes redirectAttributes) {
+
+        if (userDetails == null) return "redirect:/login";
+
+        try {
+            myPageService.updateNotificationSettings(userDetails.getUsername(), request);
+            redirectAttributes.addFlashAttribute("message", "알림 설정이 저장되었습니다.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "알림 설정 저장 실패");
+        }
+        return "redirect:/mypage";
+    }
+
+    /**
+     * 게시글 삭제 (마이페이지 내)
+     */
+    @PostMapping("/posts/{postId}/delete")
+    public String deleteMyPost(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long postId,
+            RedirectAttributes redirectAttributes) {
+
+        if (userDetails == null) return "redirect:/login";
+
+        try {
+            myPageService.deleteMyPost(userDetails.getUsername(), postId);
+            redirectAttributes.addFlashAttribute("message", "게시글이 삭제되었습니다.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "게시글 삭제 실패");
+        }
+        return "redirect:/mypage";
+    }
+
+    // --- Helper Methods ---
+
+    private String validateFile(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.contains(".")) return "잘못된 파일입니다.";
+        String ext = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(ext)) return "지원하지 않는 이미지 형식입니다.";
+        if (file.getSize() > MAX_FILE_SIZE) return "파일 크기는 5MB 이하여야 합니다.";
+        return null;
+    }
+
+    private String saveProfileImage(MultipartFile file) throws IOException {
+        String ext = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".")).toLowerCase();
+        String newFilename = UUID.randomUUID() + ext;
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+
+        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+
+        Path filePath = uploadPath.resolve(newFilename);
+        Files.copy(file.getInputStream(), filePath);
+
+        return "/uploads/" + newFilename;
+    }
 }

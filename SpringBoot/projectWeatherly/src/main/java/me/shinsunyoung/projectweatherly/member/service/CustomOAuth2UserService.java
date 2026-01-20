@@ -118,14 +118,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 회원 처리 로직
         Member member = processMember(providerId, email, nickname, profileImage, provider);
 
-        // JWT 토큰 관련 코드 제거됨
-
-        // 프론트엔드로 전달할 추가 정보 저장 (JWT 제외)
-//        attributes.put("member_id", member.getId());
-//        attributes.put("email", member.getEmail());
-//        attributes.put("nickname", member.getNickname());
-//        attributes.put("profile_image", member.getProfileImage());
-//        attributes.put("auth_provider", provider.name());
 
         return new UserSecurityDTO(member);
     }

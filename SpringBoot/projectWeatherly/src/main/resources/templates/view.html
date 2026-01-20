@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${board.title + ' - Weatherly 커뮤니티'}">글 보기</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/community.css}">
+    <link rel="stylesheet" th:href="@{/css/write.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/view.css}">
+</head>
+
+<body>
+<div th:replace="~{layout/header :: header}"></div>
+
+<div class="container">
+    <div class="write-header-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; margin-top: 3rem;">
+        <h1 class="write-title" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;" th:text="${board.title}">게시글 제목</h1>
+        <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 5px; opacity: 0.9;"><i class="fas fa-user-circle"></i><span th:text="${board.memberNickname}">작성자</span></div>
+            <div style="display: flex; align-items: center; gap: 5px; opacity: 0.9;"><i class="fas fa-calendar-alt"></i><span th:text="${#temporals.format(board.createdAt, 'yyyy년 MM월 dd일 HH:mm')}">날짜</span></div>
+            <div style="display: flex; align-items: center; gap: 5px; opacity: 0.9;"><i class="fas fa-eye"></i><span th:text="${board.viewCount}">0</span>회</div>
+            <div style="display: flex; align-items: center; gap: 5px; opacity: 0.9;"><i class="fas fa-heart"></i><span th:text="${board.likeCount}">0</span>개</div>
+            <span th:if="${board.category == 'weather'}" style="background: #1976d2; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">날씨</span>
+            <span th:if="${board.category == 'dust'}" style="background: #c2185b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">미세먼지</span>
+            <span th:if="${board.category == 'outfit'}" style="background: #7b1fa2; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">옷차림</span>
+            <span th:if="${board.category == 'general'}" style="background: #616161; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">자유주제</span>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+    <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
+
+    <div class="view-content-section">
+        <div th:if="${not #lists.isEmpty(board.images)}" class="image-gallery">
+            <img th:each="image : ${board.images}"
+                 th:src="|/community/images/post/${image}|"
+                 class="gallery-image"
+                 th:data-image="|/community/images/post/${image}|"
+                 alt="이미지"
+                 onerror="this.style.display='none'">
+        </div>
+        <div class="view-content" th:text="${board.content}">내용</div>
+    </div>
+
+    <div class="view-actions">
+        <div class="view-left-actions">
+            <a th:href="@{/community}" class="action-btn list-btn"><i class="fas fa-list"></i> 목록</a>
+            <a th:if="${board.isAuthor}" th:href="@{'/community/boards/' + ${board.id} + '/edit'}" class="action-btn edit-btn"><i class="fas fa-edit"></i> 수정</a>
+            <form th:if="${board.isAuthor}" th:action="@{'/community/boards/' + ${board.id} + '/delete'}" method="post" style="display:inline;" onsubmit="return confirm('정말로 삭제하시겠습니까?');">
+                <button type="submit" class="action-btn delete-btn"><i class="fas fa-trash"></i> 삭제</button>
+            </form>
+        </div>
+        <div class="view-right-actions">
+            <button class="action-btn like-btn" id="like-btn" th:onclick="'toggleLike()'" th:classappend="${board.isLiked} ? 'liked' : ''">
+                <i class="fas fa-heart"></i> <span id="like-count" th:text="${board.likeCount}">0</span>
+            </button>
+            <button class="action-btn report-btn" th:onclick="'openReportModal(\'POST\', ' + ${board.id} + ')'"><i class="fas fa-flag"></i> 신고</button>
+        </div>
+    </div>
+
+    <div class="comments-section">
+        <div class="comments-header">
+            <h2 class="comments-title">댓글</h2>
+            <span class="comments-count" id="comments-count" th:text="${board.commentCount}">0</span>
+        </div>
+
+        <div class="comment-form-container" sec:authorize="isAuthenticated()">
+            <form th:action="@{/community/boards/{boardId}/comments(boardId=${board.id})}" method="post">
+                <textarea class="comment-textarea" name="content" placeholder="댓글을 작성해주세요. (최소 2자)" maxlength="500" required></textarea>
+                <div style="text-align: right;">
+                    <button type="submit" class="comment-submit-btn"><i class="fas fa-paper-plane"></i> 댓글 작성</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="comment-form-container" sec:authorize="isAnonymous()">
+            <p style="color: #6c757d; text-align: center; margin: 0;"><i class="fas fa-info-circle"></i> 댓글을 작성하려면 <a href="/login" style="color: #667eea; font-weight: 500;">로그인</a>이 필요합니다.</p>
+        </div>
+
+        <div class="comment-list" id="comment-list">
+            <div class="comment-item" th:each="comment : ${board.comments}">
+                <div class="comment-header">
+                    <div class="comment-author">
+                        <div class="comment-author-img" th:text="${#strings.substring(comment.memberNickname, 0, 1)}">U</div>
+                        <div class="comment-author-info">
+                            <div class="comment-author-name" th:text="${comment.memberNickname}">사용자</div>
+                            <div class="comment-date" th:text="${#temporals.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">날짜</div>
+                        </div>
+                    </div>
+                    <div class="comment-actions">
+                        <form th:if="${#authentication.principal != 'anonymousUser' and #authentication.principal.user.nickname == comment.memberNickname}"
+                              th:action="@{/community/boards/{boardId}/comments/{commentId}/delete(boardId=${board.id}, commentId=${comment.id})}"
+                              method="post" style="display:inline;" onsubmit="return confirm('댓글을 삭제하시겠습니까?');">
+                            <button type="submit" class="comment-delete-btn"><i class="fas fa-times"></i></button>
+                        </form>
+                        <button class="comment-action-btn report-btn" th:onclick="'openReportModal(\'COMMENT\', ' + ${comment.id} + ')'"><i class="fas fa-flag"></i></button>
+                    </div>
+                </div>
+                <div class="comment-content" th:text="${comment.content}">댓글 내용</div>
+
+                <form th:action="@{/community/boards/{boardId}/comments/{commentId}/like(boardId=${board.id}, commentId=${comment.id})}"
+                      method="post" class="comment-like-form">
+                    <button type="submit" class="comment-like-btn" th:classappend="${board.isLiked} ? 'liked' : ''">
+                        <i class="fas fa-heart"></i> <span th:text="${comment.likeCount}">0</span>
+                    </button>
+                </form>
+            </div>
+            <div th:if="${#lists.isEmpty(board.comments)}" class="empty-comments" style="text-align: center; padding: 3rem; color: #6c757d;">
+                <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem; color: #dee2e6;"></i>
+                <h4>아직 댓글이 없습니다.</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="image-modal" id="image-modal"><span class="modal-close" onclick="closeImageModal()">&times;</span><img class="modal-image" id="modal-image"></div>
+
+<div class="report-modal" id="report-modal">
+    <div class="report-modal-content">
+        <form th:action="@{/community/reports/create}" method="post">
+            <div class="report-modal-header">
+                <h2 class="report-modal-title">신고하기</h2>
+
+            </div>
+
+            <input type="hidden" name="type" id="report-type">
+            <input type="hidden" name="targetId" id="report-target-id">
+
+            <div class="report-reason">
+                <div class="report-reason-title">신고 사유</div>
+                <select class="report-reason-select" name="reason" id="report-reason">
+                    <option value="spam">스팸/광고</option>
+                    <option value="abuse">욕설/혐오 발언</option>
+                    <option value="illegal">불법 정보</option>
+                    <option value="other">기타</option>
+                </select>
+            </div>
+            <div class="report-details">
+                <div class="report-details-title">상세 내용</div>
+                <textarea class="report-details-textarea" name="details" id="report-details"></textarea>
+            </div>
+            <div class="report-modal-actions">
+                <button type="button" class="report-cancel-btn" onclick="closeReportModal()">취소</button>
+                <button type="submit" class="report-submit-btn">신고 제출</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer class="main-footer">
+    <div class="footer-container"><div class="footer-content"><p class="copyright">© 2026 Weatherly. All rights reserved.</p></div></div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/jss/view.js}"></script>
+</body>
+</html>
