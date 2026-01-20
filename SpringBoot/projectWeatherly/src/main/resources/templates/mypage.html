@@ -11,7 +11,33 @@
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
-
+        /* 신고 내역 테이블 스타일 */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .report-table th, .report-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .report-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        /* 상태 뱃지 스타일 */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-completed { background-color: #d4edda; color: #155724; }
+        .status-rejected { background-color: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -150,8 +176,36 @@
             <div id="tab-reports" class="tab-content">
                 <div class="section-card">
                     <div class="section-title"><i class="fas fa-flag"></i> 신고 내역</div>
-                    <div style="text-align: center; padding: 2rem; color: #868e96;">
+
+                    <div th:if="${myPage.myReports == null or myPage.myReports.isEmpty()}" style="text-align: center; padding: 2rem; color: #868e96;">
                         <p>접수된 신고 내역이 없습니다.</p>
+                    </div>
+
+                    <div th:unless="${myPage.myReports == null or myPage.myReports.isEmpty()}">
+                        <table class="report-table">
+                            <thead>
+                            <tr>
+                                <th style="width: 15%;">접수일</th>
+                                <th style="width: 10%;">구분</th>
+                                <th>신고 대상 내용</th>
+                                <th style="width: 20%;">사유</th>
+                                <th style="width: 15%;">상태</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="report : ${myPage.myReports}">
+                                <td th:text="${report.createdAt}">2026-01-20</td>
+                                <td th:text="${report.type}">게시글</td>
+                                <td th:text="${report.targetContent}">신고 내용...</td>
+                                <td th:text="${report.reason}">스팸</td>
+                                <td>
+                                        <span class="status-badge"
+                                              th:classappend="${report.statusClass}"
+                                              th:text="${report.status}">대기중</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
