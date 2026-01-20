@@ -11,7 +11,6 @@ import me.shinsunyoung.projectweatherly.member.dto.request.*;
 import me.shinsunyoung.projectweatherly.member.dto.response.MyPageResponse;
 import me.shinsunyoung.projectweatherly.member.service.MyPageService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -43,32 +42,37 @@ public class MyPageController {
 
     /**
      * 마이페이지 메인 조회
-     * - 프로필 정보, 작성 글, 기타 설정 정보를 모두 모델에 담아 뷰로 전달
      */
     @GetMapping
     @Operation(summary = "마이페이지 메인", description = "마이페이지 메인을 표시합니다.")
     public String getMyInfo(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserSecurityDTO user, // [변경] UserDetails -> UserSecurityDTO
+            @RequestParam(defaultValue = "0") int page,
             Model model,
             HttpServletRequest request) {
 
-        if (userDetails == null) {
+        if (user == null) {
             return "redirect:/login";
         }
 
         try {
-            String email = userDetails.getUsername();
-            MyPageResponse memberResponse = myPageService.getMyPageInfo(email);
+            // [★요청하신 방식 적용] 컨트롤러 내부에서 닉네임 주입
+            model.addAttribute("requestURI", request.getRequestURI());
+            if(user != null && user.getUser().getNickname() != null) {
+                model.addAttribute("nickname", user.getUser().getNickname());
+            }
+
+            // UserSecurityDTO에서 이메일(username) 가져오기
+            String email = user.getUsername();
+            MyPageResponse memberResponse = myPageService.getMyPageInfo(email, page);
 
             model.addAttribute("myPage", memberResponse);
-            model.addAttribute("requestURI", request.getRequestURI());
 
-            // 폼 바인딩용 빈 객체들 추가 (에러 방지)
+            // 폼 바인딩용 빈 객체들 추가
             if (!model.containsAttribute("passwordRequest")) {
                 model.addAttribute("passwordRequest", new UpdatePasswordRequest());
             }
             if (!model.containsAttribute("notificationRequest")) {
-                // 기존 설정값이 있다면 채워서 보냄 (Service에서 가져오는 로직 필요, 없다면 기본값)
                 model.addAttribute("notificationRequest", new UpdateNotificationRequest());
             }
 
@@ -84,13 +88,13 @@ public class MyPageController {
      */
     @PostMapping("/profile/edit")
     public String updateProfile(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserSecurityDTO user,
             @Valid @ModelAttribute UpdateMemberRequest request,
             BindingResult bindingResult,
             @RequestParam(value = "file", required = false) MultipartFile file,
             RedirectAttributes redirectAttributes) {
 
-        if (userDetails == null) return "redirect:/login";
+        if (user == null) return "redirect:/login";
 
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("error", "입력값이 올바르지 않습니다.");
@@ -98,9 +102,8 @@ public class MyPageController {
         }
 
         try {
-            String email = userDetails.getUsername();
+            String email = user.getUsername();
 
-            // 1. 파일 업로드 처리
             if (file != null && !file.isEmpty()) {
                 String validationError = validateFile(file);
                 if (validationError != null) {
@@ -113,7 +116,6 @@ public class MyPageController {
                 }
             }
 
-            // 2. 서비스 호출
             myPageService.updateMemberForMyPage(email, request);
             redirectAttributes.addFlashAttribute("message", "프로필이 수정되었습니다.");
 
@@ -126,16 +128,16 @@ public class MyPageController {
     }
 
     /**
-     * 비밀번호 변경 처리 (요청하신 기능 유지)
+     * 비밀번호 변경 처리
      */
     @PostMapping("/password/change")
     public String changePassword(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserSecurityDTO user,
             @Valid @ModelAttribute("passwordRequest") UpdatePasswordRequest request,
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
 
-        if (userDetails == null) return "redirect:/login";
+        if (user == null) return "redirect:/login";
 
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("error", "비밀번호 형식이 올바르지 않습니다.");
@@ -143,7 +145,7 @@ public class MyPageController {
         }
 
         try {
-            myPageService.updatePassword(userDetails.getUsername(), request);
+            myPageService.updatePassword(user.getUsername(), request);
             redirectAttributes.addFlashAttribute("message", "비밀번호가 변경되었습니다.");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -154,18 +156,18 @@ public class MyPageController {
     }
 
     /**
-     * 알림 설정 변경 처리 (요청하신 기능 유지)
+     * 알림 설정 변경 처리
      */
     @PostMapping("/notifications")
     public String updateNotifications(
-            @AuthenticationPrincipal UserSecurityDTO userDetails,
+            @AuthenticationPrincipal UserSecurityDTO user,
             @ModelAttribute("notificationRequest") UpdateNotificationRequest request,
             RedirectAttributes redirectAttributes) {
 
-        if (userDetails == null) return "redirect:/login";
+        if (user == null) return "redirect:/login";
 
         try {
-            myPageService.updateNotificationSettings(userDetails.getUsername(), request);
+            myPageService.updateNotificationSettings(user.getUsername(), request);
             redirectAttributes.addFlashAttribute("message", "알림 설정이 저장되었습니다.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "알림 설정 저장 실패");
@@ -178,14 +180,14 @@ public class MyPageController {
      */
     @PostMapping("/posts/{postId}/delete")
     public String deleteMyPost(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserSecurityDTO user,
             @PathVariable Long postId,
             RedirectAttributes redirectAttributes) {
 
-        if (userDetails == null) return "redirect:/login";
+        if (user == null) return "redirect:/login";
 
         try {
-            myPageService.deleteMyPost(userDetails.getUsername(), postId);
+            myPageService.deleteMyPost(user.getUsername(), postId);
             redirectAttributes.addFlashAttribute("message", "게시글이 삭제되었습니다.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "게시글 삭제 실패");

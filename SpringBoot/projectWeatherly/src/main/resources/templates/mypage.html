@@ -9,23 +9,35 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
-        /* 추가 스타일: 섹션 구분 및 카드 디자인 보강 */
-        .mypage-grid { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; margin-top: 2rem; }
-        .section-card { background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 2rem; }
-        .section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 2px solid #f1f3f5; }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #495057; }
-        .form-input { width: 100%; padding: 10px; border: 1px solid #dee2e6; border-radius: 8px; }
-
-        /* 탭 메뉴 스타일 */
-        .nav-tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid #dee2e6; }
-        .nav-item { padding: 10px 20px; cursor: pointer; color: #868e96; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s; }
-        .nav-item.active { color: #667eea; border-bottom-color: #667eea; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        @media (max-width: 768px) { .mypage-grid { grid-template-columns: 1fr; } }
+        /* 신고 내역 테이블 스타일 */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .report-table th, .report-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .report-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        /* 상태 뱃지 스타일 */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-completed { background-color: #d4edda; color: #155724; }
+        .status-rejected { background-color: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -129,7 +141,7 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">새 비밀번호</label>
-                            <input type="password" th:field="*{newPassword}" class="form-input" required>
+                            <input type="password" th:field="*{newPassword}" class="form-input" placeholder="최소 8자리로 변경해주세요." required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">새 비밀번호 확인</label>
@@ -164,8 +176,36 @@
             <div id="tab-reports" class="tab-content">
                 <div class="section-card">
                     <div class="section-title"><i class="fas fa-flag"></i> 신고 내역</div>
-                    <div style="text-align: center; padding: 2rem; color: #868e96;">
+
+                    <div th:if="${myPage.myReports == null or myPage.myReports.isEmpty()}" style="text-align: center; padding: 2rem; color: #868e96;">
                         <p>접수된 신고 내역이 없습니다.</p>
+                    </div>
+
+                    <div th:unless="${myPage.myReports == null or myPage.myReports.isEmpty()}">
+                        <table class="report-table">
+                            <thead>
+                            <tr>
+                                <th style="width: 15%;">접수일</th>
+                                <th style="width: 10%;">구분</th>
+                                <th>신고 대상 내용</th>
+                                <th style="width: 20%;">사유</th>
+                                <th style="width: 15%;">상태</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="report : ${myPage.myReports}">
+                                <td th:text="${report.createdAt}">2026-01-20</td>
+                                <td th:text="${report.type}">게시글</td>
+                                <td th:text="${report.targetContent}">신고 내용...</td>
+                                <td th:text="${report.reason}">스팸</td>
+                                <td>
+                                        <span class="status-badge"
+                                              th:classappend="${report.statusClass}"
+                                              th:text="${report.status}">대기중</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -174,44 +214,9 @@
     </div>
 </main>
 
-<footer class="main-footer">
-    <div class="footer-container">
-        <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
-    </div>
-</footer>
+<div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
-<script>
-    // 프로필 편집 모드 토글
-    function toggleEditMode(showEdit) {
-        document.getElementById('profileView').style.display = showEdit ? 'none' : 'block';
-        document.getElementById('profileEdit').style.display = showEdit ? 'block' : 'none';
-    }
-
-    // 이미지 미리보기
-    function previewFile(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('previewImage').src = e.target.result;
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    // 탭 전환
-    function switchTab(tabName) {
-        // 모든 탭 컨텐츠 숨김
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        // 모든 탭 버튼 비활성화 스타일
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
-        // 선택된 탭 활성화
-        document.getElementById('tab-' + tabName).classList.add('active');
-        // 클릭된 버튼 스타일 활성화 (event.target 사용 시 텍스트 노드 클릭 주의, 여기선 간단히 텍스트 매칭 혹은 인덱스로 처리 가능하지만 순서대로 함)
-        const tabs = ['posts', 'password', 'notification', 'reports'];
-        const index = tabs.indexOf(tabName);
-        document.querySelectorAll('.nav-item')[index].classList.add('active');
-    }
-</script>
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/mypage.js}"></script>
 </body>
 </html>

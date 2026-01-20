@@ -10,6 +10,8 @@ import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
 import me.shinsunyoung.projectweatherly.board.repository.ReportRepository;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,77 +29,84 @@ public class ReportService {
     private final BoardRepository boardRepository;
     private final CommentRepository commentRepository;
 
+    // 1. 신고 생성
     public boolean createReport(Long reporterId, String type, Long targetId, String reason, String details) {
         try {
             Member reporter = memberRepository.findById(reporterId)
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-            // 중복 신고 체크
             boolean alreadyReported = reportRepository.existsByReporterIdAndTypeAndTargetId(
                     reporterId, type, targetId);
 
-            if (alreadyReported) {
-                return false;
-            }
+            if (alreadyReported) return false;
 
-            // Report 생성 - status를 문자열 "PENDING"으로 설정
             Report.ReportBuilder reportBuilder = Report.builder()
                     .reporter(reporter)
                     .type(type)
                     .targetId(targetId)
                     .reason(reason)
                     .details(details)
-                    .status("PENDING")  // 문자열로 설정
+                    .status("PENDING")
                     .createdAt(LocalDateTime.now());
 
-            // 신고 대상 정보 설정
-            if ("post".equals(type)) {
+            if ("POST".equalsIgnoreCase(type)) {
                 Board board = boardRepository.findById(targetId)
                         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
                 reportBuilder.targetBoard(board);
-            } else if ("comment".equals(type)) {
+            } else if ("COMMENT".equalsIgnoreCase(type)) {
                 Comment comment = commentRepository.findById(targetId)
                         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다."));
                 reportBuilder.targetComment(comment);
             }
 
-            Report report = reportBuilder.build();
-            reportRepository.save(report);
-
-            log.info("신고 생성 완료 - type: {}, targetId: {}, reporterId: {}", type, targetId, reporterId);
+            reportRepository.save(reportBuilder.build());
+            log.info("신고 접수 완료 - type: {}, targetId: {}", type, targetId);
             return true;
         } catch (Exception e) {
             log.error("신고 생성 실패: ", e);
-            throw new RuntimeException("신고 처리 중 오류가 발생했습니다.", e);
+            throw new RuntimeException("신고 처리 중 오류 발생");
         }
     }
 
-    // 내가 신고한 목록 조회
+    // 2. 내가 신고한 목록
     @Transactional(readOnly = true)
     public List<Report> getMyReports(Long memberId) {
         return reportRepository.findByReporterIdOrderByCreatedAtDesc(memberId);
     }
 
-    // 신고 수 가져오기
+    // 3. [관리자용] 전체 신고 목록 페이징
     @Transactional(readOnly = true)
-    public int getReportCountByMemberId(Long memberId) {
-        return reportRepository.countByReporterId(memberId);
+    public Page<Report> getAllReports(Pageable pageable) {
+        return reportRepository.findAll(pageable);
     }
 
-    // 신고 취소
-    public void cancelReport(Long reportId, Long memberId) {
+    // 4. [관리자용] 신고 처리 (승인/반려)
+    public void processReport(Long reportId, String status) {
         Report report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new IllegalArgumentException("신고를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신고입니다."));
 
-        if (!report.getReporter().getId().equals(memberId)) {
-            throw new IllegalArgumentException("본인의 신고만 취소할 수 있습니다.");
+        report.setStatus(status); // ACCEPTED or REJECTED
+
+        // 승인(ACCEPTED) 시 해당 콘텐츠 강제 삭제
+        if ("ACCEPTED".equalsIgnoreCase(status)) {
+            deleteReportedContent(report);
         }
 
-        if (!"PENDING".equals(report.getStatus())) {
-            throw new IllegalArgumentException("처리 중이거나 완료된 신고는 취소할 수 없습니다.");
-        }
+        log.info("신고 처리 완료 - id: {}, status: {}", reportId, status);
+    }
 
-        reportRepository.delete(report);
-        log.info("신고 취소 - reportId: {}, memberId: {}", reportId, memberId);
+    // 5. 신고 콘텐츠 삭제 (내부 메서드)
+    private void deleteReportedContent(Report report) {
+        try {
+            if ("POST".equalsIgnoreCase(report.getType()) && report.getTargetBoard() != null) {
+                boardRepository.delete(report.getTargetBoard());
+                log.info("게시글 삭제 완료 - id: {}", report.getTargetId());
+            } else if ("COMMENT".equalsIgnoreCase(report.getType()) && report.getTargetComment() != null) {
+                commentRepository.delete(report.getTargetComment());
+                log.info("댓글 삭제 완료 - id: {}", report.getTargetId());
+            }
+        } catch (Exception e) {
+            log.error("콘텐츠 삭제 실패 (이미 삭제됨?): {}", e.getMessage());
+        }
     }
 }

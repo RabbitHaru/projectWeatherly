@@ -20,6 +20,9 @@ import java.util.List;
 @Builder
 public class Board {
 
+    // ★ [추가] 공지사항 카테고리 상수 (Service에서 오타 방지용으로 사용)
+    public static final String CATEGORY_NOTICE = "NOTICE";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

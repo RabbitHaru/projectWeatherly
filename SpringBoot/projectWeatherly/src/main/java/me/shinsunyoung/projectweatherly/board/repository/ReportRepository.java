@@ -9,40 +9,37 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-    // 중복 신고 체크 메서드
+    // 1. 중복 신고 체크
     @Query("SELECT COUNT(r) > 0 FROM Report r WHERE r.reporter.id = :reporterId AND r.type = :type AND r.targetId = :targetId")
     boolean existsByReporterIdAndTypeAndTargetId(
             @Param("reporterId") Long reporterId,
             @Param("type") String type,
             @Param("targetId") Long targetId);
 
-    // member.repository.ReportRepository의 메서드들 추가
+    // 2. 특정 사용자가 신고한 목록
     List<Report> findByReporterIdOrderByCreatedAtDesc(Long reporterId);
 
-    // boardId를 targetId로 변환 (type이 "post"인 경우)
+    // 3. 특정 게시글에 대한 신고 여부 확인
     @Query("SELECT COUNT(r) > 0 FROM Report r WHERE r.reporter.id = :reporterId AND r.type = 'post' AND r.targetId = :boardId")
     boolean existsByReporterIdAndBoardId(
             @Param("reporterId") Long reporterId,
             @Param("boardId") Long boardId);
 
+    // 4. 사용자가 신고한 횟수
     @Query("SELECT COUNT(r) FROM Report r WHERE r.reporter.id = :reporterId")
     int countByReporterId(@Param("reporterId") Long reporterId);
 
+    // 5. 특정 게시글의 신고 목록
     @Query("SELECT r FROM Report r WHERE r.targetId = :boardId AND r.type = 'post'")
     List<Report> findByBoardId(@Param("boardId") Long boardId);
 
-    Page<Report> findByReporterId(Long reporterId, Pageable pageable);
+    // 6. [관리자용] 전체 신고 목록 페이징 (기본 메서드지만 명시)
+    Page<Report> findAll(Pageable pageable);
 
-    List<Report> findByStatus(String status);
-
-    // [관리자용] 특정 상태(예: "PENDING")인 신고 개수 조회
+    // 7. [대시보드용] 상태별 신고 개수 (예: PENDING 개수 세기)
     long countByStatus(String status);
-
-    // [관리자용] 최신 신고 내역 5개 조회 (최신순 정렬)
-    List<Report> findTop5ByOrderByCreatedAtDesc();
 }

@@ -102,7 +102,7 @@ public class DashboardController {
             }
         }
 
-        // 3. 미세먼지 데이터가 없으면 IP 기반으로 재시도
+        // 3. 미세먼지 데이터가 없으면 IP 기반으로 재시도 (선택 사항)
         if (air == null) {
             try {
                 air = airQualityService.getAirQualityByIp(request);
@@ -111,7 +111,7 @@ public class DashboardController {
             }
         }
 
-        // 4. 모델 데이터 담기
+        // 4. 모델 데이터 담기 (weather가 null일 경우 방어 로직)
         if (weather != null) {
             model.addAttribute("regionName", weather.getRegionName());
         } else {

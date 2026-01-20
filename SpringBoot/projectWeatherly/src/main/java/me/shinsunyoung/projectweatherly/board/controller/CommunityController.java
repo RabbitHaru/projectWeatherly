@@ -145,13 +145,19 @@ public class CommunityController {
     }
 
     /**
-     * 게시글 상세 보기 (수정됨: isLiked 안전하게 처리)
+     * 게시글 상세 보기 (수정됨: 닉네임 모델 추가)
      */
     @GetMapping("/boards/{id}")
     public String getBoard(@PathVariable Long id, Model model,
                            @AuthenticationPrincipal UserSecurityDTO user) {
         try {
             if (id == null || id <= 0) return "redirect:/community?error=invalid_id";
+
+            // [수정] 닉네임과 회원 ID를 모델에 추가 (헤더 표시용)
+            if (user != null && user.getUser() != null) {
+                model.addAttribute("nickname", user.getUser().getNickname());
+                model.addAttribute("memberId", user.getUser().getId());
+            }
 
             BoardResponse board = boardService.getBoard(id);
 
@@ -183,6 +189,9 @@ public class CommunityController {
         }
     }
 
+    /**
+     * 게시글 수정 폼 (수정됨: 닉네임 모델 추가)
+     */
     @GetMapping("/boards/{boardId}/edit")
     public String editForm(@PathVariable Long boardId, @AuthenticationPrincipal UserSecurityDTO user, Model model, HttpServletRequest request) {
         if (user == null || user.getUser() == null) return "redirect:/login";
@@ -193,6 +202,10 @@ public class CommunityController {
 
             CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
             if (csrfToken != null) model.addAttribute("_csrf", csrfToken);
+
+            // [수정] 닉네임과 회원 ID를 모델에 추가 (헤더 표시용)
+            model.addAttribute("nickname", user.getUser().getNickname());
+            model.addAttribute("memberId", user.getUser().getId());
 
             model.addAttribute("requestURI", request.getRequestURI());
             model.addAttribute("board", board);
@@ -278,12 +291,18 @@ public class CommunityController {
     public String getMyPosts(@PageableDefault(size = 15) Pageable pageable, Model model, HttpServletRequest request, @AuthenticationPrincipal UserSecurityDTO user) {
         if (user == null) return "redirect:/login";
         model.addAttribute("boards", boardService.getMyBoards(user.getUser().getId(), pageable));
+        model.addAttribute("nickname", user.getUser().getNickname()); // 마이 포스트에도 닉네임 추가 (안전장치)
         model.addAttribute("requestURI", request.getRequestURI());
         return "my-posts";
     }
 
     @GetMapping("/category/{category}")
-    public String getBoardsByCategory(@PathVariable String category, @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable, Model model, HttpServletRequest request) {
+    public String getBoardsByCategory(@PathVariable String category, @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable, Model model, HttpServletRequest request, @AuthenticationPrincipal UserSecurityDTO user) {
+
+        if (user != null && user.getUser() != null) {
+            model.addAttribute("nickname", user.getUser().getNickname());
+        }
+
         model.addAttribute("boards", boardService.getBoardsByCategory(category, pageable));
         model.addAttribute("category", category);
         model.addAttribute("requestURI", request.getRequestURI());
