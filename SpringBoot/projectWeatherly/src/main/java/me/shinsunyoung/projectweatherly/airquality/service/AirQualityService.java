@@ -28,8 +28,6 @@ public class AirQualityService {
     private final AirQualityRepository airQualityRepository;
     private final AirQualityForecastRepository airQualityForecastRepository;
 
-    private static final List<String> TARGET_REGIONS = Arrays.asList("서울", "부산", "대구", "광주", "대전");
-
     @Transactional(readOnly = true)
     public boolean isRealtimeDataFresh() {
         List<AirQualityEntity> list = airQualityRepository.findBySidoNameOrderByDataTimeDesc("서울");
@@ -40,39 +38,63 @@ public class AirQualityService {
         return recordedAt.isAfter(LocalDateTime.now().minusHours(1));
     }
 
+    /**
+     * 전국 데이터를 한 번에 가져와서 저장
+     */
     @Transactional
     public void updateRealtimeData() {
-        for (String region : TARGET_REGIONS) {
-            try {
-                List<AirQualityResponseDTO> dtos = airQualityApiService.getAirQualityBySido(region);
-                if (dtos == null || dtos.isEmpty()) continue;
-                String advice = dtos.get(0).getHealthAdvice();
-                if (advice != null && advice.contains("[테스트 모드]")) continue;
-                List<AirQualityEntity> entities = dtos.stream().map(this::convertToEntity).collect(Collectors.toList());
-                airQualityRepository.saveAll(entities);
-                log.info("✅ {} 지역 실시간 데이터 {}건 DB 저장 완료", region, entities.size());
-                Thread.sleep(1000);
-            } catch (Exception e) {
-                log.error("{} 지역 업데이트 실패: {}", region, e.getMessage());
-            }
+        try {
+            List<AirQualityResponseDTO> dtos = airQualityApiService.getAirQualityBySido("전국");
+            if (dtos == null || dtos.isEmpty()) return;
+
+            String advice = dtos.get(0).getHealthAdvice();
+            if (advice != null && advice.contains("[테스트 모드]")) return;
+
+            List<AirQualityEntity> entities = dtos.stream()
+                    .map(this::convertToEntity)
+                    .collect(Collectors.toList());
+
+            airQualityRepository.saveAll(entities);
+            log.info("✅ 전국 실시간 대기질 데이터 {}건 DB 저장 완료", entities.size());
+
+        } catch (Exception e) {
+            log.error("전국 데이터 업데이트 실패: {}", e.getMessage());
         }
     }
 
+    /**
+     * 예보 데이터 중복 체크 후 저장
+     */
     @Transactional
     public void updateForecastData() {
         List<AirQualityResponseDTO.AirQualityForecast> forecasts = airQualityApiService.getAirQualityForecast("서울");
         if (forecasts == null || forecasts.isEmpty()) return;
+
         String advice = forecasts.get(0).getAdvice();
         if (advice != null && advice.contains("[가상 예보]")) return;
+
+        AirQualityForecastEntity lastSaved = airQualityForecastRepository.findTopByOrderByRecordedAtDesc();
+        AirQualityResponseDTO.AirQualityForecast newForecast = forecasts.get(0);
+
+        // 중복 방지: 날짜와 개황이 같으면 저장 안 함
+        if (lastSaved != null &&
+                lastSaved.getInformData().equals(newForecast.getDate()) &&
+                lastSaved.getInformOverall().equals(newForecast.getAdvice())) {
+            log.info("ℹ️ 이미 최신 예보 데이터가 DB에 존재합니다. (저장 건너뜀)");
+            return;
+        }
+
         List<AirQualityForecastEntity> entities = forecasts.stream()
                 .map(dto -> AirQualityForecastEntity.builder()
                         .informData(dto.getDate())
                         .informOverall(dto.getAdvice())
+                        .informCause(dto.getCause())
                         .informGrade(dto.getOverallGrade())
                         .build())
                 .collect(Collectors.toList());
+
         airQualityForecastRepository.saveAll(entities);
-        log.info("✅ 대기질 예보 데이터 DB 저장 완료");
+        log.info("✅ 새로운 대기질 예보 데이터 DB 저장 완료");
     }
 
     public AirQualityResponseDTO getAirQualityByIp(HttpServletRequest request) {
@@ -94,24 +116,23 @@ public class AirQualityService {
     public List<AirQualityResponseDTO> getAirQualityBySido(String sidoName) {
         String shortName = extractSidoName(sidoName);
         List<AirQualityEntity> entities = airQualityRepository.findBySidoNameOrderByDataTimeDesc(shortName);
-        if (!entities.isEmpty()) return entities.stream().limit(100).map(this::convertToDTO).collect(Collectors.toList());
+        if (!entities.isEmpty())
+            return entities.stream().limit(100).map(this::convertToDTO).collect(Collectors.toList());
         return airQualityApiService.getAirQualityBySido(shortName);
     }
 
-    // [핵심 수정] 예보 데이터 파싱 로직 추가
     public List<AirQualityResponseDTO.AirQualityForecast> getAirQualityForecast(String sidoName) {
         List<AirQualityForecastEntity> entities = airQualityForecastRepository.findTop2ByOrderByRecordedAtDesc();
-        String targetSido = extractSidoName(sidoName); // "부산광역시" -> "부산"
+        String targetSido = extractSidoName(sidoName);
 
         if (!entities.isEmpty()) {
             return entities.stream().map(e -> {
-                // DB에 저장된 "서울 : 보통, 부산 : 좋음..." 문자열에서 해당 지역 등급 추출
                 String parsedGrade = parseGradeForSido(e.getInformGrade(), targetSido);
-
                 return AirQualityResponseDTO.AirQualityForecast.builder()
                         .date(e.getInformData())
                         .advice(e.getInformOverall())
-                        .overallGrade(convertTextToGrade(parsedGrade)) // "보통" -> "2" 변환
+                        .cause(e.getInformCause())
+                        .overallGrade(convertTextToGrade(parsedGrade))
                         .pm10Grade(convertTextToGrade(parsedGrade))
                         .pm25Grade(convertTextToGrade(parsedGrade))
                         .build();
@@ -120,7 +141,7 @@ public class AirQualityService {
         return airQualityApiService.getAirQualityForecast(sidoName);
     }
 
-    // "서울 : 보통, 부산 : 좋음" -> "부산" -> "좋음" 추출
+    // 헬퍼 메서드들
     private String parseGradeForSido(String allGrades, String sido) {
         if (allGrades == null) return "보통";
         String[] parts = allGrades.split(",");
@@ -129,10 +150,9 @@ public class AirQualityService {
                 return part.substring(part.lastIndexOf(":") + 1).trim();
             }
         }
-        return "보통"; // 못 찾으면 기본값
+        return "보통";
     }
 
-    // "좋음" -> "1", "보통" -> "2" 변환
     private String convertTextToGrade(String text) {
         if (text == null) return "2";
         if (text.contains("좋음")) return "1";
@@ -156,22 +176,23 @@ public class AirQualityService {
         return null;
     }
 
+    // [수정된 부분] dataTime을 (LocalDateTime)으로 강제 형변환
     private AirQualityEntity convertToEntity(AirQualityResponseDTO dto) {
         return AirQualityEntity.builder()
                 .sidoName(dto.getSidoName())
                 .stationName(dto.getStationName())
-                .dataTime(dto.getDataTime())
+                .dataTime((LocalDateTime) dto.getDataTime()) // 👈 여기서 (LocalDateTime) 캐스팅 추가!
                 .pm10Value(dto.getPm10().getValue())
                 .pm10Grade(dto.getPm10().getGrade())
                 .pm25Value(dto.getPm25().getValue())
                 .pm25Grade(dto.getPm25().getGrade())
-                .o3Value(dto.getO3() != null ? (double)dto.getO3().getValue() : 0.0)
+                .o3Value(dto.getO3() != null ? (double) dto.getO3().getValue() : 0.0)
                 .o3Grade(dto.getO3() != null ? dto.getO3().getGrade() : "2")
-                .no2Value(dto.getNo2() != null ? (double)dto.getNo2().getValue() : 0.0)
+                .no2Value(dto.getNo2() != null ? (double) dto.getNo2().getValue() : 0.0)
                 .no2Grade(dto.getNo2() != null ? dto.getNo2().getGrade() : "2")
-                .coValue(dto.getCo() != null ? (double)dto.getCo().getValue() : 0.0)
+                .coValue(dto.getCo() != null ? (double) dto.getCo().getValue() : 0.0)
                 .coGrade(dto.getCo() != null ? dto.getCo().getGrade() : "2")
-                .so2Value(dto.getSo2() != null ? (double)dto.getSo2().getValue() : 0.0)
+                .so2Value(dto.getSo2() != null ? (double) dto.getSo2().getValue() : 0.0)
                 .so2Grade(dto.getSo2() != null ? dto.getSo2().getGrade() : "2")
                 .khaiValue(dto.getKhai() != null ? dto.getKhai().getValue() : 0)
                 .khaiGrade(dto.getKhai() != null ? dto.getKhai().getGrade() : "2")
@@ -209,19 +230,37 @@ public class AirQualityService {
 
     private String convertGradeToStatus(String grade) {
         if (grade == null) return "보통";
-        return switch (grade.trim()) { case "1" -> "좋음"; case "2" -> "보통"; case "3" -> "나쁨"; case "4" -> "매우나쁨"; default -> "보통"; };
+        return switch (grade.trim()) {
+            case "1" -> "좋음";
+            case "2" -> "보통";
+            case "3" -> "나쁨";
+            case "4" -> "매우나쁨";
+            default -> "보통";
+        };
     }
 
     private String extractSidoName(String regionName) {
         if (regionName == null) return "서울";
         Map<String, String> map = new HashMap<>();
-        map.put("Seoul", "서울"); map.put("Busan", "부산"); map.put("Daegu", "대구");
-        map.put("Incheon", "인천"); map.put("Gwangju", "광주"); map.put("Daejeon", "대전");
-        map.put("Ulsan", "울산"); map.put("Gyeonggi", "경기"); map.put("Gangwon", "강원");
-        map.put("Chungbuk", "충북"); map.put("Chungnam", "충남"); map.put("Jeonbuk", "전북");
-        map.put("Jeonnam", "전남"); map.put("Gyeongbuk", "경북"); map.put("Gyeongnam", "경남");
-        map.put("Jeju", "제주"); map.put("Sejong", "세종");
-        map.put("서울특별시", "서울"); map.put("부산광역시", "부산");
+        map.put("Seoul", "서울");
+        map.put("Busan", "부산");
+        map.put("Daegu", "대구");
+        map.put("Incheon", "인천");
+        map.put("Gwangju", "광주");
+        map.put("Daejeon", "대전");
+        map.put("Ulsan", "울산");
+        map.put("Gyeonggi", "경기");
+        map.put("Gangwon", "강원");
+        map.put("Chungbuk", "충북");
+        map.put("Chungnam", "충남");
+        map.put("Jeonbuk", "전북");
+        map.put("Jeonnam", "전남");
+        map.put("Gyeongbuk", "경북");
+        map.put("Gyeongnam", "경남");
+        map.put("Jeju", "제주");
+        map.put("Sejong", "세종");
+        map.put("서울특별시", "서울");
+        map.put("부산광역시", "부산");
 
         for (String key : map.keySet()) {
             if (regionName.contains(key)) return map.get(key);
@@ -229,5 +268,7 @@ public class AirQualityService {
         return (regionName.length() >= 2) ? regionName.substring(0, 2) : regionName;
     }
 
-    public AirQualityResponseDTO getAirQuality(AirQualityRequestDTO requestDto) { return null; }
+    public AirQualityResponseDTO getAirQuality(AirQualityRequestDTO requestDto) {
+        return null;
+    }
 }

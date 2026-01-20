@@ -8,6 +8,10 @@ import java.util.List;
 
 @Repository
 public interface AirQualityForecastRepository extends JpaRepository<AirQualityForecastEntity, Long> {
-    // 가장 최근에 저장된 예보 데이터 2개(오늘/내일) 조회
+
+    // 1. 예보 조회용: 최신순으로 2개 가져오기 (오늘, 내일)
     List<AirQualityForecastEntity> findTop2ByOrderByRecordedAtDesc();
+
+    // 2. [추가됨] 중복 체크용: 가장 최신 1개만 가져오기
+    AirQualityForecastEntity findTopByOrderByRecordedAtDesc();
 }

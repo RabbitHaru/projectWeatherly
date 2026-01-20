@@ -2,6 +2,7 @@ package me.shinsunyoung.projectweatherly.airquality.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,14 +17,18 @@ public class AirQualityForecastEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String informData;    // 예보 날짜 (YYYY-MM-DD)
+    private String informData;    // 예보 날짜
     private String informCode;    // PM10 or PM25
 
-    @Column(length = 2000)        // 내용이 길 수 있음
-    private String informOverall; // 전체 개황
+    @Column(length = 2000)
+    private String informOverall; // 개황
+
+    // [추가됨] 발생 원인
+    @Column(length = 2000)
+    private String informCause;
 
     @Column(length = 2000)
-    private String informGrade;   // 지역별 등급 (서울 : 보통, ...)
+    private String informGrade;   // 등급
 
     private LocalDateTime recordedAt;
 

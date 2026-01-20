@@ -1,61 +1,47 @@
 package me.shinsunyoung.projectweatherly.airquality.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-@Data
+@Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class AirQualityResponseDTO {
 
-    // 기본 정보
-    private String stationName;
     private String sidoName;
-    private LocalDateTime dataTime;
+    private String stationName;
+    private Object dataTime; // String or LocalDateTime
 
-    // 대기질 지수
-    private AirQualityIndex khai;          // 통합대기환경지수
-    private AirQualityIndex pm10;          // 미세먼지
-    private AirQualityIndex pm25;          // 초미세먼지
-    private AirQualityIndex o3;            // 오존
-    private AirQualityIndex no2;           // 이산화질소
-    private AirQualityIndex co;            // 일산화탄소
-    private AirQualityIndex so2;           // 아황산가스
+    private AirQualityIndex pm10;
+    private AirQualityIndex pm25;
+    private AirQualityIndex o3;
+    private AirQualityIndex no2;
+    private AirQualityIndex co;
+    private AirQualityIndex so2;
+    private AirQualityIndex khai;
 
-    // 요약 정보
-    private String overallGrade;           // 전체 등급
-    private String overallStatus;          // 전체 상태 (좋음, 보통 등)
-    private String healthAdvice;           // 건강 조언
+    private String overallGrade;
+    private String overallStatus;
+    private String healthAdvice;
 
-    // 예보 정보
-    private List<AirQualityForecast> forecasts;
-
-    @Data
+    @Getter
     @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class AirQualityIndex {
-        private Integer value;             // 측정값
-        private String grade;              // 등급 (1~4)
-        private String status;             // 상태 (좋음, 보통 등)
-        private String unit;               // 단위
+        private int value;
+        private String grade;
+        private String status;
+        private String unit;
     }
 
-    @Data
+    @Getter
     @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class AirQualityForecast {
-        private String date;               // 예보 날짜
-        private String overallGrade;       // 전체 등급
-        private String pm10Grade;          // PM10 등급
-        private String pm25Grade;          // PM2.5 등급
-        private String advice;             // 생활지수 조언
+        private String date;
+        private String overallGrade;
+        private String pm10Grade;
+        private String pm25Grade;
+        private String advice; // 개황 (informOverall)
+
+        // [추가됨] 발생 원인 (informCause)
+        private String cause;
     }
 }

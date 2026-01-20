@@ -108,44 +108,48 @@ async function loadAirQualityForecast(sido) {
 
 // [수정됨] 메인 페이지 HTML 구조에 맞춰 렌더링
 function updateMainPageAqiForecast(list) {
-    // 1. 이미 존재하는 컨테이너 찾기
     const container = document.getElementById('aqi-forecast-details');
     if (!container) return;
 
-    container.innerHTML = ''; // 초기화
+    container.innerHTML = '';
 
-    // [스타일 강제 적용] 부모 컨테이너가 꽉 차게 설정
+    // 레이아웃: 반반 채우기
     container.style.display = 'flex';
     container.style.width = '100%';
-    container.style.gap = '15px'; // 사이 간격
+    container.style.gap = '20px';
     container.style.justifyContent = 'space-between';
 
     if (!list || !Array.isArray(list) || list.length === 0) {
-        container.innerHTML = '<div class="no-data" style="padding:10px; width:100%; text-align:center;">정보 없음</div>';
+        container.innerHTML = '<div class="no-data" style="padding:20px; width:100%; text-align:center; color:var(--light-text);">예보 정보 없음</div>';
         return;
     }
 
-    // 2. 오늘/내일 데이터를 카드 형태로 생성
     const labels = ['오늘 예보', '내일 예보'];
 
     list.forEach((item, index) => {
-        if (index > 1) return; // 최대 2개까지만 표시
+        if (index > 1) return;
 
         const gradeClass = getAqiClass(item.overallGrade);
         const statusText = getAqiStatusText(item.overallGrade);
         const iconHtml = getAqiIcon(item.overallGrade);
         const label = labels[index] || '예보';
 
-        // [핵심 수정] style="flex: 1;" 추가하여 공간을 균등하게 차지하도록 함
-        const html = `
-            <div class="aqi-forecast-item" style="flex: 1; padding: 20px 15px; background: white; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee;">
-                <div style="font-weight: bold; font-size: 1rem; color: #555; margin-bottom: 8px;">${label}</div>
-                <div style="font-size: 2.5rem; margin: 10px 0;">${iconHtml}</div>
-                <div class="aqi-badge ${gradeClass}" style="font-size: 0.9rem; padding: 5px 12px; margin-bottom: 5px;">${statusText}</div>
-                <div style="font-size: 0.85rem; color: #999; margin-top: 8px;">${item.date}</div>
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'aqi-forecast-card'; // CSS에서 스타일링
+
+        cardDiv.innerHTML = `
+            <div class="aqi-card-header">
+                <span class="aqi-label">${label}</span>
+                <span class="aqi-date">${item.date}</span>
+            </div>
+            
+            <div class="aqi-card-body">
+                <div class="aqi-icon">${iconHtml}</div>
+                <div class="aqi-status-badge ${gradeClass}">${statusText}</div>
             </div>
         `;
-        container.innerHTML += html;
+
+        container.appendChild(cardDiv);
     });
 }
 

@@ -1,5 +1,5 @@
 /**
- * fine-dust.js - 미세먼지 페이지 (수정본)
+ * fine-dust.js - 미세먼지 페이지 (예보 문구 가운데 정렬 수정)
  */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -69,7 +69,6 @@ async function loadFineDustByGPS(lat, lng) {
 async function loadFineDustBySido(sidoName) {
     const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
     try {
-        // [수정] 404 에러 원인 해결 -> /sido/ 경로 사용
         const res = await fetch(`${baseUrl}/api/air-quality/sido/${encodeURIComponent(sidoName)}`);
         const data = await res.json();
 
@@ -111,23 +110,42 @@ function updateFineDustForecast(list) {
     }
 }
 
+// [핵심 수정] 텍스트 정렬을 center로 변경
 function renderForecastCard(item, label) {
     const gradeClass = getAqiClass(item.overallGrade);
     const statusText = getAqiStatusText(item.overallGrade);
     const dateStr = item.date ? item.date : '';
+
+    // 개황
     let adviceText = item.advice || '상세 예보 정보가 없습니다.';
 
-    return `<div class="aqi-forecast-day"><div class="forecast-header"><span class="forecast-label" style="font-size:1.2rem; font-weight:bold;">${label}</span><span class="forecast-date" style="color:#666; font-size:0.9rem;">(${dateStr})</span></div><div style="font-size:3.5rem; margin:15px 0; color:var(--primary-color);">${getAqiIcon(item.overallGrade)}</div><div class="forecast-overall ${gradeClass}" style="margin-bottom:15px; font-weight:bold;">${statusText}</div><div class="forecast-advice"><i class="fas fa-quote-left" style="color:#ddd; margin-right:5px;"></i>${adviceText}<i class="fas fa-quote-right" style="color:#ddd; margin-left:5px;"></i></div></div>`;
+    // 발생 원인
+    let causeText = item.cause ? `<br><br><strong><i class="fas fa-search-plus"></i> 원인:</strong><br>${item.cause}` : '';
+
+    return `
+        <div class="aqi-forecast-day">
+            <div class="forecast-header">
+                <span class="forecast-label" style="font-size:1.2rem; font-weight:bold;">${label}</span>
+                <span class="forecast-date" style="color:#666; font-size:0.9rem;">(${dateStr})</span>
+            </div>
+            <div style="font-size:3.5rem; margin:15px 0; color:var(--primary-color);">
+                ${getAqiIcon(item.overallGrade)}
+            </div>
+            <div class="forecast-overall ${gradeClass}" style="margin-bottom:15px; font-weight:bold;">${statusText}</div>
+            
+            <div class="forecast-advice" style="text-align: center; word-break: keep-all; line-height: 1.6;">
+                <i class="fas fa-quote-left" style="color:#ddd; margin-right:5px;"></i>
+                ${adviceText}
+                ${causeText}
+                <i class="fas fa-quote-right" style="color:#ddd; margin-left:5px;"></i>
+            </div>
+        </div>
+    `;
 }
 
 function updateFineDustUI(data) {
     if (!data) return;
-
-    // [중요] 여기에서 getFullSidoName을 사용하여 "부산" -> "부산광역시"로 변경
-    if (data.sidoName) {
-        document.getElementById('fine-dust-location').textContent = getFullSidoName(data.sidoName);
-    }
-
+    if (data.sidoName) document.getElementById('fine-dust-location').textContent = getFullSidoName(data.sidoName);
     if (data.stationName) {
         const st = document.getElementById('station-name');
         if (st) st.textContent = data.stationName;
@@ -176,7 +194,6 @@ async function loadRegionalComparison() {
     const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
 
     const promises = regions.map(sido =>
-        // [수정] 404 해결 -> /sido/ 경로 사용
         fetch(`${baseUrl}/api/air-quality/sido/${encodeURIComponent(sido)}`)
             .then(res => res.json())
             .then(data => {
@@ -245,4 +262,27 @@ function extractSidoName(full) {
     if (full.length === 2) return full;
     const shortName = full.substring(0, 2);
     return mapping[shortName] || mapping[full] || '서울';
+}
+
+function getFullSidoName(short) {
+    const map = {
+        '서울': '서울특별시',
+        '부산': '부산광역시',
+        '대구': '대구광역시',
+        '인천': '인천광역시',
+        '광주': '광주광역시',
+        '대전': '대전광역시',
+        '울산': '울산광역시',
+        '세종': '세종특별자치시',
+        '경기': '경기도',
+        '강원': '강원특별자치도',
+        '충북': '충청북도',
+        '충남': '충청남도',
+        '전북': '전북특별자치도',
+        '전남': '전라남도',
+        '경북': '경상북도',
+        '경남': '경상남도',
+        '제주': '제주특별자치도'
+    };
+    return map[short] || short;
 }
