@@ -39,7 +39,7 @@ public class AirQualityApiService {
     private final Random random = new Random();
 
     /**
-     * 시도별 조회 (실패 시 더미 데이터 반환)
+     * 시도별 조회
      */
     @Cacheable(value = "airQualityBySido", key = "#sidoName")
     public List<AirQualityResponseDTO> getAirQualityBySido(String sidoName) {
@@ -55,32 +55,35 @@ public class AirQualityApiService {
                     .build(true)
                     .toUri();
 
-            log.info("API 호출: {}", uri);
+            log.info("대기질 API 호출: {}", sidoName);
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
             String responseBody = response.getBody();
 
-            // API 한도 초과 또는 에러 메시지 체크
-            if (responseBody != null && (responseBody.contains("quota exceeded") || responseBody.trim().startsWith("<"))) {
-                log.warn("🚨 API 한도 초과! 더미 데이터를 반환합니다.");
+            // [디버깅] 실제 API 응답이 뭔지 로그로 확인 (이게 중요해!)
+            // log.info("API 응답 결과: {}", responseBody);
+
+            // 에러 체크
+            if (isErrorResponse(responseBody)) {
+                log.warn("🚨 API 에러 발생 (내용: {}) -> 더미 데이터 반환", responseBody);
                 return getMockDataList(sidoName);
             }
 
             List<AirQualityResponseDTO> list = parseAirQualityResponse(responseBody, sidoName);
 
-            // 파싱 결과가 비어있으면 더미 데이터
             if (list == null || list.isEmpty()) {
+                log.warn("API 데이터 없음 -> 더미 데이터 반환");
                 return getMockDataList(sidoName);
             }
             return list;
 
         } catch (Exception e) {
-            log.error("API 호출 실패 -> 더미 데이터 전환: {}", e.getMessage());
+            log.error("API 호출 중 예외: {}", e.getMessage());
             return getMockDataList(sidoName);
         }
     }
 
     /**
-     * 측정소별 조회 (실패 시 더미 데이터 반환)
+     * 측정소별 조회
      */
     @Cacheable(value = "airQualityByStation", key = "#stationName")
     public AirQualityResponseDTO getAirQualityByStation(String stationName) {
@@ -100,14 +103,12 @@ public class AirQualityApiService {
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
             String body = response.getBody();
 
-            if (body != null && body.startsWith("<")) {
+            if (isErrorResponse(body)) {
                 return getSingleMockData(stationName);
             }
 
             AirQualityResponseDTO dto = parseStationAirQualityResponse(body, stationName);
-            if (dto == null) {
-                return getSingleMockData(stationName);
-            }
+            if (dto == null) return getSingleMockData(stationName);
             return dto;
 
         } catch (Exception e) {
@@ -116,7 +117,36 @@ public class AirQualityApiService {
     }
 
     /**
-     * 예보 조회 (실패 시 더미 예보 반환)
+     * 근접 측정소 조회 (GPS용)
+     */
+    @Cacheable(value = "nearbyStations", key = "#tmX + '_' + #tmY")
+    public String getNearbyStation(Double tmX, Double tmY) {
+        try {
+            URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getNearbyMsrstnList")
+                    .queryParam("serviceKey", apiKey)
+                    .queryParam("returnType", "json")
+                    .queryParam("tmX", tmX)
+                    .queryParam("tmY", tmY)
+                    .build(true)
+                    .toUri();
+
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                JsonNode root = objectMapper.readTree(response.getBody());
+                JsonNode items = root.path("response").path("body").path("items");
+                if (items.isArray() && items.size() > 0) {
+                    return items.get(0).path("stationName").asText();
+                }
+            }
+        } catch (Exception e) {
+            log.error("근접 측정소 조회 실패", e);
+        }
+        // [수정] 실패 시 '중구' 대신 '가상 측정소'로 반환해서 헷갈리지 않게 함
+        return "가상 측정소";
+    }
+
+    /**
+     * 예보 조회
      */
     public List<AirQualityResponseDTO.AirQualityForecast> getAirQualityForecast(String sidoName) {
         try {
@@ -130,57 +160,151 @@ public class AirQualityApiService {
                     .toUri();
 
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            String body = response.getBody();
 
-            // XML 에러 또는 내용 없음 체크
-            if (response.getBody() != null && response.getBody().trim().startsWith("<")) {
-                return getMockForecasts();
-            }
+            if (isErrorResponse(body)) return getMockForecasts();
 
-            List<AirQualityResponseDTO.AirQualityForecast> list = parseForecastResponse(response.getBody());
-
-            // 리스트가 비어있으면 더미 예보 반환 (여기가 예보가 안 뜨던 원인!)
-            if (list == null || list.isEmpty()) {
-                return getMockForecasts();
-            }
+            List<AirQualityResponseDTO.AirQualityForecast> list = parseForecastResponse(body);
+            if (list == null || list.isEmpty()) return getMockForecasts();
             return list;
 
         } catch (Exception e) {
-            log.warn("예보 API 실패, 더미 예보 반환");
             return getMockForecasts();
         }
     }
 
-    @Cacheable(value = "nearbyStations", key = "#tmX + '_' + #tmY")
-    public String getNearbyStation(Double tmX, Double tmY) {
-        return "가상측정소";
+    // ===== 헬퍼 메서드 =====
+    private boolean isErrorResponse(String body) {
+        if (body == null) return true;
+        // 한도 초과(Quota Exceeded), 인증 실패(SERVICE ERROR), DB 에러 등 체크
+        return body.contains("quota exceeded") || body.contains("SERVICE ERROR") || body.trim().startsWith("<");
+    }
+
+    // ===== 파싱 로직 (실제 데이터용) =====
+    private List<AirQualityResponseDTO> parseAirQualityResponse(String jsonResponse, String sidoName) throws Exception {
+        JsonNode root = objectMapper.readTree(jsonResponse);
+        JsonNode items = root.path("response").path("body").path("items");
+        List<AirQualityResponseDTO> result = new ArrayList<>();
+        if (items.isArray()) {
+            for (JsonNode item : items) {
+                try {
+                    AirQualityResponseDTO dto = parseAirQualityItem(item, sidoName);
+                    if (dto != null) result.add(dto);
+                } catch (Exception e) {
+                }
+            }
+        }
+        return result;
+    }
+
+    private AirQualityResponseDTO parseStationAirQualityResponse(String jsonResponse, String stationName) throws Exception {
+        JsonNode root = objectMapper.readTree(jsonResponse);
+        JsonNode items = root.path("response").path("body").path("items");
+        if (items.isArray() && items.size() > 0) {
+            return parseAirQualityItem(items.get(0), "대한민국");
+        }
+        return null;
+    }
+
+    private List<AirQualityResponseDTO.AirQualityForecast> parseForecastResponse(String jsonResponse) throws Exception {
+        JsonNode root = objectMapper.readTree(jsonResponse);
+        JsonNode items = root.path("response").path("body").path("items");
+        List<AirQualityResponseDTO.AirQualityForecast> forecasts = new ArrayList<>();
+        if (items.isArray()) {
+            for (JsonNode item : items) {
+                String informData = item.path("informData").asText();
+                String informOverall = item.path("informOverall").asText();
+                String informGrade = item.path("informGrade").asText();
+                String overallGrade = extractGradeFromForecast(informGrade, "서울");
+                forecasts.add(AirQualityResponseDTO.AirQualityForecast.builder()
+                        .date(informData)
+                        .overallGrade(overallGrade)
+                        .pm10Grade(overallGrade)
+                        .pm25Grade(overallGrade)
+                        .advice(informOverall)
+                        .build());
+            }
+        }
+        return forecasts;
+    }
+
+    private AirQualityResponseDTO parseAirQualityItem(JsonNode item, String sidoName) {
+        try {
+            String stationName = item.path("stationName").asText(null);
+            String dataTimeStr = item.path("dataTime").asText(null);
+            if (stationName == null || dataTimeStr == null) return null;
+
+            LocalDateTime dataTime;
+            try {
+                dataTime = LocalDateTime.parse(dataTimeStr.replace(" ", "T"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } catch (Exception e) {
+                dataTime = LocalDateTime.now();
+            }
+
+            // ... (값 파싱 부분은 동일하여 생략, 기존 로직 그대로 유지) ...
+            // (전체 코드 복사 시엔 이 부분도 포함되어야 하므로 아래에 간략히 포함)
+            Integer pm10Value = parseIntegerSafe(item.path("pm10Value").asText());
+            String pm10Grade = item.path("pm10Grade").asText("2");
+            Integer pm25Value = parseIntegerSafe(item.path("pm25Value").asText());
+            String pm25Grade = item.path("pm25Grade").asText("2");
+            Double o3Value = parseDoubleSafe(item.path("o3Value").asText());
+            String o3Grade = item.path("o3Grade").asText("2");
+            Double no2Value = parseDoubleSafe(item.path("no2Value").asText());
+            String no2Grade = item.path("no2Grade").asText("2");
+            Double coValue = parseDoubleSafe(item.path("coValue").asText());
+            String coGrade = item.path("coGrade").asText("2");
+            Double so2Value = parseDoubleSafe(item.path("so2Value").asText());
+            String so2Grade = item.path("so2Grade").asText("2");
+            Integer khaiValue = parseIntegerSafe(item.path("khaiValue").asText());
+            String khaiGrade = item.path("khaiGrade").asText("2");
+            String overallGrade = determineOverallGrade(pm10Grade, pm25Grade, o3Grade, no2Grade);
+
+            return AirQualityResponseDTO.builder()
+                    .stationName(stationName)
+                    .sidoName(sidoName)
+                    .dataTime(dataTime)
+                    .khai(createIndex(khaiValue, khaiGrade, ""))
+                    .pm10(createIndex(pm10Value, pm10Grade, "㎍/㎥"))
+                    .pm25(createIndex(pm25Value, pm25Grade, "㎍/㎥"))
+                    .o3(createIndex(o3Value, o3Grade, "ppm"))
+                    .no2(createIndex(no2Value, no2Grade, "ppm"))
+                    .co(createIndex(coValue, coGrade, "ppm"))
+                    .so2(createIndex(so2Value, so2Grade, "ppm"))
+                    .overallGrade(overallGrade)
+                    .overallStatus(convertGradeToStatus(overallGrade))
+                    .healthAdvice(generateHealthAdvice(overallGrade))
+                    .build();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // ==========================================
-    // [핵심] 더미 데이터 생성 로직 (티나게!)
+    // [가상 데이터] 생성 로직
     // ==========================================
 
     private List<AirQualityResponseDTO> getMockDataList(String sidoName) {
         List<AirQualityResponseDTO> list = new ArrayList<>();
-        // 구/군 이름 흉내
-        String[] fakeStations = {sidoName + " 본청(가상)", sidoName + " 동부(가상)", sidoName + " 서부(가상)", "🚧테스트측정소"};
-
-        for (String station : fakeStations) {
-            list.add(createMockDTO(sidoName, station));
-        }
+        // 티나는 가상 측정소 이름
+        String[] fakeStations = {sidoName + " 본청(가상)", sidoName + " 동부(가상)", "테스트측정소"};
+        for (String station : fakeStations) list.add(createMockDTO(sidoName, station));
         return list;
     }
 
     private AirQualityResponseDTO getSingleMockData(String stationName) {
-        return createMockDTO("가상지역", stationName);
+        // GPS 실패 등으로 넘어왔을 때도 '가상'임을 명시
+        if ("가상 측정소".equals(stationName) || "중구".equals(stationName)) {
+            return createMockDTO("위치확인불가", "가상 측정소");
+        }
+        return createMockDTO("가상지역", stationName + "(가상)");
     }
 
     private AirQualityResponseDTO createMockDTO(String sidoName, String stationName) {
-        String grade = String.valueOf(random.nextInt(4) + 1); // 1~4 등급 랜덤
-
+        String grade = String.valueOf(random.nextInt(4) + 1);
         return AirQualityResponseDTO.builder()
                 .sidoName(sidoName)
                 .stationName(stationName)
-                .dataTime(LocalDateTime.now())
+                .dataTime(LocalDateTime.now()) // 더미 데이터는 현재 시간 사용
                 .khai(createIndex(random.nextInt(200), grade, "점"))
                 .pm10(createIndex(random.nextInt(150), grade, "㎍/㎥"))
                 .pm25(createIndex(random.nextInt(100), grade, "㎍/㎥"))
@@ -190,90 +314,95 @@ public class AirQualityApiService {
                 .so2(createIndex(0.003, "1", "ppm"))
                 .overallGrade(grade)
                 .overallStatus(convertGradeToStatus(grade))
-                .healthAdvice("🚧 [테스트 모드] API 한도 초과로 생성된 가상 데이터입니다.")
+                .healthAdvice("📢 [테스트 모드] API 호출 한도 초과 또는 에러로 생성된 가상 데이터입니다.")
                 .build();
     }
 
-    // [중요] 예보용 더미 데이터 생성 (오늘, 내일 2개 필수)
     private List<AirQualityResponseDTO.AirQualityForecast> getMockForecasts() {
         List<AirQualityResponseDTO.AirQualityForecast> list = new ArrayList<>();
-
         LocalDate today = LocalDate.now();
-
-        // 1. 오늘 예보 (가상)
-        list.add(AirQualityResponseDTO.AirQualityForecast.builder()
-                .date(today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                .overallGrade(String.valueOf(random.nextInt(3) + 1)) // 1~3 랜덤
-                .pm10Grade(String.valueOf(random.nextInt(3) + 1))
-                .pm25Grade(String.valueOf(random.nextInt(3) + 1))
-                .advice("📢 [오늘/가상] 현재 API 점검 중으로 가상 예보를 표시합니다.")
-                .build());
-
-        // 2. 내일 예보 (가상)
-        list.add(AirQualityResponseDTO.AirQualityForecast.builder()
-                .date(today.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                .overallGrade(String.valueOf(random.nextInt(3) + 1))
-                .pm10Grade(String.valueOf(random.nextInt(3) + 1))
-                .pm25Grade(String.valueOf(random.nextInt(3) + 1))
-                .advice("📢 [내일/가상] 내일도 맑을 것으로 '가정'됩니다.")
-                .build());
-
+        for (int i = 0; i < 2; i++) {
+            String grade = String.valueOf(random.nextInt(3) + 1);
+            list.add(AirQualityResponseDTO.AirQualityForecast.builder()
+                    .date(today.plusDays(i).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                    .overallGrade(grade)
+                    .pm10Grade(grade)
+                    .pm25Grade(grade)
+                    .advice("📢 [가상 예보] 현재 API 상태가 원활하지 않습니다.")
+                    .build());
+        }
         return list;
     }
 
     // ===== 유틸리티 =====
-    private AirQualityResponseDTO.AirQualityIndex createIndex(Number val, String grade, String unit) {
-        return AirQualityResponseDTO.AirQualityIndex.builder()
-                .value(val.intValue())
-                .grade(grade)
-                .status(convertGradeToStatus(grade))
-                .unit(unit)
-                .build();
-    }
-
-    private String convertGradeToStatus(String grade) {
-        return switch (grade) {
-            case "1" -> "좋음";
-            case "2" -> "보통";
-            case "3" -> "나쁨";
-            case "4" -> "매우나쁨";
-            default -> "점검중";
-        };
-    }
-
-    // 파싱 로직 (기존 유지)
-    private List<AirQualityResponseDTO> parseAirQualityResponse(String json, String sido) throws Exception {
-        JsonNode root = objectMapper.readTree(json);
-        JsonNode items = root.path("response").path("body").path("items");
-        List<AirQualityResponseDTO> result = new ArrayList<>();
-        if (items.isArray()) {
-            for (JsonNode item : items) {
-                try {
-                    AirQualityResponseDTO dto = parseAirQualityItem(item, sido);
-                    if (dto != null) result.add(dto);
-                } catch (Exception e) {
-                }
-            }
-        }
-        return result;
-    }
-
-    private AirQualityResponseDTO parseAirQualityItem(JsonNode item, String sidoName) {
+    private Integer parseIntegerSafe(String value) {
         try {
-            String stationName = item.path("stationName").asText(null);
-            if (stationName == null) return null;
-            // ... (상세 파싱 로직 생략 - 어차피 더미데이터가 리턴되므로) ...
-            return null; // 여기 도달할 일 없음 (실제 구현 시엔 원래 로직 사용)
+            if (value == null || value.trim().isEmpty() || "-".equals(value.trim())) return null;
+            return Integer.parseInt(value.trim());
         } catch (Exception e) {
             return null;
         }
     }
 
-    private AirQualityResponseDTO parseStationAirQualityResponse(String json, String st) throws Exception {
-        return null;
+    private Double parseDoubleSafe(String value) {
+        try {
+            if (value == null || value.trim().isEmpty() || "-".equals(value.trim())) return null;
+            return Double.parseDouble(value.trim());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    private List<AirQualityResponseDTO.AirQualityForecast> parseForecastResponse(String json) throws Exception {
-        return new ArrayList<>();
+    private AirQualityResponseDTO.AirQualityIndex createIndex(Number val, String grade, String unit) {
+        return AirQualityResponseDTO.AirQualityIndex.builder().value(val != null ? val.intValue() : 0).grade(grade).status(convertGradeToStatus(grade)).unit(unit).build();
+    }
+
+    private String convertGradeToStatus(String grade) {
+        if (grade == null) return "보통";
+        return switch (grade.trim()) {
+            case "1" -> "좋음";
+            case "2" -> "보통";
+            case "3" -> "나쁨";
+            case "4" -> "매우나쁨";
+            default -> "보통";
+        };
+    }
+
+    private String determineOverallGrade(String... grades) {
+        int worst = 1;
+        for (String g : grades) {
+            try {
+                if (g != null && !g.isEmpty()) worst = Math.max(worst, Integer.parseInt(g.trim()));
+            } catch (Exception e) {
+            }
+        }
+        return String.valueOf(worst);
+    }
+
+    private String generateHealthAdvice(String grade) {
+        return switch (grade) {
+            case "1" -> "대기질이 상쾌합니다! 환기하기 좋아요.";
+            case "2" -> "대기질이 무난합니다. 평범한 하루네요.";
+            case "3" -> "공기가 탁해요. 마스크를 챙기세요.";
+            case "4" -> "매우 나쁩니다! 가급적 외출을 삼가세요.";
+            default -> "대기질 정보를 확인해주세요.";
+        };
+    }
+
+    private String extractGradeFromForecast(String informGrade, String region) {
+        if (informGrade == null) return "2";
+        try {
+            String[] parts = informGrade.split(",");
+            for (String part : parts) {
+                if (part.contains(region)) {
+                    if (part.contains("좋음")) return "1";
+                    if (part.contains("보통")) return "2";
+                    if (part.contains("나쁨")) return "3";
+                    if (part.contains("매우나쁨")) return "4";
+                }
+            }
+        } catch (Exception e) {
+        }
+        return "2";
     }
 }
