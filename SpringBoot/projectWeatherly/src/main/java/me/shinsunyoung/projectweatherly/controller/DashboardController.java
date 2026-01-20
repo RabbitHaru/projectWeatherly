@@ -36,35 +36,6 @@ public class DashboardController {
     private final BoardRepository boardRepository;
     private final ReportRepository reportRepository;
 
-    /**
-     * [관리자 대시보드 페이지]
-     * - 실제 DB 데이터를 조회하여 통계 및 관리 리스트를 표시합니다.
-     */
-    @GetMapping("/admin")
-    public String adminPage(Model model) {
-        // 1. [상단 통계 카드]
-        // - 대기 중인 신고 건수 (Enum -> String 변환)
-        long pendingReports = reportRepository.countByStatus(ReportStatus.PENDING.name());
-        // - 전체 회원 수
-        long totalMembers = memberRepository.count();
-        // - 오늘 작성된 게시글 수 (오늘 0시 0분 0초 이후)
-        long todayPosts = boardRepository.countByCreatedAtAfter(LocalDate.now().atStartOfDay());
-
-        // 2. [테이블] 최근 가입 회원 (최신순 5명)
-        List<Member> recentMembers = memberRepository.findTop5ByOrderByCreatedAtDesc();
-
-        // 3. [테이블] 최근 신고 내역 (최신순 5건)
-        List<Report> recentReports = reportRepository.findTop5ByOrderByCreatedAtDesc();
-
-        // 4. 모델에 담아서 뷰(HTML)로 전달
-        model.addAttribute("pendingReports", pendingReports);
-        model.addAttribute("totalMembers", totalMembers);
-        model.addAttribute("todayPosts", todayPosts);
-        model.addAttribute("recentMembers", recentMembers);
-        model.addAttribute("recentReports", recentReports);
-
-        return "admin";
-    }
 
     /**
      * [기상 인사이트 페이지]
