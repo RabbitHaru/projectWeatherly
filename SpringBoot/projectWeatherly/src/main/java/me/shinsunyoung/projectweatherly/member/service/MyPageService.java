@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Comment;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Report;
+import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
 import me.shinsunyoung.projectweatherly.board.dto.MyCommentResponse;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
@@ -64,7 +65,7 @@ public class MyPageService {
 
         // 게시글
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
-        List<CommunityPostResponse> postList = boardRepository.findByMember(member, pageable)
+        List<CommunityPostResponse> postList = boardRepository.findByMemberAndBoardStatus(member,BoardStatus.ACTIVE, pageable)
                 .stream().map(CommunityPostResponse::new).collect(Collectors.toList());
         response.setMyCommunityPosts(postList);
 
@@ -146,6 +147,6 @@ public class MyPageService {
         if (!board.getMember().getId().equals(member.getId())) {
             throw new MemberException("삭제 권한이 없습니다.");
         }
-        boardRepository.delete(board);
+        board.setBoardStatus(BoardStatus.DELETED);
     }
 }

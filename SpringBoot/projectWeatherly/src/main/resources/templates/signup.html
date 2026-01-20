@@ -22,10 +22,13 @@
             <h1><i class="fas fa-user-plus"></i> 회원가입</h1>
             <p class="subtitle">Weatherly 회원이 되어 정확한 날씨 정보와 커뮤니티를 즐기세요</p>
         </div>
-        <form id="signupForm" class="signup-form" th:action="@{/signup}" method="post">
+        <form id="signupForm" class="signup-form"  method="post" enctype="multipart/form-data">
 
 
-
+            <div id="loginErrorMsg" class="error-box" th:classappend="${param.error} ? 'show' : ''">
+                <i class="fas fa-times-circle"></i>
+                <span>회원가입을 실패하였습니다.</span>
+            </div>
             <!-- 기본 정보 입력 -->
             <div class="form-section">
                 <h2><i class="fas fa-id-card"></i> 기본 정보</h2>

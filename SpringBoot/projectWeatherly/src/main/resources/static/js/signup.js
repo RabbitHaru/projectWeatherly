@@ -272,61 +272,62 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
 
         // 실제 구현에서는 fetch API를 사용하여 서버로 데이터 전송
-        setTimeout(() => {
-            // 성공 시뮬레이션
-            alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
-            window.location.href = '/login';
-        }, 2000);
+        // setTimeout(() => {
+        //     // 성공 시뮬레이션
+        //     alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+        //     window.location.href = '/login';
+        // }, 2000);
 
         // 실제 구현 시 아래 코드를 사용
 
-        axios.post('/auth/signup', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        })
-            .then(response => {
-                const data = response.data;
-                if (data.success) {
-                    alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
-                    window.location.href = '/login';
-                } else {
-                    alert(data.message || '회원가입에 실패했습니다.');
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-
-                // 에러 응답 구조에 따라 다르게 처리
-                if (error.response) {
-                    // 서버가 2xx 외의 상태 코드로 응답한 경우
-                    console.error('Response status:', error.response.status);
-                    console.error('Response data:', error.response.data);
-
-                    // 서버에서 제공한 에러 메시지 사용
-                    const errorMessage = error.response.data?.message ||
-                        error.response.data?.error ||
-                        '서버 오류가 발생했습니다.';
-                    alert(errorMessage);
-                } else if (error.request) {
-                    // 요청이 전송되었지만 응답이 없는 경우
-                    console.error('No response received:', error.request);
-                    alert('서버에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.');
-                } else {
-                    // 요청 설정 중에 에러가 발생한 경우
-                    console.error('Request setup error:', error.message);
-                    alert('요청을 처리하는 중 오류가 발생했습니다.');
-                }
-
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            });
-
+        // axios.post('/auth/signup', formData, {
+        //     headers: {
+        //         'Content-Type': 'multipart/form-data'
+        //     }
+        // })
+        //     .then(response => {
+        //         const data = response.data;
+        //         if (data.success) {
+        //             alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+        //             window.location.href = '/login';
+        //         } else {
+        //             alert(data.message || '회원가입에 실패했습니다.');
+        //             submitBtn.innerHTML = originalText;
+        //             submitBtn.disabled = false;
+        //         }
+        //     })
+        //     .catch(error => {
+        //         console.error('Error:', error);
+        //
+        //         // 에러 응답 구조에 따라 다르게 처리
+        //         if (error.response) {
+        //             // 서버가 2xx 외의 상태 코드로 응답한 경우
+        //             console.error('Response status:', error.response.status);
+        //             console.error('Response data:', error.response.data);
+        //
+        //             // 서버에서 제공한 에러 메시지 사용
+        //             const errorMessage = error.response.data?.message ||
+        //                 error.response.data?.error ||
+        //                 '서버 오류가 발생했습니다.';
+        //             alert(errorMessage);
+        //         } else if (error.request) {
+        //             // 요청이 전송되었지만 응답이 없는 경우
+        //             console.error('No response received:', error.request);
+        //             alert('서버에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.');
+        //         } else {
+        //             // 요청 설정 중에 에러가 발생한 경우
+        //             console.error('Request setup error:', error.message);
+        //             alert('요청을 처리하는 중 오류가 발생했습니다.');
+        //         }
+        //
+        //         submitBtn.innerHTML = originalText;
+        //         submitBtn.disabled = false;
+        //     });
+        e.target.action = "/signup";
+        e.target.submit();
     });
 
-    // 입력 필드 자동 저장 (선택사항)
+    // // 입력 필드 자동 저장 (선택사항)
     const inputsToSave = ['user_email', 'user_name'];
 
     inputsToSave.forEach(id => {
@@ -356,16 +357,6 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem(`signup_${id}`);
         });
     });
+
 });
-// 다크모드 전환 (기존 스크립트 활용)
-document.getElementById('darkModeToggle').addEventListener('click', function() {
-    document.body.classList.toggle('dark-mode');
-    const icon = this.querySelector('i');
-    if (document.body.classList.contains('dark-mode')) {
-        icon.classList.remove('fa-moon');
-        icon.classList.add('fa-sun');
-    } else {
-        icon.classList.remove('fa-sun');
-        icon.classList.add('fa-moon');
-    }
-});
+

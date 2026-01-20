@@ -25,24 +25,27 @@
                 <li><a href="/outfit" class="menu-item"><i class="fas fa-tshirt"></i> 옷차림</a></li>
                 <li><a href="/community" class="menu-item"><i class="fas fa-comments"></i> 커뮤니티</a></li>
                 <li><a href="/insights" class="menu-item"><i class="fas fa-chart-line"></i> 기상 통계</a></li>
-                <li><a href="/admin" class="menu-item"><i class="fas fa-cog"></i> 관리자</a></li>
+
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a href="/admin" class="menu-item"><i class="fas fa-cog"></i> 관리자</a>
+                </li>
             </ul>
         </nav>
 
         <div class="header-right">
             <div class="user-greeting" sec:authorize="isAuthenticated()">
-                <span class="greeting-text">안녕하세요, <strong th:text="${nickname}"></strong>님!</span>
+                <span class="greeting-text">안녕하세요, <strong th:text="${#authentication.principal.user.nickname}"></strong>님!</span>
             </div>
 
             <div class="control-buttons">
-                <button class="control-btn notification-btn" title="알림">
+                <button class="control-btn notification-btn" title="알림" sec:authorize="isAuthenticated()">
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge">0</span>
                 </button>
-                <button class="control-btn favorites-btn" title="즐겨찾기">
+                <button class="control-btn favorites-btn" title="즐겨찾기" sec:authorize="isAuthenticated()">
                     <i class="fas fa-star"></i>
                 </button>
-                <button class="control-btn darkmode-toggle" id="darkmode-toggle" title="다크모드 전환">
+                <button class="control-btn darkmode-toggle" id="darkmode-toggle" title="다크모드 전환" >
                     <i class="fas fa-moon"></i>
                 </button>
             </div>
@@ -50,15 +53,21 @@
             <div class="dropdown">
                 <button class="user-menu-btn">
                     <i class="fas fa-user-circle"></i>
-                    <span>마이페이지</span>
+
+                    <span sec:authorize="isAuthenticated()">마이페이지</span>
+
+                    <span sec:authorize="isAnonymous()">로그인/가입</span>
+
                     <i class="fas fa-chevron-down"></i>
                 </button>
+
                 <div class="dropdown-content" sec:authorize="isAuthenticated()">
                     <a href="/mypage"><i class="fas fa-user"></i> 프로필설정</a>
                     <a href="/favorites"><i class="fas fa-star"></i> 즐겨찾기</a>
                     <div class="dropdown-divider"></div>
                     <a href="/logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</a>
                 </div>
+
                 <div class="dropdown-content" sec:authorize="isAnonymous()">
                     <a href="/login"><i class="fas fa-sign-in-alt"></i> 로그인</a>
                     <a href="/signup"><i class="fas fa-user-plus"></i> 회원가입</a>

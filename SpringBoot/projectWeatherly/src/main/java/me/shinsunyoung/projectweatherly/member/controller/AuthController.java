@@ -23,7 +23,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/auth")
 @RequiredArgsConstructor
 @Tag(name = "인증 컨트롤러", description = "회원가입, 로그인, 로그아웃 관련 페이지")
 public class AuthController {
@@ -36,7 +35,7 @@ public class AuthController {
     @Operation(summary = "로그인 페이지", description = "로그인 폼을 표시합니다.")
     public String showLoginPage(Model model) {
         model.addAttribute("loginRequest", new LoginRequest());
-        return "auth/login";
+        return "login";
     }
 
     // 로그인 처리
@@ -49,7 +48,7 @@ public class AuthController {
             RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
-            return "auth/login";
+            return "login";
         }
 
         try {
@@ -59,16 +58,15 @@ public class AuthController {
             return "redirect:/";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
-            return "auth/login";
+            return "login";
         }
     }
 
     // 회원가입 페이지
     @GetMapping("/signup")
     @Operation(summary = "회원가입 페이지", description = "회원가입 폼을 표시합니다.")
-    public String showSignupPage(Model model) {
-        model.addAttribute("signupRequest", new SignupRequest());
-        return "auth/signup";
+    public String showSignupPage() {
+        return "signup";
     }
 
     // 회원가입 처리
@@ -81,7 +79,7 @@ public class AuthController {
             RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
-            return "auth/signup";
+            return "signup";
         }
 
         try {
@@ -93,25 +91,25 @@ public class AuthController {
 
             redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다.");
             redirectAttributes.addFlashAttribute("memberId", memberId);
-            return "redirect:/auth/signup-success";
+            return "redirect:/login";
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "auth/signup";
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/signup";
         }
     }
 
-    // 회원가입 성공 페이지
-    @GetMapping("/signup-success")
-    @Operation(summary = "회원가입 성공 페이지", description = "회원가입 성공 메시지를 표시합니다.")
-    public String showSignupSuccessPage() {
-        return "auth/signup-success";
-    }
-
-    // 로그아웃
-    @GetMapping("/logout")
-    @Operation(summary = "로그아웃", description = "사용자를 로그아웃합니다.")
-    public String logout(RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("message", "로그아웃되었습니다.");
-        return "redirect:/auth/login";
-    }
+//    // 회원가입 성공 페이지
+//    @GetMapping("/signup-success")
+//    @Operation(summary = "회원가입 성공 페이지", description = "회원가입 성공 메시지를 표시합니다.")
+//    public String showSignupSuccessPage() {
+//        return "auth/signup-success";
+//    }
+//
+//    // 로그아웃
+//    @GetMapping("/logout")
+//    @Operation(summary = "로그아웃", description = "사용자를 로그아웃합니다.")
+//    public String logout(RedirectAttributes redirectAttributes) {
+//        redirectAttributes.addFlashAttribute("message", "로그아웃되었습니다.");
+//        return "redirect:/auth/login";
+//    }
 }
