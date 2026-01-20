@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Weatherly Fine Dust Stylesheet (Color Fixed)
+   Weatherly Fine Dust Stylesheet (Final Fixed)
    ========================================================================== */
 
 .large-badge {
@@ -78,7 +78,7 @@
     margin-bottom: 10px;
 }
 
-/* [중요] 상태 뱃지 색상 */
+/* 상태 뱃지 색상 */
 .aqi-detail-status {
     padding: 6px 18px;
     border-radius: 20px;
@@ -109,7 +109,7 @@
     color: white;
 }
 
-/* 예보 카드 (넓은 형태) */
+/* 예보 카드 */
 .aqi-forecast-container {
     display: flex;
     flex-direction: column;
@@ -156,32 +156,21 @@ body.dark-mode .forecast-date {
     margin-bottom: 10px;
 }
 
-.forecast-details {
-    display: flex;
-    gap: 20px;
-    font-size: 1.1rem;
-    color: #555;
-    font-weight: 600;
-    justify-content: center;
-}
-
-body.dark-mode .forecast-details {
-    color: #ddd;
-}
-
+/* [수정] 다크모드 예보 문구 가독성 개선 */
 .forecast-advice {
     font-size: 1rem;
     color: #666;
     margin-top: 10px;
-    background: #f8f9fa; /* 라이트 모드 배경 */
+    background: #f8f9fa;
     padding: 15px;
     border-radius: 15px;
     width: 100%;
 }
 
 body.dark-mode .forecast-advice {
-    background: #34495e; /* [중요] 다크 모드 배경 (어두운 색) */
-    color: #ccc;         /* 글자색 (밝은 회색) */
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* 기타 섹션 */
@@ -227,42 +216,62 @@ body.dark-mode .tip-card {
     border-left-color: #4fc3f7;
 }
 
-/* 사이드바 */
+/* [수정] 사이드바 디자인 통일 및 선택 효과 */
 .regional-aqi-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.regional-aqi-item {
+.region-weather { /* 날씨 페이지와 클래스명 통일 */
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background: #f8f9fa;
-    border-radius: 15px;
+    background: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 12px;
     cursor: pointer;
     transition: 0.3s;
+    border-left: 5px solid transparent;
 }
 
-body.dark-mode .regional-aqi-item {
+body.dark-mode .region-weather {
     background: #2a2a4a;
+    border-color: #444;
+    color: white;
 }
 
-.regional-aqi-badge {
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    min-width: 70px;
-    text-align: center;
-    color: white;
+.region-weather:hover {
+    background: #f8f9fa;
+    transform: translateX(5px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode .region-weather:hover {
+    background: #333;
+}
+
+/* 선택된 항목 강조 스타일 */
+.region-weather.selected {
+    border-left-color: var(--primary-color);
+    background-color: #f0f7ff;
+}
+
+body.dark-mode .region-weather.selected {
+    border-left-color: #4fc3f7;
+    background-color: rgba(79, 195, 247, 0.15);
+}
+
+.region-name {
+    font-weight: 700;
+    font-size: 1rem;
 }
 
 .related-links {
     display: flex;
-    flex-direction: column; /* 세로로 정렬 */
-    gap: 10px; /* 버튼 사이 간격 */
+    flex-direction: column;
+    gap: 10px;
 }
 
 .related-link {
@@ -270,34 +279,32 @@ body.dark-mode .regional-aqi-item {
     width: 100%;
     padding: 12px 0;
     text-align: center;
-    background-color: #f8f9fa; /* 기본: 밝은 회색 배경 */
-    color: var(--secondary-color); /* 글자색: 진한 남색 */
-    text-decoration: none; /* 밑줄 제거 */
-    border-radius: 12px; /* 둥근 모서리 */
-    font-weight: 700; /* 굵은 글씨 */
-    border: 1px solid #e9ecef; /* 얇은 테두리 */
-    transition: all 0.3s ease; /* 부드러운 애니메이션 */
+    background-color: #f8f9fa;
+    color: var(--secondary-color);
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 700;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
     cursor: pointer;
 }
 
-/* 마우스 올렸을 때 (Hover) */
 .related-link:hover {
-    background-color: var(--primary-color); /* 파란색 배경으로 변경 */
-    color: white; /* 흰색 글씨 */
+    background-color: var(--primary-color);
+    color: white;
     border-color: var(--primary-color);
-    transform: translateY(-3px); /* 살짝 위로 뜸 */
-    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); /* 그림자 효과 */
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
 }
 
-/* 다크모드 대응 */
 body.dark-mode .related-link {
-    background-color: #2a2a4a; /* 어두운 배경 */
-    color: #e0e0e0; /* 밝은 글씨 */
-    border-color: #3a3a5d; /* 어두운 테두리 */
+    background-color: #2a2a4a;
+    color: #e0e0e0;
+    border-color: #3a3a5d;
 }
 
 body.dark-mode .related-link:hover {
-    background-color: var(--primary-color); /* 호버 시 파란색 유지 */
+    background-color: var(--primary-color);
     color: white;
     border-color: var(--primary-color);
 }

@@ -1,15 +1,32 @@
 /**
  * common.js - Weatherly 공통 유틸리티
- * (Dark Mode Fix & Robust Initialization Version)
  */
 
 var API_BASE_URL = window.location.origin;
 
-document.addEventListener('DOMContentLoaded', function () {
-    // 1. 즉시 실행 시도
-    initCommonFeatures();
+// [추가] 주요 도시 GPS 좌표 (날씨 조회용)
+const CITY_COORDINATES = {
+    '서울': {lat: 37.5665, lng: 126.9780},
+    '부산': {lat: 35.1796, lng: 129.0756},
+    '대구': {lat: 35.8714, lng: 128.6014},
+    '인천': {lat: 37.4563, lng: 126.7052},
+    '광주': {lat: 35.1595, lng: 126.8526},
+    '대전': {lat: 36.3504, lng: 127.3845},
+    '울산': {lat: 35.5384, lng: 129.3114},
+    '세종': {lat: 36.4800, lng: 127.2890},
+    '제주': {lat: 33.4996, lng: 126.5312},
+    '경기': {lat: 37.4138, lng: 127.5183}, // 경기도청(수원) 기준
+    '강원': {lat: 37.8228, lng: 128.1555},
+    '충북': {lat: 36.6350, lng: 127.4914},
+    '충남': {lat: 36.6588, lng: 126.6728},
+    '전북': {lat: 35.7175, lng: 127.1530},
+    '전남': {lat: 34.8163, lng: 126.4629},
+    '경북': {lat: 36.5760, lng: 128.5056},
+    '경남': {lat: 35.2383, lng: 128.6924}
+};
 
-    // 2. 혹시 헤더(Fragment)가 늦게 로딩될 경우를 대비해 0.1초 뒤 재시도 (이중 안전장치)
+document.addEventListener('DOMContentLoaded', function () {
+    initCommonFeatures();
     setTimeout(initCommonFeatures, 100);
 });
 
@@ -17,60 +34,42 @@ function initCommonFeatures() {
     try {
         setupDarkMode();
     } catch (e) {
-        console.error("다크모드 설정 실패:", e);
+        console.error(e);
     }
     try {
         setupTabSwitching();
     } catch (e) {
-        console.error("탭 설정 실패:", e);
+        console.error(e);
     }
     try {
         updateCurrentTime();
     } catch (e) {
-        console.error("시간 업데이트 실패:", e);
+        console.error(e);
     }
     try {
         setupScrollHints();
     } catch (e) {
-        console.error("스크롤 힌트 실패:", e);
+        console.error(e);
     }
 }
 
 function setupDarkMode() {
-    // [중요] ID가 다를 경우를 대비해 클래스로도 찾아봄
-    let toggleBtn = document.getElementById('darkmode-toggle');
-
-    // ID로 못 찾으면 클래스로 찾기 (이게 핵심!)
-    if (!toggleBtn) {
-        toggleBtn = document.querySelector('.darkmode-toggle');
-    }
-
+    let toggleBtn = document.getElementById('darkmode-toggle') || document.querySelector('.darkmode-toggle');
     const body = document.body;
 
-    // 이미 이벤트가 걸려있는지 확인 (중복 방지)
-    if (toggleBtn && toggleBtn.dataset.eventAttached === 'true') {
-        return;
-    }
+    if (toggleBtn && toggleBtn.dataset.eventAttached === 'true') return;
 
-    // 1. 로컬 스토리지 확인 & 초기화
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
     if (isDarkMode) {
         body.classList.add('dark-mode');
         updateDarkModeIcon(true, toggleBtn);
     }
 
-    if (!toggleBtn) {
-        // 아직 버튼이 로딩되지 않았을 수 있으므로 경고는 생략하거나 debug 레벨로 낮춤
-        // console.debug("다크모드 버튼을 아직 찾지 못했습니다. (재시도 예정)");
-        return;
-    }
+    if (!toggleBtn) return;
 
-    // 2. 이벤트 리스너 부착
     toggleBtn.addEventListener('click', (e) => {
-        e.preventDefault(); // 중요: a 태그일 경우 튀는 현상 방지
-
+        e.preventDefault();
         const isCurrentlyDark = body.classList.contains('dark-mode');
-
         if (isCurrentlyDark) {
             body.classList.remove('dark-mode');
             localStorage.setItem('darkMode', 'false');
@@ -81,22 +80,14 @@ function setupDarkMode() {
             updateDarkModeIcon(true, toggleBtn);
         }
     });
-
-    // 이벤트 부착 완료 표시 (재실행 시 중복 방지용)
     toggleBtn.dataset.eventAttached = 'true';
-    console.log("✅ 다크모드 버튼 연결 성공!");
 }
 
 function updateDarkModeIcon(isDarkMode, btnElement) {
-    // 버튼 요소를 인자로 받거나 다시 찾음
     const btn = btnElement || document.getElementById('darkmode-toggle') || document.querySelector('.darkmode-toggle');
     if (!btn) return;
-
     const icon = btn.querySelector('i');
-    if (icon) {
-        // [수정] 아이콘 클래스 확실하게 변경
-        icon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
-    }
+    if (icon) icon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
     btn.title = isDarkMode ? '라이트모드로 전환' : '다크모드로 전환';
 }
 
@@ -148,7 +139,6 @@ function setupScrollHints() {
 function setupTabSwitching() {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-
     tabBtns.forEach(btn => {
         btn.addEventListener('click', function () {
             const tabId = this.getAttribute('data-tab');
@@ -209,18 +199,15 @@ function getAqiIcon(grade) {
 function bindGpsButton(btnId, onSuccessCallback) {
     const btn = document.getElementById(btnId);
     if (!btn) return;
-
     btn.addEventListener('click', async () => {
         const originalHTML = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 위치 확인 중...';
         btn.disabled = true;
-
         if (!navigator.geolocation) {
             alert("GPS 미지원 브라우저입니다.");
             resetBtn();
             return;
         }
-
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 try {
@@ -253,4 +240,16 @@ function bindGpsButton(btnId, onSuccessCallback) {
             setTimeout(resetBtn, 2000);
         }
     });
+}
+
+// [추가] 지역명 변환 함수 (서울 -> 서울특별시)
+function getFullSidoName(short) {
+    const map = {
+        '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시',
+        '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
+        '경기': '경기도', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
+        '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
+        '제주': '제주특별자치도'
+    };
+    return map[short] || short; // 없으면 원래 값 반환
 }
