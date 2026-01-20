@@ -21,7 +21,7 @@
             <p class="subtitle">Weatherly 회원이 되어 정확한 날씨 정보와 커뮤니티를 즐기세요</p>
         </div>
 
-        <form id="signupForm" class="signup-form"  action="/login" method="post">
+        <form id="loginForm" class="signup-form" th:action="@{/login}" method="post">
             <!-- 소셜 로그인 섹션 -->
             <div class="social-signup">
                 <p class="social-title">소셜 계정으로 간편 로그인</p>
@@ -29,10 +29,10 @@
                     <button type="button" class="social-btn kakao" onclick="location.href='/oauth2/authorization/kakao'">
                         <i class="fas fa-comment"></i>카카오로 시작하기
                     </button>
-                    <button type="button" class="social-btn naver">
+                    <button type="button" class="social-btn naver" onclick="location.href='/oauth2/authorization/naver'">
                         <i class="fas fa-n"></i> 네이버로 시작하기
                     </button>
-                    <button type="button" class="social-btn google">
+                    <button type="button" class="social-btn google" onclick="location.href='/oauth2/authorization/google'">
                         <i class="fab fa-google"></i> Google로 시작하기
                     </button>
                 </div>

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'글수정 - ' + ${board.title}">글수정 - Weatherly 커뮤니티</title>
+
+    <!-- favicon 추가 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌤️</text></svg>">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/community.css}">
+    <link rel="stylesheet" th:href="@{/css/write.css}">
+</head>
+
+<body>
+<header th:replace="layout/header :: header"></header>
+
+<!-- 글수정 헤더 섹션 -->
+<div class="container">
+    <div class="write-header-section">
+        <h1 class="write-title">글 수정</h1>
+        <p class="write-subtitle" th:text="'「' + ${board.title} + '」 글을 수정합니다.'">게시글을 수정합니다.</p>
+    </div>
+</div>
+
+<!-- 글수정 폼 -->
+<div class="container">
+    <form th:action="@{/community/boards/{id}/edit(id=${board.id})}" method="post" enctype="multipart/form-data" class="write-form-container">
+
+        <!-- 수정된 CSRF 토큰 처리 -->
+        <input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : '_csrf'}"
+               th:value="${_csrf != null ? _csrf.token : ''}" />
+
+        <!-- 게시글 ID가 유효한지 확인 -->
+        <input type="hidden" name="id" th:value="${board.id}">
+
+        <!-- 제목 입력 -->
+        <div class="form-group mb-4">
+            <label for="title" class="form-label">
+                <i class="fas fa-heading"></i> 제목
+            </label>
+            <input type="text" id="title" name="title" class="form-input"
+                   th:value="${board.title}"
+                   placeholder="제목을 입력해주세요 (최대 100자)" maxlength="100" required>
+        </div>
+
+        <!-- 카테고리 선택 -->
+        <div class="form-group mb-4">
+            <label class="form-label">
+                <i class="fas fa-tag"></i> 카테고리
+            </label>
+            <div class="category-tags">
+                <button type="button" class="category-tag weather"
+                        th:classappend="${board.category == 'weather'} ? 'selected' : ''"
+                        data-category="weather">
+                    <i class="fas fa-cloud-sun"></i> 날씨
+                </button>
+                <button type="button" class="category-tag dust"
+                        th:classappend="${board.category == 'dust'} ? 'selected' : ''"
+                        data-category="dust">
+                    <i class="fas fa-wind"></i> 미세먼지
+                </button>
+                <button type="button" class="category-tag outfit"
+                        th:classappend="${board.category == 'outfit'} ? 'selected' : ''"
+                        data-category="outfit">
+                    <i class="fas fa-tshirt"></i> 옷차림
+                </button>
+                <button type="button" class="category-tag general"
+                        th:classappend="${board.category == 'general'} ? 'selected' : ''"
+                        data-category="general">
+                    <i class="fas fa-comments"></i> 자유주제
+                </button>
+            </div>
+            <input type="hidden" id="category" name="category" th:value="${board.category}">
+        </div>
+
+        <!-- 내용 입력 -->
+        <div class="form-group mb-4">
+            <label for="content" class="form-label">
+                <i class="fas fa-edit"></i> 내용
+            </label>
+            <textarea id="content" name="content" class="form-textarea"
+                      placeholder="내용을 작성해주세요 (최소 10자)" required
+                      th:text="${board.content}"></textarea>
+            <div class="text-end mt-2">
+                <span class="text-muted" id="content-counter">
+                    <span th:text="${#strings.length(board.content)}">0</span>자
+                </span>
+            </div>
+        </div>
+
+        <!-- 기존 이미지 표시 -->
+        <div th:if="${board.images != null and not #lists.isEmpty(board.images)}" class="form-group mb-4">
+            <label class="form-label">
+                <i class="fas fa-images"></i> 기존 이미지
+            </label>
+            <div class="existing-images">
+                <div class="existing-images-title">
+                    현재 첨부된 이미지 (<span th:text="${#lists.size(board.images)}">0</span>개)
+                </div>
+                <div class="existing-images-list" id="existing-images-list">
+                    <div th:each="image, stat : ${board.images}" class="existing-image-item">
+                        <img th:src="@{/community/images/post/{image}(image=${image})}" alt="기존 이미지" onerror="this.style.display='none'">
+                        <div class="existing-image-info">
+                            <span>이미지 <span th:text="${stat.count}">1</span></span>
+                            <label class="image-delete-checkbox">
+                                <input type="checkbox" name="deleteImages" th:value="${image}">
+                                <span>삭제</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 새 이미지 업로드 -->
+        <div class="form-group mb-4">
+            <label class="form-label">
+                <i class="fas fa-image"></i> 새 이미지 추가 (선택사항)
+            </label>
+            <div class="file-upload" id="file-upload-area">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <div class="file-upload-text">클릭하여 새 이미지 업로드</div>
+                <div class="file-upload-hint">최대 5MB, JPG, PNG, GIF 파일 지원</div>
+                <input type="file" id="image-upload" name="newImages" accept="image/*" multiple style="display: none;">
+            </div>
+            <div class="file-preview" id="file-preview"></div>
+        </div>
+
+        <!-- 버튼 그룹 -->
+        <div class="button-group">
+            <a th:href="@{'/community/boards/' + ${board.id}}" class="cancel-btn">
+                <i class="fas fa-times"></i> 취소
+            </a>
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-save"></i> 수정 완료
+            </button>
+        </div>
+    </form>
+
+    <!-- 수정 시 유의사항 카드 -->
+    <div class="write-tips-card">
+        <h4><i class="fas fa-exclamation-triangle"></i> 수정 시 유의사항</h4>
+
+        <div class="tip-item">
+            <div class="tip-item-header">
+                <div class="tip-badge">1</div>
+                <div class="tip-item-title">이미지 관리</div>
+            </div>
+            <div class="tip-item-content">
+                기존 이미지를 삭제하면 복구할 수 없습니다.
+                새 이미지를 추가하면 기존 이미지와 함께 표시됩니다.
+            </div>
+        </div>
+
+        <div class="tip-item">
+            <div class="tip-item-header">
+                <div class="tip-badge">2</div>
+                <div class="tip-item-title">수정 내역</div>
+            </div>
+            <div class="tip-item-content">
+                글 수정 시 수정 시간이 기록됩니다.
+                다른 사용자들은 글의 변경사항을 확인할 수 있습니다.
+            </div>
+        </div>
+
+        <div class="tip-item">
+            <div class="tip-item-header">
+                <div class="tip-badge">3</div>
+                <div class="tip-item-title">유효성 검사</div>
+            </div>
+            <div class="tip-item-content">
+                제목과 내용은 필수 입력 항목입니다.
+                내용은 최소 10자 이상 작성해야 합니다.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
+            <p class="footer-info">기상청 API를 활용한 실시간 날씨 정보 서비스</p>
+            <p class="project-info">Project by GMR</p>
+        </div>
+    </div>
+</footer>
+
+<!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 다크모드 초기화 함수
+    function initializeDarkMode() {
+        const darkModeToggle = document.getElementById('darkModeToggle');
+
+        // 다크모드 토글이 없을 경우 처리
+        if (!darkModeToggle) {
+            return;
+        }
+
+        // 로컬 스토리지에서 다크모드 설정 확인
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+        // 초기 다크모드 설정 적용
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            if (darkModeToggle.hasAttribute('aria-label')) {
+                darkModeToggle.setAttribute('aria-label', '라이트 모드로 전환');
+            }
+        } else {
+            document.body.classList.remove('dark-mode');
+            darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            if (darkModeToggle.hasAttribute('aria-label')) {
+                darkModeToggle.setAttribute('aria-label', '다크 모드로 전환');
+            }
+        }
+
+        // 다크모드 토글 이벤트 리스너
+        darkModeToggle.addEventListener('click', function() {
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+
+            // 로컬 스토리지에 저장
+            localStorage.setItem('darkMode', isDarkMode.toString());
+
+            // 아이콘 및 텍스트 변경
+            if (isDarkMode) {
+                this.innerHTML = '<i class="fas fa-sun"></i>';
+                if (this.hasAttribute('aria-label')) {
+                    this.setAttribute('aria-label', '라이트 모드로 전환');
+                }
+            } else {
+                this.innerHTML = '<i class="fas fa-moon"></i>';
+                if (this.hasAttribute('aria-label')) {
+                    this.setAttribute('aria-label', '다크 모드로 전환');
+                }
+            }
+        });
+    }
+
+    // 초기화 코드
+    document.addEventListener('DOMContentLoaded', function() {
+        // 다크모드 초기화
+        initializeDarkMode();
+
+        // 글자 수 카운터 초기화
+        updateContentCounter();
+
+        // 카테고리 선택
+        document.querySelectorAll('.category-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                // 모든 태그에서 selected 클래스 제거
+                document.querySelectorAll('.category-tag').forEach(t => {
+                    t.classList.remove('selected');
+                });
+
+                // 클릭한 태그에 selected 클래스 추가
+                this.classList.add('selected');
+
+                // 히든 인풋에 값 설정
+                document.getElementById('category').value = this.dataset.category;
+            });
+        });
+
+        // 이미지 삭제 체크박스 토글
+        document.querySelectorAll('.image-delete-checkbox input').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const imageItem = this.closest('.existing-image-item');
+                if (imageItem) {
+                    if (this.checked) {
+                        imageItem.classList.add('to-delete');
+                        const img = imageItem.querySelector('img');
+                        if (img) img.style.opacity = '0.5';
+                    } else {
+                        imageItem.classList.remove('to-delete');
+                        const img = imageItem.querySelector('img');
+                        if (img) img.style.opacity = '1';
+                    }
+                }
+            });
+        });
+
+        // 폼 제출 시 유효성 검사
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const title = document.getElementById('title')?.value?.trim();
+                const content = document.getElementById('content')?.value?.trim();
+                const category = document.getElementById('category')?.value;
+
+                if (!title) {
+                    e.preventDefault();
+                    alert('제목을 입력해주세요.');
+                    document.getElementById('title')?.focus();
+                    return;
+                }
+
+                if (!category) {
+                    e.preventDefault();
+                    alert('카테고리를 선택해주세요.');
+                    return;
+                }
+
+                if (!content || content.length < 10) {
+                    e.preventDefault();
+                    alert('내용은 최소 10자 이상 입력해주세요.');
+                    document.getElementById('content')?.focus();
+                    return;
+                }
+
+                // 게시글 ID 확인
+                const boardId = document.querySelector('input[name="id"]')?.value;
+                if (!boardId || boardId === '0') {
+                    e.preventDefault();
+                    alert('유효하지 않은 게시글입니다.');
+                    return;
+                }
+
+                // 수정 확인
+                if (!confirm('게시글을 수정하시겠습니까?')) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
+
+    // 내용 글자 수 카운터
+    const contentTextarea = document.getElementById('content');
+    const contentCounter = document.getElementById('content-counter');
+
+    function updateContentCounter() {
+        if (!contentTextarea || !contentCounter) return;
+
+        const length = contentTextarea.value.length;
+        const counterSpan = contentCounter.querySelector('span');
+        if (counterSpan) {
+            counterSpan.textContent = length;
+        } else {
+            contentCounter.textContent = length + '자';
+        }
+
+        if (length < 10) {
+            contentCounter.style.color = '#e74c3c';
+        } else {
+            contentCounter.style.color = '#6c757d';
+        }
+    }
+
+    if (contentTextarea) {
+        contentTextarea.addEventListener('input', updateContentCounter);
+        // 초기값 설정
+        setTimeout(updateContentCounter, 100);
+    }
+
+    // 파일 업로드 기능
+    const fileUploadArea = document.getElementById('file-upload-area');
+    const fileInput = document.getElementById('image-upload');
+    const filePreview = document.getElementById('file-preview');
+
+    if (fileUploadArea && fileInput) {
+        // 파일 업로드 영역 클릭 시 파일 선택 다이얼로그 열기
+        fileUploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        // 파일 선택 시 미리보기 생성
+        fileInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+
+            // 기존 미리보기 초기화
+            if (filePreview) {
+                filePreview.innerHTML = '';
+            }
+
+            Array.from(files).forEach((file, index) => {
+                if (file.size > 5 * 1024 * 1024) { // 5MB 제한
+                    alert('파일 크기는 5MB를 초과할 수 없습니다: ' + file.name);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'file-preview-item';
+                    previewItem.dataset.fileIndex = index;
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = '새 이미지 미리보기';
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'file-remove-btn';
+                    removeBtn.type = 'button'; // 폼 제출 방지
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.addEventListener('click', function() {
+                        // DataTransfer를 사용하여 파일 목록에서 제거
+                        const dt = new DataTransfer();
+                        const fileList = fileInput.files;
+
+                        for (let i = 0; i < fileList.length; i++) {
+                            if (i !== parseInt(previewItem.dataset.fileIndex)) {
+                                dt.items.add(fileList[i]);
+                            }
+                        }
+
+                        fileInput.files = dt.files;
+                        previewItem.remove();
+                        updateFilePreview();
+                    });
+
+                    previewItem.appendChild(img);
+                    previewItem.appendChild(removeBtn);
+                    if (filePreview) {
+                        filePreview.appendChild(previewItem);
+                    }
+                };
+
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // 미리보기 업데이트 함수
+        function updateFilePreview() {
+            if (!filePreview) return;
+
+            const files = fileInput.files;
+            filePreview.innerHTML = '';
+
+            Array.from(files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'file-preview-item';
+                    previewItem.dataset.fileIndex = index;
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = '새 이미지 미리보기';
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'file-remove-btn';
+                    removeBtn.type = 'button';
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.addEventListener('click', function() {
+                        const dt = new DataTransfer();
+                        const fileList = fileInput.files;
+
+                        for (let i = 0; i < fileList.length; i++) {
+                            if (i !== parseInt(previewItem.dataset.fileIndex)) {
+                                dt.items.add(fileList[i]);
+                            }
+                        }
+
+                        fileInput.files = dt.files;
+                        updateFilePreview();
+                    });
+
+                    previewItem.appendChild(img);
+                    previewItem.appendChild(removeBtn);
+                    filePreview.appendChild(previewItem);
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 드래그 앤 드롭 파일 업로드
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#667eea';
+            this.style.background = '#f8f9fa';
+        });
+
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#dee2e6';
+            this.style.background = '';
+        });
+
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#dee2e6';
+            this.style.background = '';
+
+            const files = e.dataTransfer.files;
+            fileInput.files = files;
+
+            // 파일 변경 이벤트 트리거
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+        });
+    }
+
+    // 이미지 로드 오류 처리
+    document.querySelectorAll('.existing-image-item img').forEach(img => {
+        img.addEventListener('error', function() {
+            this.style.display = 'none';
+            const parent = this.closest('.existing-image-item');
+            if (parent) {
+                parent.querySelector('.existing-image-info').innerHTML =
+                    '<span style="color: #e74c3c;">이미지를 로드할 수 없습니다</span>';
+            }
+        });
+    });
+</script>
+
+<!-- 기존 이미지 스타일 추가 -->
+<style>
+    .existing-images {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .existing-images-title {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+    }
+
+    .existing-images-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .existing-image-item {
+        width: 150px;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+
+    .existing-image-item.to-delete {
+        border: 2px solid #e74c3c;
+    }
+
+    .existing-image-item img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        transition: opacity 0.3s;
+    }
+
+    .existing-image-info {
+        padding: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .existing-image-info span {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .image-delete-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .image-delete-checkbox input[type="checkbox"] {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    /* 다크모드 스타일 */
+    body.dark-mode .existing-images {
+        background: #2d3748;
+    }
+
+    body.dark-mode .existing-images-title {
+        color: #e2e8f0;
+    }
+
+    body.dark-mode .existing-image-item {
+        background: #1e1e1e;
+    }
+
+    body.dark-mode .existing-image-info span,
+    body.dark-mode .image-delete-checkbox {
+        color: #cbd5e0;
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 768px) {
+        .existing-images-list {
+            justify-content: center;
+        }
+
+        .existing-image-item {
+            width: calc(50% - 0.5rem);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .existing-image-item {
+            width: 100%;
+        }
+    }
+</style>
+</body>
+</html>

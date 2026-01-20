@@ -1,65 +1,78 @@
 package me.shinsunyoung.projectweatherly.member.dto.response;
 
-
-
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
-import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class MyPageResponse {
-
     private Long memberId;
-    private String email;
     private String nickname;
+    private String email;
     private String profileImage;
-    private MemberRole role;
-    private AuthProvider authProvider;
-    private Boolean isActive;
-    private LocalDateTime lastLoginAt;
+
+    // ✅ createdAt 필드 (Thymeleaf 템플릿에서 사용됨)
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     // 약관 동의 정보
     private Boolean termsOfServiceAgree;
     private Boolean privacyPolicyAgree;
-    private Boolean marketingAgree;
 
     // 알림 설정 정보
     private Boolean boardNotificationAgree;
     private Boolean weatherAlertAgree;
 
-    // 통계 정보 (추후 확장)
+    // 게시물 목록
+    private List<ReportedPostResponse> reportedPosts;
+    private List<CommunityPostResponse> myCommunityPosts;
+
+    // 통계
     private Integer postCount;
+    private Integer reportCount;
     private Integer commentCount;
     private Integer likeCount;
 
-    // 날씨 관련 정보 (추후 확장)
-    private String recentWeatherRegion;
-    private String recentWeatherCondition;
-
+    // ✅ MemberResponse를 받는 메서드 (완전한 버전으로 수정)
     public static MyPageResponse fromMemberResponse(MemberResponse memberResponse) {
         return MyPageResponse.builder()
                 .memberId(memberResponse.getMemberId())
-                .email(memberResponse.getEmail())
                 .nickname(memberResponse.getNickname())
+                .email(memberResponse.getEmail())
                 .profileImage(memberResponse.getProfileImage())
-                .role(memberResponse.getRole())
-                .authProvider(memberResponse.getAuthProvider())
-                .isActive(memberResponse.getIsActive())
-                .lastLoginAt(memberResponse.getLastLoginAt())
-                .createdAt(memberResponse.getCreatedAt())
-                .updatedAt(memberResponse.getUpdatedAt())
-                .termsOfServiceAgree(memberResponse.getTermsOfServiceAgree())
-                .privacyPolicyAgree(memberResponse.getPrivacyPolicyAgree())
-                .marketingAgree(memberResponse.getMarketingAgree())
-                .boardNotificationAgree(memberResponse.getBoardNotificationAgree())
-                .weatherAlertAgree(memberResponse.getWeatherAlertAgree())
+                .createdAt(memberResponse.getCreatedAt()) // ✅ createdAt 설정
+                .termsOfServiceAgree(memberResponse.getTermsOfServiceAgree()) // ✅ 약관 동의 정보
+                .privacyPolicyAgree(memberResponse.getPrivacyPolicyAgree()) // ✅ 개인정보 동의
+                .boardNotificationAgree(memberResponse.getBoardNotificationAgree()) // ✅ 게시물 알림 설정
+                .weatherAlertAgree(memberResponse.getWeatherAlertAgree()) // ✅ 날씨 알림 설정
+
+                .commentCount(0)
+                .likeCount(0)
+                .postCount(0)
+                .reportCount(0)
+                .build();
+    }
+
+    // ✅ Member 엔티티를 받는 메서드 (완전한 버전으로 수정)
+    public static MyPageResponse fromMember(me.shinsunyoung.projectweatherly.member.domain.entity.Member member) {
+        return MyPageResponse.builder()
+                .memberId(member.getId())
+                .nickname(member.getNickname())
+                .email(member.getEmail())
+                .profileImage(member.getProfileImage())
+                .createdAt(member.getCreatedAt()) // ✅ createdAt 설정
+                .commentCount(0)
+                .likeCount(0)
+                .postCount(0)
+                .reportCount(0)
                 .build();
     }
 }
