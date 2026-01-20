@@ -15,6 +15,7 @@ import me.shinsunyoung.projectweatherly.board.repository.BoardLikeRepository;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
+import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole; // ★ 추가됨
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -70,14 +71,12 @@ public class BoardServiceImpl implements BoardService {
                 .map(board -> convertToResponse(board, false));
     }
 
-    // [수정됨] 조회수 증가(DB 쓰기)가 있으므로 readOnly=true를 제거했습니다.
     @Override
     @Transactional
     public BoardResponse getBoard(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        // 조회수 증가
         board.increaseViewCount();
         boardRepository.save(board);
 
@@ -89,11 +88,20 @@ public class BoardServiceImpl implements BoardService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
+        // ★ [추가] 공지사항(NOTICE)은 관리자만 작성 가능
+        if (Board.CATEGORY_NOTICE.equalsIgnoreCase(request.getCategory())) {
+            if (member.getRole() != MemberRole.ADMIN) {
+                throw new IllegalStateException("공지사항은 관리자만 작성할 수 있습니다.");
+            }
+        }
+
         Board board = Board.builder()
                 .member(member)
                 .title(request.getTitle())
                 .content(request.getContent())
                 .category(request.getCategory())
+                .viewCount(0)
+                .likeCount(0)
                 .build();
 
         if (request.getImageFiles() != null && !request.getImageFiles().isEmpty()) {
@@ -119,8 +127,22 @@ public class BoardServiceImpl implements BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        if (!board.getMember().getId().equals(memberId)) {
+        Member requestMember = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
+
+        // ★ [수정] 작성자 본인 확인 OR 관리자 권한 확인
+        boolean isOwner = board.getMember().getId().equals(memberId);
+        boolean isAdmin = requestMember.getRole() == MemberRole.ADMIN;
+
+        if (!isOwner && !isAdmin) {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
+        }
+
+        // ★ [추가] 공지사항 카테고리로 변경 시 관리자 권한 체크
+        if (Board.CATEGORY_NOTICE.equalsIgnoreCase(request.getCategory())) {
+            if (!isAdmin) {
+                throw new IllegalStateException("관리자만 공지사항으로 설정할 수 있습니다.");
+            }
         }
 
         board.setTitle(request.getTitle());
@@ -163,7 +185,14 @@ public class BoardServiceImpl implements BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        if (!board.getMember().getId().equals(memberId)) {
+        Member requestMember = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
+
+        // ★ [수정] 작성자 본인 확인 OR 관리자 권한 확인 (강제 삭제 로직)
+        boolean isOwner = board.getMember().getId().equals(memberId);
+        boolean isAdmin = requestMember.getRole() == MemberRole.ADMIN;
+
+        if (!isOwner && !isAdmin) {
             throw new IllegalArgumentException("게시글 삭제 권한이 없습니다.");
         }
 
@@ -337,7 +366,6 @@ public class BoardServiceImpl implements BoardService {
         return boardRepository.findAllById(boardIds).stream().map(b -> convertToResponse(b, false)).collect(Collectors.toList());
     }
 
-    // [수정됨] .getNickname() 제거로 컴파일 오류 해결
     private BoardResponse convertToResponse(Board board, boolean includeComments) {
         var imageUrls = board.getImages().stream()
                 .map(BoardImage::getImageUrl)
@@ -352,7 +380,6 @@ public class BoardServiceImpl implements BoardService {
                     .map(comment -> CommentResponse.builder()
                             .id(comment.getId())
                             .content(comment.getContent())
-                            // [수정] comment.getWriter()가 이미 String(닉네임)을 반환하므로 그대로 사용
                             .writer(comment.getWriter())
                             .memberNickname(comment.getWriter())
                             .boardId(board.getId())

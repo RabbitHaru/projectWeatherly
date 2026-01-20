@@ -22,7 +22,6 @@ public class DashboardController {
 
     private final WeatherService weatherService;
     private final AirQualityService airQualityService;
-    
 
     @GetMapping("/insights")
     public String insightsPage(HttpServletRequest request, Model model,

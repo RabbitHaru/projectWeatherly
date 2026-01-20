@@ -52,10 +52,10 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // permitAll로 되어있는 url은 로그인하지 않아도 통과
                         .requestMatchers("/","/login","/signup","/user"
-                                ,"/articles","/articles/{id}", "/favicon.ico","/file/**")
+                                ,"/articles","/articles/{id}","/file/**")
                         .permitAll()
-                        // 권한에 따라 접속 가능한 url 설정
-
+                        // 2. [추가됨] 관리자 페이지는 'ADMIN' 권한이 있는 사람만 접근 가능
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         // 위의 url이외에 모든 url은 로그인이 필요하도록 설정
                         .anyRequest().permitAll())
                 // form태그를 사용한 로그인 관련 설정
