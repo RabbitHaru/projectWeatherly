@@ -22,11 +22,7 @@ public class DashboardController {
 
     private final WeatherService weatherService;
     private final AirQualityService airQualityService;
-
-    @GetMapping("/admin")
-    public String adminPage(Model model) {
-        return "admin";
-    }
+    
 
     @GetMapping("/insights")
     public String insightsPage(HttpServletRequest request, Model model,
