@@ -1,5 +1,5 @@
 /**
- * main.js - 메인 대시보드 (카카오맵 연동 최종 버전)
+ * main.js - 메인 대시보드 (카카오맵 지역 클릭 연동 버전)
  */
 
 // 전역 변수: 지도와 오버레이 객체 저장
@@ -23,16 +23,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // [중요] 카카오맵 스크립트 로드 확인 후 지도 초기화
+    // 카카오맵 스크립트 로드 확인 후 지도 초기화
     checkKakaoMapLoop();
 });
 
-// 카카오맵 스크립트가 완전히 로드될 때까지 기다렸다가 실행
+// [추가됨] 지역 클릭 시 메인 대시보드 변경 함수 (전역 함수로 선언)
+window.changeDashboardLocation = async function(lat, lng, name) {
+    console.log(`지역 변경: ${name} (${lat}, ${lng})`);
+
+    // 1. 로딩 표시 (선택 사항)
+    const locationTitle = document.getElementById('current-location');
+    if(locationTitle) locationTitle.innerText = `${name}로 이동 중...`;
+
+    // 2. 해당 좌표로 날씨 데이터 새로고침
+    await loadWeatherDataByGPS(lat, lng);
+
+    // 3. 화면 최상단으로 부드럽게 스크롤 이동
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+
+// 카카오맵 스크립트 로딩 대기 함수
 function checkKakaoMapLoop() {
     if (window.kakao && window.kakao.maps) {
         kakao.maps.load(() => initKakaoMap());
     } else {
-        // 아직 로드 안 됐으면 0.5초 뒤에 다시 확인
         setTimeout(checkKakaoMapLoop, 500);
     }
 }
@@ -44,7 +59,7 @@ async function loadDashboardData() {
         await Promise.all([
             loadWeatherData(),
             loadAirQualitySummary(),
-            loadRegionalWeatherData(), // 여기서 지도가 그려집니다
+            loadRegionalWeatherData(), // 지도 그리기
             loadCommunityData(),
             loadAirQualityForecast()
         ]);
@@ -58,30 +73,28 @@ async function loadDashboardData() {
 // [2] 카카오맵 초기화 함수
 function initKakaoMap() {
     const container = document.getElementById('kakao-map');
-    if (!container) return; // HTML에 지도가 없으면 중단
+    if (!container) return;
 
     const options = {
-        center: new kakao.maps.LatLng(36.5, 127.8), // 대한민국 중심 좌표
+        center: new kakao.maps.LatLng(36.3, 127.8), // 대한민국 중심
         level: 13, // 줌 레벨
         draggable: true,
         scrollwheel: true
     };
 
-    // 지도 생성
     kakaoMap = new kakao.maps.Map(container, options);
 
-    // 지도가 만들어진 후, 날씨 마커(오버레이) 표시
+    // 지도 생성 후 마커 표시
     loadRegionalWeatherData();
 }
 
-// [3] 지역별 날씨 로드 + 지도 마커 표시 (핵심 기능)
+// [3] 지역별 날씨 로드 + 지도 마커 표시 + [클릭 이벤트 추가]
 async function loadRegionalWeatherData() {
     const listContainer = document.getElementById('regional-weather');
 
-    // 주요 도시 좌표 (API 연동용)
+    // 주요 도시 좌표
     const regions = [
         {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780},
-        {name: '강원', code: '4200000000', lat: 37.8228, lng: 128.1555},
         {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845},
         {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526},
         {name: '대구', code: '2700000000', lat: 35.8714, lng: 128.6014},
@@ -93,7 +106,6 @@ async function loadRegionalWeatherData() {
     const regionCodes = regions.filter(r => r.code).map(r => r.code).join(',');
 
     try {
-        // API 호출
         let weatherData = [];
         if (regionCodes) {
             const res = await fetch(`${API_BASE_URL}/api/weather/compare?regionCodes=${regionCodes}`);
@@ -108,11 +120,9 @@ async function loadRegionalWeatherData() {
             let cond = '로딩중';
             let iconClass = 'fas fa-spinner fa-spin';
 
-            // 독도 예외 처리
             if (region.name === '독도') {
                 temp = '15'; cond = '맑음'; iconClass = 'fas fa-flag';
             } else {
-                // API 데이터 매칭
                 const data = weatherData.find(d => d.regionCode === region.code);
                 if (data && data.current) {
                     temp = Math.round(data.current.temperature);
@@ -121,10 +131,15 @@ async function loadRegionalWeatherData() {
                 }
             }
 
-            // (A) 지도 위에 오버레이(말풍선) 생성
+            // [핵심] 클릭 이벤트용 코드 생성
+            // changeDashboardLocation(위도, 경도, 이름) 함수를 호출합니다.
+            const clickAction = `onclick="changeDashboardLocation(${region.lat}, ${region.lng}, '${region.name}')"`;
+
+            // (A) 지도 오버레이 (말풍선) - 클릭 시 이동
             if (kakaoMap) {
+                // a 태그나 div에 onclick을 달아줍니다.
                 const content = `
-                    <div class="customoverlay">
+                    <div class="customoverlay" ${clickAction} style="cursor: pointer;">
                         <a href="javascript:void(0);">
                             <span class="title">${region.name}</span>
                             <div class="weather-content">
@@ -136,12 +151,10 @@ async function loadRegionalWeatherData() {
 
                 const position = new kakao.maps.LatLng(region.lat, region.lng);
 
-                // 기존 오버레이 삭제 (중복 방지)
                 if (mapOverlays[region.name]) {
                     mapOverlays[region.name].setMap(null);
                 }
 
-                // 새 오버레이 추가
                 const customOverlay = new kakao.maps.CustomOverlay({
                     map: kakaoMap,
                     position: position,
@@ -152,10 +165,10 @@ async function loadRegionalWeatherData() {
                 mapOverlays[region.name] = customOverlay;
             }
 
-            // (B) 사이드바 리스트 추가
+            // (B) 사이드바 리스트 - 클릭 시 이동
             if (listContainer && region.code) {
                 listContainer.innerHTML += `
-                    <div class="region-weather">
+                    <div class="region-weather" ${clickAction} style="cursor: pointer;">
                         <div class="region-info">
                             <span class="region-name">${region.name}</span>
                             <span class="region-weather-desc">${cond}</span>
@@ -170,7 +183,7 @@ async function loadRegionalWeatherData() {
     }
 }
 
-// 지도 새로고침 버튼 기능
+// 헬퍼 함수들
 function refreshMap() {
     loadRegionalWeatherData();
     const btn = document.querySelector('.map-control-btn i');
@@ -180,7 +193,6 @@ function refreshMap() {
     }
 }
 
-// 아이콘 색상 결정
 function getIconColor(iconClass) {
     if (iconClass.includes('sun')) return '#f39c12';
     if (iconClass.includes('rain') || iconClass.includes('umbrella')) return '#3498db';
@@ -189,7 +201,6 @@ function getIconColor(iconClass) {
     return '#333';
 }
 
-// 날씨 상태 텍스트 -> 아이콘 변환
 function getWeatherIconClass(condition) {
     if (!condition) return 'fas fa-question';
     if (condition.includes('맑음')) return 'fas fa-sun';
