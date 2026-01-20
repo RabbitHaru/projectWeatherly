@@ -31,7 +31,7 @@ public class DashboardController {
     private final WeatherService weatherService;
     private final AirQualityService airQualityService;
 
-    // [추가] B담당님의 리포지토리 (Admin 페이지 DB 연동용)
+    // [추가] 리포지토리 (Admin 페이지 DB 연동용)
     private final MemberRepository memberRepository;
     private final BoardRepository boardRepository;
     private final ReportRepository reportRepository;

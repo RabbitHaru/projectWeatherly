@@ -456,3 +456,236 @@ body.dark-mode .region-name {
     font-weight: 800;
     color: var(--accent-color);
 }
+
+/* =========================================
+   [NEW] 사이드바 날씨 지도 스타일
+   ========================================= */
+
+/* 지도 컨테이너 배경 (바다 색상) */
+.korea-map-container {
+    background: radial-gradient(circle at 50% 50%, #f0f4f8 0%, #d9e2ec 100%);
+    border-radius: 12px;
+}
+
+#korea-map {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
+    transform: scale(1.1); /* 지도 살짝 키우기 */
+}
+
+/* 지역(땅) 스타일 */
+.region-path {
+    fill: #ffffff;      /* 기본 흰색 땅 */
+    stroke: #bcccdc;    /* 경계선 색상 (연한 회색) */
+    stroke-width: 1.5;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* 마우스 올렸을 때 효과 */
+.map-region:hover .region-path {
+    fill: #e3f2fd;      /* 아주 연한 파란색 */
+    stroke: #2196f3;    /* 경계선 강조 */
+    stroke-width: 2;
+    transform: translateY(-2px); /* 살짝 떠오름 */
+}
+
+/* 텍스트 스타일 */
+.region-label {
+    font-size: 14px;
+    font-weight: bold;
+    fill: #636e72;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+.region-temp {
+    font-size: 16px;
+    font-weight: 800;
+    fill: #2d3436;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+/* 아이콘 둥둥 떠다니는 애니메이션 */
+.map-weather-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    font-size: 1.4rem;
+    color: #f39c12;
+    animation: floatMapIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatMapIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+/* =========================================
+   [NEW] 이미지 기반 날씨 지도 스타일
+   ========================================= */
+
+/* 아이콘 컨테이너 (위치 잡기용) */
+.map-overlay-item {
+    position: absolute;
+    transform: translate(-50%, -50%); /* 정확한 중앙 정렬 */
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+/* 호버 효과 */
+.map-overlay-item:hover {
+    transform: translate(-50%, -60%) scale(1.1); /* 살짝 위로 뜸 */
+    z-index: 20;
+}
+
+/* 날씨 아이콘 크기 및 애니메이션 */
+.map-overlay-item .map-weather-icon {
+    font-size: 1.8rem;
+    margin-bottom: 2px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    animation: floatIcon 3s ease-in-out infinite;
+}
+
+/* 텍스트 스타일 */
+.map-overlay-item .region-label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #333;
+    background: rgba(255, 255, 255, 0.8); /* 글자 잘 보이게 배경 깔기 */
+    padding: 2px 6px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.map-overlay-item .region-temp {
+    color: #e74c3c; /* 온도 색상 강조 */
+    margin-left: 2px;
+}
+
+/* 둥둥 떠다니는 애니메이션 */
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* 다크모드 대응 */
+body.dark-mode .korea-map-container {
+    background: radial-gradient(circle at 50% 50%, #2c3e50 0%, #1a252f 100%);
+}
+body.dark-mode .region-path {
+    fill: #34495e;
+    stroke: #455a64;
+}
+body.dark-mode .map-region:hover .region-path {
+    fill: #2980b9;
+    stroke: #3498db;
+}
+
+/* =========================================
+   [최종 수정] 말풍선 스타일 (작고 가깝게)
+   ========================================= */
+.customoverlay {
+    position: relative;
+    bottom: 15px; /* [중요] 50px -> 15px 로 변경 (지도에 훨씬 가까워짐) */
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    padding: 0;
+    width: auto;
+    min-width: auto;
+    white-space: nowrap;
+    transition: transform 0.2s;
+    z-index: 10;
+}
+
+.customoverlay:hover {
+    transform: scale(1.1);
+    z-index: 100;
+}
+
+.customoverlay a {
+    display: block;
+    text-decoration: none;
+    color: #333;
+    text-align: center;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* 지역 이름 (폰트 작게) */
+.customoverlay .title {
+    display: block;
+    text-align: center;
+    background: #f1f3f5;
+    padding: 2px 5px;
+    font-size: 11px; /* 글자 크기 축소 */
+    font-weight: bold;
+    color: #555;
+    border-bottom: 1px solid #eee;
+}
+
+/* 날씨 아이콘 및 온도 */
+.customoverlay .weather-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 3px 6px;
+    background: #fff;
+}
+
+.customoverlay .weather-content i {
+    font-size: 1.0rem; /* 아이콘 크기 축소 */
+}
+
+.customoverlay .temp {
+    font-size: 0.9rem; /* 온도 크기 축소 */
+    color: #333;
+    font-weight: 800;
+    margin-top: 1px;
+}
+
+/* 말풍선 꼬리 (더 작고 뾰족하게) */
+.customoverlay:after {
+    content: '';
+    position: absolute;
+    margin-left: -4px;
+    left: 50%;
+    bottom: -4px;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    transform: rotate(45deg);
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    z-index: -1;
+}
+
+/* 다크모드 대응 */
+body.dark-mode .customoverlay {
+    background: rgba(44, 62, 80, 0.95);
+    border-color: #555;
+}
+body.dark-mode .customoverlay .title {
+    background: #34495e;
+    color: #ecf0f1;
+    border-bottom-color: #555;
+}
+body.dark-mode .customoverlay .weather-content {
+    background: transparent;
+}
+body.dark-mode .customoverlay .temp {
+    color: #fff;
+}
+body.dark-mode .customoverlay:after {
+    background: #2c3e50;
+    border-color: #555;
+}
