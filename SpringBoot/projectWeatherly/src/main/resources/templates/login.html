@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/signup.css">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
 </head>
 <body>
 <!-- 헤더 -->
@@ -84,20 +85,6 @@
 <!-- 푸터 -->
 <div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
-<script src="/js/singup.js"></script>
-<script>
-    // 다크모드 전환 (기존 스크립트 활용)
-    document.getElementById('darkModeToggle').addEventListener('click', function() {
-        document.body.classList.toggle('dark-mode');
-        const icon = this.querySelector('i');
-        if (document.body.classList.contains('dark-mode')) {
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        } else {
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-        }
-    });
-</script>
+<script src="/js/signup.js"></script>
 </body>
 </html>

@@ -575,3 +575,42 @@ body.dark-mode .report-details-textarea {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
 }
+
+ .view-content-section { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 3px 15px rgba(0,0,0,0.08); margin-bottom: 2rem; min-height: 400px; }
+.view-content { font-size: 1.1rem; line-height: 1.8; color: #212529; white-space: pre-wrap; word-break: break-word; }
+.view-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e9ecef; }
+.view-left-actions { display: flex; gap: 1rem; }
+.view-right-actions { display: flex; gap: 0.5rem; }
+.action-btn { padding: 8px 16px; border-radius: 8px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; border: none; }
+.list-btn { background: #6c757d; color: white; }
+.edit-btn { background: #3498db; color: white; }
+.delete-btn { background: #e74c3c; color: white; }
+.like-btn { background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; }
+.like-btn.liked { background: #e74c3c; color: white; border-color: #e74c3c; }
+.report-btn { background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; }
+.image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.gallery-image { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; cursor: pointer; transition: transform 0.3s; }
+.gallery-image:hover { transform: scale(1.02); }
+.image-modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
+.modal-image { max-width: 90%; max-height: 90%; border-radius: 5px; }
+.modal-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
+.comments-section { margin-top: 3rem; }
+.comments-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e9ecef; }
+.comment-form-container { background: #f8f9fa; border-radius: 10px; padding: 1.5rem; margin-bottom: 2rem; }
+.comment-textarea { width: 100%; min-height: 100px; padding: 12px; border: 1px solid #dee2e6; border-radius: 8px; resize: vertical; display: block; margin-bottom: 1rem; }
+.comment-submit-btn { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; }
+.comment-item { background: white; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e9ecef; }
+.comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.comment-like-form { display: inline; }
+.comment-like-btn { background: none; border: none; color: #6c757d; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 0; }
+.comment-like-btn.liked { color: #e74c3c; }
+.comment-delete-btn { background: none; border: none; color: #e74c3c; font-size: 0.8rem; margin-left: 10px; cursor: pointer; }
+
+/* 신고 모달 스타일 */
+.report-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+.report-modal-content { background-color: white; margin: 10% auto; padding: 2rem; border-radius: 10px; width: 90%; max-width: 500px; }
+.report-reason-select { width: 100%; padding: 10px; border: 1px solid #dee2e6; border-radius: 8px; margin-bottom: 1rem; }
+.report-details-textarea { width: 100%; min-height: 100px; padding: 10px; border: 1px solid #dee2e6; border-radius: 8px; }
+.report-modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+.report-cancel-btn { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+.report-submit-btn { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
