@@ -20,40 +20,29 @@
                 <span>관리자 대시보드</span>
             </h2>
         </div>
-        <p class="location-desc">서비스 현황 모니터링 및 회원/게시글 관리 페이지입니다.</p>
+        <p class="location-desc">서비스 운영 현황 및 신고 관리 페이지입니다.</p>
     </div>
 
     <div class="stats-grid">
         <div class="dashboard-section stat-card-wrapper">
-            <div class="stat-icon warning">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
+            <div class="stat-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
             <div class="stat-content">
-                <h3>신고 접수</h3>
-                <p class="stat-value">3<span class="unit">건</span></p>
-                <p class="stat-desc">처리 대기중인 신고</p>
+                <h3>신고 접수 (대기)</h3>
+                <p class="stat-value"><span th:text="${pendingReports}">0</span><span class="unit">건</span></p>
             </div>
         </div>
-
         <div class="dashboard-section stat-card-wrapper">
-            <div class="stat-icon primary">
-                <i class="fas fa-users"></i>
-            </div>
+            <div class="stat-icon primary"><i class="fas fa-users"></i></div>
             <div class="stat-content">
                 <h3>총 회원수</h3>
-                <p class="stat-value">1,240<span class="unit">명</span></p>
-                <p class="stat-desc">전일 대비 +12명</p>
+                <p class="stat-value"><span th:text="${totalMembers}">0</span><span class="unit">명</span></p>
             </div>
         </div>
-
         <div class="dashboard-section stat-card-wrapper">
-            <div class="stat-icon success">
-                <i class="fas fa-comments"></i>
-            </div>
+            <div class="stat-icon success"><i class="fas fa-comments"></i></div>
             <div class="stat-content">
                 <h3>오늘 게시글</h3>
-                <p class="stat-value">58<span class="unit">개</span></p>
-                <p class="stat-desc">실시간 소통 현황</p>
+                <p class="stat-value"><span th:text="${todayPosts}">0</span><span class="unit">개</span></p>
             </div>
         </div>
     </div>
@@ -62,8 +51,7 @@
 
         <section class="dashboard-section">
             <div class="section-header">
-                <h3><i class="fas fa-users-cog"></i> 최근 가입 및 관리</h3>
-                <button class="action-btn-outline"><i class="fas fa-arrow-right"></i> 전체</button>
+                <h3><i class="fas fa-users-cog"></i> 최근 가입 회원</h3>
             </div>
             <div class="table-responsive">
                 <table class="admin-table">
@@ -77,42 +65,32 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
+                    <tr th:each="member : ${recentMembers}">
                         <td>
                             <div class="user-info">
-                                <div class="user-avatar" style="background:#a29bfe">F</div>
-                                <span>날씨요정</span>
+                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}" class="user-avatar" style="object-fit:cover;">
+                                <div th:unless="${member.profileImage != null}" class="user-avatar" style="background:#a29bfe"
+                                     th:text="${#strings.substring(member.nickname, 0, 1)}">U</div>
+                                <span th:text="${member.nickname}">닉네임</span>
                             </div>
                         </td>
-                        <td>fairy@test.com</td>
-                        <td>10-20</td>
-                        <td><span class="status-badge active">활동중</span></td>
-                        <td><button class="icon-btn delete" title="정지"><i class="fas fa-ban"></i></button></td>
-                    </tr>
-                    <tr>
+                        <td th:text="${member.email}">email</td>
+                        <td th:text="${#temporals.format(member.createdAt, 'MM-dd')}">날짜</td>
                         <td>
-                            <div class="user-info">
-                                <div class="user-avatar" style="background:#ff7675">A</div>
-                                <span>악플러123</span>
-                            </div>
+                                <span class="status-badge"
+                                      th:classappend="${member.isActive} ? 'active' : 'banned'"
+                                      th:text="${member.isActive} ? '활동중' : '정지됨'">상태</span>
                         </td>
-                        <td>bad@test.com</td>
-                        <td>10-19</td>
-                        <td><span class="status-badge banned">정지됨</span></td>
-                        <td><button class="icon-btn edit" title="해제"><i class="fas fa-unlock"></i></button></td>
-                    </tr>
-                    <tr>
                         <td>
-                            <div class="user-info">
-                                <div class="user-avatar" style="background:#74b9ff">B</div>
-                                <span>부산갈매기</span>
-                            </div>
+                            <button class="icon-btn"
+                                    th:classappend="${member.isActive} ? 'delete' : 'edit'"
+                                    th:onclick="|toggleMemberStatus(${member.id}, ${member.isActive})|"
+                                    th:title="${member.isActive} ? '회원 정지' : '정지 해제'">
+                                <i th:class="${member.isActive} ? 'fas fa-ban' : 'fas fa-unlock'"></i>
+                            </button>
                         </td>
-                        <td>busan@test.com</td>
-                        <td>10-19</td>
-                        <td><span class="status-badge active">활동중</span></td>
-                        <td><button class="icon-btn delete" title="정지"><i class="fas fa-ban"></i></button></td>
                     </tr>
+                    <tr th:if="${#lists.isEmpty(recentMembers)}"><td colspan="5" style="text-align:center">데이터 없음</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -120,52 +98,40 @@
 
         <section class="dashboard-section">
             <div class="section-header">
-                <h3><i class="fas fa-clipboard-check"></i> 신고된 게시글</h3>
+                <h3><i class="fas fa-clipboard-check"></i> 최근 신고 내역</h3>
             </div>
             <div class="table-responsive">
                 <table class="admin-table">
                     <thead>
                     <tr>
-                        <th width="50%">제목</th>
-                        <th>작성자</th>
-                        <th>작성일</th>
-                        <th>관리</th>
+                        <th>유형/사유</th>
+                        <th>신고자</th>
+                        <th>상태</th>
+                        <th>처리</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr class="report-row">
+                    <tr th:each="report : ${recentReports}">
                         <td>
-                            <span class="report-tag">신고</span>
-                            오늘 날씨 진짜 이상하네요
+                            <span class="report-tag" th:text="${report.type == 'post' ? '게시글' : '댓글'}">TYPE</span>
+                            <span th:text="${report.reason}">사유</span>
                         </td>
-                        <td>유저1</td>
-                        <td>10:30</td>
+                        <td th:text="${report.reporter.nickname}">신고자</td>
                         <td>
-                            <div class="action-buttons">
-                                <button class="btn-xs danger">삭제</button>
-                            </div>
+                                <span class="status-badge"
+                                      th:classappend="${report.status == 'PENDING'} ? 'banned' : 'active'"
+                                      th:text="${report.status == 'PENDING'} ? '대기중' : ${report.status}">상태</span>
                         </td>
-                    </tr>
-                    <tr>
-                        <td>부산 맛집 추천합니다</td>
-                        <td>먹보</td>
-                        <td>09:15</td>
                         <td>
-                            <div class="action-buttons">
-                                <button class="btn-xs secondary">숨김</button>
-                            </div>
+                            <button th:if="${report.status == 'PENDING'}"
+                                    class="btn-xs danger"
+                                    th:onclick="|resolveReport(${report.id})|">
+                                처리완료
+                            </button>
+                            <span th:unless="${report.status == 'PENDING'}" style="color:#aaa; font-size:0.8rem;">완료됨</span>
                         </td>
                     </tr>
-                    <tr>
-                        <td>패딩 입어도 될까요?</td>
-                        <td>춥다</td>
-                        <td>08:20</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-xs secondary">숨김</button>
-                            </div>
-                        </td>
-                    </tr>
+                    <tr th:if="${#lists.isEmpty(recentReports)}"><td colspan="4" style="text-align:center">데이터 없음</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -176,5 +142,7 @@
 <div th:replace="layout/footer :: footer"></div>
 
 <script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/admin.js}"></script>
+
 </body>
 </html>

@@ -39,4 +39,10 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     Page<Report> findByReporterId(Long reporterId, Pageable pageable);
 
     List<Report> findByStatus(String status);
+
+    // [관리자용] 특정 상태(예: "PENDING")인 신고 개수 조회
+    long countByStatus(String status);
+
+    // [관리자용] 최신 신고 내역 5개 조회 (최신순 정렬)
+    List<Report> findTop5ByOrderByCreatedAtDesc();
 }

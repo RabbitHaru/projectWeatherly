@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -93,4 +94,7 @@ public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecific
     // 새로 추가된 메서드들
     Page<Board> findByMember(Member member, Pageable pageable);
     Page<Board> findByCategory(String category, Pageable pageable);
+
+    // [관리자용] 특정 날짜(오늘 0시) 이후에 작성된 게시글 개수 조회
+    long countByCreatedAtAfter(LocalDateTime date);
 }
