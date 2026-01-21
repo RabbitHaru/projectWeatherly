@@ -3,7 +3,6 @@ package me.shinsunyoung.projectweatherly.airquality.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityRequestDTO;
 import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDTO;
 import me.shinsunyoung.projectweatherly.common.dto.ApiResponse;
 import me.shinsunyoung.projectweatherly.airquality.service.AirQualityService;
@@ -77,11 +76,6 @@ public class AirQualityController {
     @GetMapping("/station/{stationName}")
     public ApiResponse<AirQualityResponseDTO> getAirQualityByStation(@PathVariable String stationName) {
         return ApiResponse.success(airQualityService.getAirQualityByStation(stationName));
-    }
-
-    @PostMapping("/search")
-    public ApiResponse<AirQualityResponseDTO> searchAirQuality(@RequestBody AirQualityRequestDTO requestDto) {
-        return ApiResponse.success(airQualityService.getAirQuality(requestDto));
     }
 
     @GetMapping("/health-check")

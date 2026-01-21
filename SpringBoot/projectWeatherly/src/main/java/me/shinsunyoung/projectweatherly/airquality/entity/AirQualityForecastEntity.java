@@ -17,15 +17,17 @@ public class AirQualityForecastEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String informData;    // 예보 날짜
+    // [추가됨] 발표 시각 (이걸로 중복 체크 할 거야!)
+    private String dataTime;
+
+    private String informData;    // 예보 대상 날짜
     private String informCode;    // PM10 or PM25
 
     @Column(length = 2000)
     private String informOverall; // 개황
 
-    // [추가됨] 발생 원인
     @Column(length = 2000)
-    private String informCause;
+    private String informCause;   // 발생 원인
 
     @Column(length = 2000)
     private String informGrade;   // 등급

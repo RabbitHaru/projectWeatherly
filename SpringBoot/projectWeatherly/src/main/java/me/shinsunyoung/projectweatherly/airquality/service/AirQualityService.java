@@ -3,7 +3,6 @@ package me.shinsunyoung.projectweatherly.airquality.service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityRequestDTO;
 import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDTO;
 import me.shinsunyoung.projectweatherly.airquality.entity.AirQualityEntity;
 import me.shinsunyoung.projectweatherly.airquality.entity.AirQualityForecastEntity;
@@ -70,22 +69,25 @@ public class AirQualityService {
         List<AirQualityResponseDTO.AirQualityForecast> forecasts = airQualityApiService.getAirQualityForecast("서울");
         if (forecasts == null || forecasts.isEmpty()) return;
 
+        // 가상 데이터 체크
         String advice = forecasts.get(0).getAdvice();
         if (advice != null && advice.contains("[가상 예보]")) return;
 
+        // [중복 방지] DB의 최신 데이터와 API 데이터의 '발표 시각(dataTime)' 비교
         AirQualityForecastEntity lastSaved = airQualityForecastRepository.findTopByOrderByRecordedAtDesc();
         AirQualityResponseDTO.AirQualityForecast newForecast = forecasts.get(0);
 
-        // 중복 방지: 날짜와 개황이 같으면 저장 안 함
         if (lastSaved != null &&
-                lastSaved.getInformData().equals(newForecast.getDate()) &&
-                lastSaved.getInformOverall().equals(newForecast.getAdvice())) {
-            log.info("ℹ️ 이미 최신 예보 데이터가 DB에 존재합니다. (저장 건너뜀)");
+                newForecast.getDataTime() != null &&
+                newForecast.getDataTime().equals(lastSaved.getDataTime())) {
+
+            log.info("ℹ️ [중복 방지] 동일한 발표 시각({})의 예보가 이미 존재합니다. 저장을 건너뜁니다.", newForecast.getDataTime());
             return;
         }
 
         List<AirQualityForecastEntity> entities = forecasts.stream()
                 .map(dto -> AirQualityForecastEntity.builder()
+                        .dataTime(dto.getDataTime())
                         .informData(dto.getDate())
                         .informOverall(dto.getAdvice())
                         .informCause(dto.getCause())
@@ -94,7 +96,7 @@ public class AirQualityService {
                 .collect(Collectors.toList());
 
         airQualityForecastRepository.saveAll(entities);
-        log.info("✅ 새로운 대기질 예보 데이터 DB 저장 완료");
+        log.info("✅ 새로운 대기질 예보 데이터(발표: {}) DB 저장 완료", newForecast.getDataTime());
     }
 
     public AirQualityResponseDTO getAirQualityByIp(HttpServletRequest request) {
@@ -176,12 +178,11 @@ public class AirQualityService {
         return null;
     }
 
-    // [수정된 부분] dataTime을 (LocalDateTime)으로 강제 형변환
     private AirQualityEntity convertToEntity(AirQualityResponseDTO dto) {
         return AirQualityEntity.builder()
                 .sidoName(dto.getSidoName())
                 .stationName(dto.getStationName())
-                .dataTime((LocalDateTime) dto.getDataTime()) // 👈 여기서 (LocalDateTime) 캐스팅 추가!
+                .dataTime((LocalDateTime) dto.getDataTime())
                 .pm10Value(dto.getPm10().getValue())
                 .pm10Grade(dto.getPm10().getGrade())
                 .pm25Value(dto.getPm25().getValue())
@@ -266,9 +267,5 @@ public class AirQualityService {
             if (regionName.contains(key)) return map.get(key);
         }
         return (regionName.length() >= 2) ? regionName.substring(0, 2) : regionName;
-    }
-
-    public AirQualityResponseDTO getAirQuality(AirQualityRequestDTO requestDto) {
-        return null;
     }
 }

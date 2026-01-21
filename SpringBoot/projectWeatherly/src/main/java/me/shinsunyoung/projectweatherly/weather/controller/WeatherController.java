@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import me.shinsunyoung.projectweatherly.common.dto.ApiResponse;
 import me.shinsunyoung.projectweatherly.common.dto.LocationDTO;
 import me.shinsunyoung.projectweatherly.common.service.LocationService;
-import me.shinsunyoung.projectweatherly.weather.dto.WeatherRequestDTO;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDTO;
 import me.shinsunyoung.projectweatherly.weather.service.WeatherService;
 import org.springframework.web.bind.annotation.*;
@@ -78,31 +77,11 @@ public class WeatherController {
         return ApiResponse.success("위치 동기화 완료", location);
     }
 
-    // 6. 상세 예보
-    @PostMapping("/forecast")
-    public CompletableFuture<ApiResponse<WeatherResponseDTO>> getWeatherForecast(
-            @RequestBody WeatherRequestDTO requestDto) {
-        return CompletableFuture.supplyAsync(() -> {
-            WeatherResponseDTO weather = weatherService.getWeather(requestDto);
-            return ApiResponse.success(weather);
-        });
-    }
+    // [수정] /forecast 삭제됨, /compare/lite 삭제됨
 
-     //  [수정됨] 전국 날씨 지도용 비교 API
-
+    // 6. 전국 날씨 지도용 비교 API
     @GetMapping("/compare")
     public CompletableFuture<ApiResponse<List<WeatherResponseDTO>>> compareWeather(
-            @RequestParam List<String> regionCodes) {
-        return CompletableFuture.supplyAsync(() -> {
-            // [핵심] 여기서 Lite 버전을 호출합니다.
-            List<WeatherResponseDTO> results = weatherService.compareWeatherLite(regionCodes);
-            return ApiResponse.success(results);
-        });
-    }
-
-    // (기존의 /compare/lite는 위 메서드와 중복되지만, 호환성을 위해 남겨두어도 됩니다)
-    @GetMapping("/compare/lite")
-    public CompletableFuture<ApiResponse<List<WeatherResponseDTO>>> compareWeatherLite(
             @RequestParam List<String> regionCodes) {
         return CompletableFuture.supplyAsync(() -> {
             List<WeatherResponseDTO> results = weatherService.compareWeatherLite(regionCodes);

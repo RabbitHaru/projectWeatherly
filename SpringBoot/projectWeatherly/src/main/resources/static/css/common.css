@@ -684,3 +684,174 @@ body.dark-mode .main-footer {
         transform: translateY(0);
     }
 }
+
+/* ==========================================================================
+   [NEW] Modern Footer Styles
+   ========================================================================== */
+.modern-footer {
+    background: #ffffff;
+    border-top: 1px solid var(--light-border);
+    padding: 60px 0 20px;
+    margin-top: 80px;
+    color: var(--secondary-color);
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr; /* 왼쪽 브랜드 영역을 좀 더 넓게 */
+    gap: 40px;
+}
+
+/* 1. 브랜드 영역 */
+.footer-logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.footer-socials {
+    display: flex;
+    gap: 15px;
+}
+
+.footer-socials a {
+    width: 36px;
+    height: 36px;
+    background: #f0f2f5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.footer-socials a:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-3px);
+}
+
+/* 2, 3. 컬럼 공통 */
+.footer-col h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.footer-col h4::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 30px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: #666;
+    transition: 0.2s;
+}
+
+.footer-links a:hover {
+    color: var(--primary-color);
+    padding-left: 5px; /* 호버 시 살짝 오른쪽으로 이동 효과 */
+}
+
+/* 하단 카피라이트 */
+.footer-bottom {
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #999;
+}
+
+/* ★★★ 다크모드 대응 ★★★ */
+body.dark-mode .modern-footer {
+    background: #1e1e2e; /* 헤더보다 살짝 밝거나 어두운 톤 */
+    border-top-color: #2d2d44;
+}
+
+body.dark-mode .footer-logo {
+    /* 로고 색상은 primary-color 유지하거나 밝게 */
+}
+
+body.dark-mode .footer-desc,
+body.dark-mode .footer-links li,
+body.dark-mode .footer-links a {
+    color: #b0b0c0;
+}
+
+body.dark-mode .footer-col h4 {
+    color: white;
+}
+
+body.dark-mode .footer-socials a {
+    background: #2d2d44;
+    color: white;
+}
+
+body.dark-mode .footer-socials a:hover {
+    background: var(--primary-color);
+}
+
+body.dark-mode .footer-bottom {
+    border-top-color: #2d2d44;
+    color: #777;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+    .footer-container {
+        grid-template-columns: 1fr; /* 한 줄로 쌓기 */
+        gap: 30px;
+        text-align: center;
+    }
+
+    .footer-logo, .footer-socials {
+        justify-content: center;
+    }
+
+    .footer-col h4::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}

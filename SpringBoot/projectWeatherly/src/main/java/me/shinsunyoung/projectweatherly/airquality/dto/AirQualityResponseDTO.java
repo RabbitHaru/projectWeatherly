@@ -35,13 +35,15 @@ public class AirQualityResponseDTO {
     @Getter
     @Builder
     public static class AirQualityForecast {
+
+        // [추가됨] 발표 시각
+        private String dataTime;
+
         private String date;
         private String overallGrade;
         private String pm10Grade;
         private String pm25Grade;
-        private String advice; // 개황 (informOverall)
-
-        // [추가됨] 발생 원인 (informCause)
+        private String advice;
         private String cause;
     }
 }

@@ -1,5 +1,6 @@
 /**
- * main.js - 메인 대시보드 (통합 버전: 지도 기능 + 디자인 개선)
+ * main.js - 메인 대시보드 로직
+ * (수정 사항: 가상 데이터 감지 시 TEST MODE 배지 표시)
  */
 
 // 전역 변수: 지도와 오버레이 객체 저장
@@ -7,26 +8,28 @@ let kakaoMap = null;
 let mapOverlays = {};
 
 document.addEventListener('DOMContentLoaded', function () {
+    // 1. 시간 업데이트 (1분마다)
     updateCurrentTime();
     setInterval(() => updateCurrentTime(), 60000);
 
+    // 2. 초기 데이터 로드 & 자동 갱신 (5분마다)
     if (document.getElementById('current-temp')) {
         loadDashboardData();
         setInterval(loadDashboardData, 300000);
     }
 
-    // GPS 버튼 이벤트
+    // 3. GPS 버튼 이벤트 (common.js 함수 활용)
     if (typeof bindGpsButton === 'function') {
         bindGpsButton('gps-sync-btn', async (lat, lng) => {
             await loadWeatherDataByGPS(lat, lng);
         });
     }
 
-    // 카카오맵 스크립트 로드 확인 후 지도 초기화
+    // 4. 카카오맵 스크립트 로드 확인 후 지도 초기화
     checkKakaoMapLoop();
 });
 
-// [기능 유지] 지역 클릭 시 메인 대시보드 변경 함수 (전역 함수)
+// [기능] 지역 클릭 시 메인 대시보드 변경 함수 (전역 함수)
 window.changeDashboardLocation = async function (lat, lng, name) {
     console.log(`지역 변경: ${name} (${lat}, ${lng})`);
 
@@ -34,8 +37,8 @@ window.changeDashboardLocation = async function (lat, lng, name) {
     const locationTitle = document.getElementById('current-location');
     if (locationTitle) locationTitle.innerText = `${name}로 이동 중...`;
 
-    // 2. 해당 좌표로 날씨 데이터 새로고침
-    await loadWeatherDataByGPS(lat, lng, name); // name 전달하여 강제 지역명 설정
+    // 2. 해당 좌표로 날씨 데이터 새로고침 (지역명 강제 전달)
+    await loadWeatherDataByGPS(lat, lng, name);
 
     // 3. 화면 최상단으로 부드럽게 스크롤 이동
     window.scrollTo({top: 0, behavior: 'smooth'});
@@ -85,11 +88,11 @@ function initKakaoMap() {
     loadRegionalWeatherData();
 }
 
-// [3] 지역별 날씨 로드 + 지도 마커 표시 + 클릭 이벤트 (기존 기능 유지)
+// [3] 지역별 날씨 로드 + 지도 마커 표시 + 클릭 이벤트
 async function loadRegionalWeatherData() {
     const listContainer = document.getElementById('regional-weather');
 
-    // 주요 도시 좌표
+    // 주요 도시 좌표 (참고: CITY_COORDINATES는 common.js에 정의됨)
     const regions = [
         {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780},
         {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845},
@@ -105,6 +108,7 @@ async function loadRegionalWeatherData() {
     try {
         let weatherData = [];
         if (regionCodes) {
+            // Lite 버전 API 사용
             const res = await fetch(`${API_BASE_URL}/api/weather/compare?regionCodes=${regionCodes}`);
             const result = await res.json();
             if (result.success) weatherData = result.data;
@@ -135,9 +139,9 @@ async function loadRegionalWeatherData() {
             // (A) 지도 오버레이
             if (kakaoMap) {
                 const content = `
-                    <div class="customoverlay" ${clickAction} style="cursor: pointer; background:white; padding:5px; border-radius:5px; border:1px solid #ccc; text-align:center;">
-                        <a href="javascript:void(0);" style="text-decoration:none; color:#333;">
-                            <span class="title" style="display:block; font-weight:bold;">${region.name}</span>
+                    <div class="customoverlay" ${clickAction} style="cursor: pointer;">
+                        <a href="javascript:void(0);">
+                            <span class="title">${region.name}</span>
                             <div class="weather-content">
                                 <i class="${iconClass}" style="color:${getIconColor(iconClass)}"></i>
                                 <span class="temp">${temp}°</span>
@@ -179,7 +183,7 @@ async function loadRegionalWeatherData() {
     }
 }
 
-// 헬퍼 함수들
+// 헬퍼 함수: 아이콘 색상
 function getIconColor(iconClass) {
     if (iconClass.includes('sun')) return '#f39c12';
     if (iconClass.includes('rain') || iconClass.includes('umbrella')) return '#3498db';
@@ -188,6 +192,7 @@ function getIconColor(iconClass) {
     return '#333';
 }
 
+// 헬퍼 함수: 날씨 상태별 아이콘 클래스
 function getWeatherIconClass(condition) {
     if (!condition) return 'fas fa-question';
     if (condition.includes('맑음')) return 'fas fa-sun';
@@ -197,7 +202,7 @@ function getWeatherIconClass(condition) {
     return 'fas fa-cloud-sun';
 }
 
-// [4] 날씨 데이터 로드 (문법 오류 수정됨)
+// [4] 날씨 데이터 로드 (기본: IP 기반)
 async function loadWeatherData() {
     try {
         const res = await fetch(`${API_BASE_URL}/api/weather/current`);
@@ -211,6 +216,7 @@ async function loadWeatherData() {
     }
 }
 
+// [4-1] GPS 좌표로 날씨 데이터 로드
 async function loadWeatherDataByGPS(lat, lng, forcedRegionName = null) {
     try {
         const res = await fetch(`${API_BASE_URL}/api/weather/gps?latitude=${lat}&longitude=${lng}`, {
@@ -231,6 +237,7 @@ async function loadWeatherDataByGPS(lat, lng, forcedRegionName = null) {
     }
 }
 
+// [5] 실시간 대기질 로드
 async function loadAirQualitySummary() {
     try {
         const res = await fetch(`${API_BASE_URL}/api/air-quality/current`);
@@ -254,7 +261,7 @@ async function loadAirQualitySummaryByGPS(lat, lng) {
     }
 }
 
-// [핵심] 미세먼지 예보 로드 (기존 HTML ID인 aqi-forecast-details 사용)
+// [6] 미세먼지 예보 로드
 async function loadAirQualityForecast(sido) {
     if (!sido || sido.includes('?')) sido = '서울';
     sido = extractSidoName(sido);
@@ -270,14 +277,12 @@ async function loadAirQualityForecast(sido) {
     }
 }
 
-// [디자인 적용] 메인 페이지 미세먼지 예보 렌더링 (CSS 클래스 기반)
+// 메인 페이지 미세먼지 예보 렌더링
 function updateMainPageAqiForecast(list) {
     const container = document.getElementById('aqi-forecast-details');
     if (!container) return;
 
     container.innerHTML = '';
-
-    // 레이아웃: 반반 채우기
     container.style.display = 'flex';
     container.style.width = '100%';
     container.style.gap = '20px';
@@ -299,7 +304,6 @@ function updateMainPageAqiForecast(list) {
         const label = labels[index] || '예보';
 
         const cardDiv = document.createElement('div');
-        // 날씨 카드와 동일한 스타일 적용을 위해 클래스 부여 (main.css에서 제어)
         cardDiv.className = 'aqi-forecast-card';
 
         cardDiv.innerHTML = `
@@ -341,8 +345,11 @@ function updateAqiSummaryUI(aqi) {
     updateItem('o3', 'ppm');
 }
 
+// [핵심] 날씨 UI 업데이트 (가상 데이터 배지 로직 포함)
 function updateWeatherUI(weather) {
     if (!weather) return;
+
+    // 텍스트 업데이트 헬퍼
     const txt = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
@@ -352,8 +359,23 @@ function updateWeatherUI(weather) {
         if (el) el.innerHTML = val;
     };
 
-    if (weather.regionName) txt('current-location', getFullSidoName(weather.regionName));
+    // 1. 지역명 & TEST MODE 배지 표시
+    if (weather.regionName) {
+        const locationEl = document.getElementById('current-location');
+        if (locationEl) {
+            let name = getFullSidoName(weather.regionName);
 
+            // isMock 플래그가 true면 빨간 배지 추가
+            if (weather.isMock) {
+                name += ' <span style="background:#e74c3c; color:white; font-size:0.6em; padding:2px 6px; border-radius:4px; vertical-align:middle; margin-left: 5px;">TEST MODE</span>';
+                locationEl.innerHTML = name;
+            } else {
+                locationEl.textContent = name;
+            }
+        }
+    }
+
+    // 2. 현재 날씨
     if (weather.current) {
         html('current-temp', `${Math.round(weather.current.temperature)}<span class="temp-unit">°C</span>`);
         txt('weather-condition', weather.current.weatherCondition || '맑음');
@@ -363,10 +385,12 @@ function updateWeatherUI(weather) {
         txt('precipitation', `${weather.current.precipitation || '0'} mm`);
     }
 
+    // 3. 예보 리스트 렌더링
     if (weather.hourly) renderHourlyForecast(weather.hourly);
     if (weather.tomorrowHourly) renderTomorrowForecast(weather.tomorrowHourly);
     if (weather.daily) renderWeeklyForecast(weather.daily);
 
+    // 4. 요약 정보 업데이트
     updateForecastSummaries(weather);
 }
 
@@ -375,28 +399,28 @@ function updateForecastSummaries(weather) {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
     };
-    if (weather.hourly && weather.hourly.length > 0) {
-        txt('ultra-short-summary', `현재 ${weather.hourly[0].weatherCondition}, 기온 ${Math.round(weather.hourly[0].temperature)}°C 입니다.`);
-        txt('ultra-short-temp', `${Math.round(weather.hourly[0].temperature)}°C`);
-        txt('ultra-short-humidity', `${Math.round(weather.hourly[0].humidity)}%`);
-    }
 
-    if (weather.daily && weather.daily.length > 1) {
-        const tmr = weather.daily[1];
-        txt('short-term-summary', `내일은 ${tmr.weatherCondition || '맑음'}이 예상됩니다.`);
-        txt('short-term-max-temp', `${Math.round(tmr.maxTemp)}°C`);
-        txt('short-term-min-temp', `${Math.round(tmr.minTemp)}°C`);
-    } else {
-        txt('short-term-summary', '정보 준비 중');
-    }
+    // 요약 정보가 API에서 오면 그대로 사용 (가상 데이터 메시지 등 포함)
+    if (weather.summary) {
+        txt('ultra-short-summary', weather.summary.ultraShortSummary || '정보 없음');
+        txt('short-term-summary', weather.summary.shortSummary || '정보 없음');
+        txt('mid-term-summary', weather.summary.midSummary || '정보 없음');
 
-    if (weather.daily && weather.daily.length > 2) {
-        const wk = weather.daily[2];
-        txt('mid-term-summary', `주간 기온은 ${Math.round(wk.minTemp)}~${Math.round(wk.maxTemp)}°C 사이를 유지하겠습니다.`);
-        txt('weekly-precipitation', `${wk.precipitationProbability || 0}%`);
-        txt('temp-trend', '평년 비슷');
-    } else {
-        txt('mid-term-summary', '정보 준비 중');
+        // 예보 값 업데이트 (요약 텍스트 외에 우측 수치들)
+        if (weather.hourly && weather.hourly.length > 0) {
+            txt('ultra-short-temp', `${Math.round(weather.hourly[0].temperature)}°C`);
+            txt('ultra-short-humidity', `${Math.round(weather.hourly[0].humidity)}%`);
+        }
+        if (weather.daily && weather.daily.length > 1) {
+            const tmr = weather.daily[1];
+            txt('short-term-max-temp', `${Math.round(tmr.maxTemp)}°C`);
+            txt('short-term-min-temp', `${Math.round(tmr.minTemp)}°C`);
+        }
+        if (weather.daily && weather.daily.length > 2) {
+            const wk = weather.daily[2];
+            txt('weekly-precipitation', `${wk.precipitationProbability || 0}%`);
+            txt('temp-trend', '평년 비슷');
+        }
     }
 }
 
