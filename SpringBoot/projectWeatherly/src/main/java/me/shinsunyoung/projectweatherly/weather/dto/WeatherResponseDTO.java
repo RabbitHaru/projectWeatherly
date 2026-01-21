@@ -21,26 +21,18 @@ public class WeatherResponseDTO {
     private String regionCode;
     private String currentTime;
 
-    // [추가됨] 가상 데이터 여부 (true면 화면에 표시)
     @Builder.Default
     private boolean isMock = false;
 
-    // 현재 날씨
+    // [추가됨] 기상특보 정보
+    private WeatherWarning warning;
+
     private CurrentWeather current;
-
-    // 오늘 시간별 예보 (1시간 간격)
     private List<HourlyForecast> hourly;
-
-    // 내일 시간별 예보 (1시간 간격)
     private List<HourlyForecast> tomorrowHourly;
-
-    // 주간 예보 (오전/오후 구분)
     private List<DailyForecast> daily;
-
-    // 요약 정보
     private WeatherSummary summary;
 
-    // 간략 모드용
     public static WeatherResponseDTO createLiteVersion(WeatherResponseDTO full) {
         return WeatherResponseDTO.builder()
                 .regionName(full.getRegionName())
@@ -48,10 +40,24 @@ public class WeatherResponseDTO {
                 .currentTime(full.getCurrentTime())
                 .current(full.getCurrent())
                 .summary(full.getSummary())
-                .isMock(full.isMock()) // 상태 복사
+                .isMock(full.isMock())
+                .warning(full.getWarning()) // 특보 정보도 복사
                 .build();
     }
 
+    // [추가됨] 특보 정보 클래스
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WeatherWarning {
+        private boolean active;      // 특보 발효 여부
+        private String title;        // 제목 (예: 호우주의보)
+        private String description;  // 설명 (예: 시간당 30mm 이상의 강한 비)
+        private String level;        // 등급 (safe, caution, danger)
+    }
+
+    // ... (CurrentWeather, HourlyForecast, DailyForecast, WeatherSummary는 기존 그대로 유지)
     @Data
     @Builder
     @NoArgsConstructor
