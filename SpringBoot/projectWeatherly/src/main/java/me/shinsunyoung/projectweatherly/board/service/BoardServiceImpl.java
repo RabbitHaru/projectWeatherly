@@ -15,7 +15,7 @@ import me.shinsunyoung.projectweatherly.board.repository.BoardLikeRepository;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
-import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole; // ★ 추가됨
+import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -88,7 +88,7 @@ public class BoardServiceImpl implements BoardService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
-        // ★ [추가] 공지사항(NOTICE)은 관리자만 작성 가능
+        // 공지사항(NOTICE)은 관리자만 작성 가능
         if (Board.CATEGORY_NOTICE.equalsIgnoreCase(request.getCategory())) {
             if (member.getRole() != MemberRole.ADMIN) {
                 throw new IllegalStateException("공지사항은 관리자만 작성할 수 있습니다.");
@@ -104,21 +104,27 @@ public class BoardServiceImpl implements BoardService {
                 .likeCount(0)
                 .build();
 
+        // [★중요 수정] 게시글을 먼저 저장해서 ID를 생성합니다.
+        // 기존에는 저장 전에 이미지를 연결하려 해서 ID가 없어 오류가 났습니다.
+        Board savedBoard = boardRepository.save(board);
+
         if (request.getImageFiles() != null && !request.getImageFiles().isEmpty()) {
             for (MultipartFile imageFile : request.getImageFiles()) {
                 if (!imageFile.isEmpty()) {
                     String imageUrl = imageUploadService.uploadImage(imageFile);
                     BoardImage boardImage = BoardImage.builder()
                             .imageUrl(imageUrl)
-                            .isThumbnail(board.getImages().isEmpty())
-                            .board(board)
+                            // 저장된 savedBoard의 이미지 리스트 상태를 확인
+                            .isThumbnail(savedBoard.getImages().isEmpty())
+                            .board(savedBoard) // ID가 생성된 savedBoard를 연결
                             .build();
-                    board.addImage(boardImage);
+                    savedBoard.addImage(boardImage);
                 }
             }
+            // 이미지가 추가된 상태를 다시 저장 (Dirty Checking으로 자동 반영되지만 확실하게 처리)
+            savedBoard = boardRepository.save(savedBoard);
         }
 
-        Board savedBoard = boardRepository.save(board);
         return convertToResponse(savedBoard, false);
     }
 
@@ -130,7 +136,7 @@ public class BoardServiceImpl implements BoardService {
         Member requestMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
 
-        // ★ [수정] 작성자 본인 확인 OR 관리자 권한 확인
+        // 작성자 본인 확인 OR 관리자 권한 확인
         boolean isOwner = board.getMember().getId().equals(memberId);
         boolean isAdmin = requestMember.getRole() == MemberRole.ADMIN;
 
@@ -138,7 +144,7 @@ public class BoardServiceImpl implements BoardService {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
-        // ★ [추가] 공지사항 카테고리로 변경 시 관리자 권한 체크
+        // 공지사항 카테고리로 변경 시 관리자 권한 체크
         if (Board.CATEGORY_NOTICE.equalsIgnoreCase(request.getCategory())) {
             if (!isAdmin) {
                 throw new IllegalStateException("관리자만 공지사항으로 설정할 수 있습니다.");
@@ -188,7 +194,7 @@ public class BoardServiceImpl implements BoardService {
         Member requestMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
 
-        // ★ [수정] 작성자 본인 확인 OR 관리자 권한 확인 (강제 삭제 로직)
+        // 작성자 본인 확인 OR 관리자 권한 확인 (강제 삭제 로직)
         boolean isOwner = board.getMember().getId().equals(memberId);
         boolean isAdmin = requestMember.getRole() == MemberRole.ADMIN;
 
