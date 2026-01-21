@@ -1,5 +1,5 @@
 /**
- * main.js - 메인 대시보드 (통합 버전: 지도 기능 + 디자인 개선)
+ * main.js - 메인 대시보드 (수정본: 중복 선언 제거)
  */
 
 // 전역 변수: 지도와 오버레이 객체 저장
@@ -85,7 +85,7 @@ function initKakaoMap() {
     loadRegionalWeatherData();
 }
 
-// [3] 지역별 날씨 로드 + 지도 마커 표시 + 클릭 이벤트 (기존 기능 유지)
+// [3] 지역별 날씨 로드 + 지도 마커 표시 + 클릭 이벤트
 async function loadRegionalWeatherData() {
     const listContainer = document.getElementById('regional-weather');
 
@@ -197,7 +197,7 @@ function getWeatherIconClass(condition) {
     return 'fas fa-cloud-sun';
 }
 
-// [4] 날씨 데이터 로드 (문법 오류 수정됨)
+// [4] 날씨 데이터 로드
 async function loadWeatherData() {
     try {
         const res = await fetch(`${API_BASE_URL}/api/weather/current`);
@@ -254,7 +254,7 @@ async function loadAirQualitySummaryByGPS(lat, lng) {
     }
 }
 
-// [핵심] 미세먼지 예보 로드 (기존 HTML ID인 aqi-forecast-details 사용)
+// 미세먼지 예보 로드
 async function loadAirQualityForecast(sido) {
     if (!sido || sido.includes('?')) sido = '서울';
     sido = extractSidoName(sido);
@@ -270,14 +270,13 @@ async function loadAirQualityForecast(sido) {
     }
 }
 
-// [디자인 적용] 메인 페이지 미세먼지 예보 렌더링 (CSS 클래스 기반)
+// 메인 페이지 미세먼지 예보 렌더링
 function updateMainPageAqiForecast(list) {
     const container = document.getElementById('aqi-forecast-details');
     if (!container) return;
 
     container.innerHTML = '';
 
-    // 레이아웃: 반반 채우기
     container.style.display = 'flex';
     container.style.width = '100%';
     container.style.gap = '20px';
@@ -299,7 +298,6 @@ function updateMainPageAqiForecast(list) {
         const label = labels[index] || '예보';
 
         const cardDiv = document.createElement('div');
-        // 날씨 카드와 동일한 스타일 적용을 위해 클래스 부여 (main.css에서 제어)
         cardDiv.className = 'aqi-forecast-card';
 
         cardDiv.innerHTML = `

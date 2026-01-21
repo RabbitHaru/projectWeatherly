@@ -70,22 +70,26 @@ public class AirQualityService {
         List<AirQualityResponseDTO.AirQualityForecast> forecasts = airQualityApiService.getAirQualityForecast("서울");
         if (forecasts == null || forecasts.isEmpty()) return;
 
+        // 가상 데이터 체크
         String advice = forecasts.get(0).getAdvice();
         if (advice != null && advice.contains("[가상 예보]")) return;
 
+        // [핵심 변경] 중복 방지 로직: DB의 최신 데이터와 API 데이터의 '발표 시각(dataTime)' 비교
         AirQualityForecastEntity lastSaved = airQualityForecastRepository.findTopByOrderByRecordedAtDesc();
         AirQualityResponseDTO.AirQualityForecast newForecast = forecasts.get(0);
 
-        // 중복 방지: 날짜와 개황이 같으면 저장 안 함
+        // 예: DB "11시 발표" == API "11시 발표" -> 중복! 저장 안 함.
         if (lastSaved != null &&
-                lastSaved.getInformData().equals(newForecast.getDate()) &&
-                lastSaved.getInformOverall().equals(newForecast.getAdvice())) {
-            log.info("ℹ️ 이미 최신 예보 데이터가 DB에 존재합니다. (저장 건너뜀)");
+                newForecast.getDataTime() != null &&
+                newForecast.getDataTime().equals(lastSaved.getDataTime())) {
+
+            log.info("ℹ️ [중복 방지] 동일한 발표 시각({})의 예보가 이미 존재합니다. 저장을 건너뜁니다.", newForecast.getDataTime());
             return;
         }
 
         List<AirQualityForecastEntity> entities = forecasts.stream()
                 .map(dto -> AirQualityForecastEntity.builder()
+                        .dataTime(dto.getDataTime()) // [저장] 발표 시각 저장
                         .informData(dto.getDate())
                         .informOverall(dto.getAdvice())
                         .informCause(dto.getCause())
@@ -94,7 +98,7 @@ public class AirQualityService {
                 .collect(Collectors.toList());
 
         airQualityForecastRepository.saveAll(entities);
-        log.info("✅ 새로운 대기질 예보 데이터 DB 저장 완료");
+        log.info("✅ 새로운 대기질 예보 데이터(발표: {}) DB 저장 완료", newForecast.getDataTime());
     }
 
     public AirQualityResponseDTO getAirQualityByIp(HttpServletRequest request) {

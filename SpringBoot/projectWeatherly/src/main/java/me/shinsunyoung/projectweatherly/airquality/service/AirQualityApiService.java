@@ -38,41 +38,61 @@ public class AirQualityApiService {
 
     private final Random random = new Random();
 
-    // ... (getAirQualityBySido, getAirQualityByStation, getNearbyStation 등 기존 메서드 유지) ...
-    // ... (이 부분은 위쪽 코드와 동일하므로 생략합니다. 기존 파일 내용 유지해주세요) ...
-
-    // [기존 코드 생략 - 위쪽 메서드들은 그대로 두세요]
-
-    @Cacheable(value = "airQualityBySido", key = "#sidoName")
+    /**
+     * 시도별 조회 (전국 포함)
+     * [수정] 스케줄러가 호출 시 항상 최신 데이터를 위해 @Cacheable 제거 (또는 별도 메서드 분리 권장)
+     * 여기서는 단순화를 위해 캐시 제거함.
+     */
+    // @Cacheable(value = "airQualityBySido", key = "#sidoName") // 👈 제거: 항상 최신 데이터 요청
     public List<AirQualityResponseDTO> getAirQualityBySido(String sidoName) {
-        // ... (기존과 동일)
         try {
             String encodedSidoName = URLEncoder.encode(sidoName, StandardCharsets.UTF_8);
+
+            // "전국"이면 1000개, 아니면 100개
             int numOfRows = "전국".equals(sidoName) ? 1000 : 100;
+
             URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getCtprvnRltmMesureDnsty")
-                    .queryParam("serviceKey", apiKey).queryParam("returnType", "json").queryParam("numOfRows", numOfRows).queryParam("pageNo", 1).queryParam("sidoName", encodedSidoName).queryParam("ver", "1.3").build(true).toUri();
+                    .queryParam("serviceKey", apiKey)
+                    .queryParam("returnType", "json")
+                    .queryParam("numOfRows", numOfRows)
+                    .queryParam("pageNo", 1)
+                    .queryParam("sidoName", encodedSidoName)
+                    .queryParam("ver", "1.3")
+                    .build(true)
+                    .toUri();
+
             log.info("대기질 API 호출: {} (요청 수: {})", sidoName, numOfRows);
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
             String responseBody = response.getBody();
+
             if (isErrorResponse(responseBody)) {
+                log.warn("🚨 API 에러 발생 -> 더미 데이터 반환");
                 return getMockDataList(sidoName);
             }
+
+            // [중요] 파싱 시 요청한 sidoName("전국")이 아니라 실제 데이터의 sidoName을 쓰도록 유도
             List<AirQualityResponseDTO> list = parseAirQualityResponse(responseBody, sidoName);
+
             if (list == null || list.isEmpty()) {
                 return getMockDataList(sidoName);
             }
             return list;
+
         } catch (Exception e) {
+            log.error("API 호출 중 예외: {}", e.getMessage());
             return getMockDataList(sidoName);
         }
     }
 
+    // ... (나머지 메서드는 기존 유지) ...
     @Cacheable(value = "airQualityByStation", key = "#stationName")
     public AirQualityResponseDTO getAirQualityByStation(String stationName) {
-        // ... (기존과 동일)
         try {
             String encodedStationName = URLEncoder.encode(stationName, StandardCharsets.UTF_8);
-            URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getMsrstnAcctoRltmMesureDnsty").queryParam("serviceKey", apiKey).queryParam("returnType", "json").queryParam("numOfRows", 1).queryParam("pageNo", 1).queryParam("stationName", encodedStationName).queryParam("dataTerm", "DAILY").queryParam("ver", "1.3").build(true).toUri();
+            URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getMsrstnAcctoRltmMesureDnsty")
+                    .queryParam("serviceKey", apiKey).queryParam("returnType", "json").queryParam("numOfRows", 1)
+                    .queryParam("pageNo", 1).queryParam("stationName", encodedStationName).queryParam("dataTerm", "DAILY")
+                    .queryParam("ver", "1.3").build(true).toUri();
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
             String body = response.getBody();
             if (isErrorResponse(body)) return getSingleMockData(stationName);
@@ -86,9 +106,10 @@ public class AirQualityApiService {
 
     @Cacheable(value = "nearbyStations", key = "#tmX + '_' + #tmY")
     public String getNearbyStation(Double tmX, Double tmY) {
-        // ... (기존과 동일)
         try {
-            URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getNearbyMsrstnList").queryParam("serviceKey", apiKey).queryParam("returnType", "json").queryParam("tmX", tmX).queryParam("tmY", tmY).build(true).toUri();
+            URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getNearbyMsrstnList")
+                    .queryParam("serviceKey", apiKey).queryParam("returnType", "json")
+                    .queryParam("tmX", tmX).queryParam("tmY", tmY).build(true).toUri();
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 JsonNode root = objectMapper.readTree(response.getBody());
@@ -105,22 +126,14 @@ public class AirQualityApiService {
         try {
             String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getMinuDustFrcstDspth")
-                    .queryParam("serviceKey", apiKey)
-                    .queryParam("returnType", "json")
-                    .queryParam("searchDate", today)
-                    .queryParam("informCode", "PM10")
-                    .build(true)
-                    .toUri();
-
+                    .queryParam("serviceKey", apiKey).queryParam("returnType", "json")
+                    .queryParam("searchDate", today).queryParam("informCode", "PM10").build(true).toUri();
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
             String body = response.getBody();
-
             if (isErrorResponse(body)) return getMockForecasts();
-
             List<AirQualityResponseDTO.AirQualityForecast> list = parseForecastResponse(body);
             if (list == null || list.isEmpty()) return getMockForecasts();
             return list;
-
         } catch (Exception e) {
             return getMockForecasts();
         }
@@ -131,16 +144,16 @@ public class AirQualityApiService {
         return body.contains("quota exceeded") || body.contains("SERVICE ERROR") || body.trim().startsWith("<");
     }
 
-    // ... (parseAirQualityResponse, parseStationAirQualityResponse 등 기존 메서드 유지) ...
-    // [기존 코드 생략 - 그대로 두세요]
-    private List<AirQualityResponseDTO> parseAirQualityResponse(String jsonResponse, String sidoName) throws Exception {
+    private List<AirQualityResponseDTO> parseAirQualityResponse(String jsonResponse, String requestSidoName) throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items");
         List<AirQualityResponseDTO> result = new ArrayList<>();
         if (items.isArray()) {
             for (JsonNode item : items) {
                 try {
-                    AirQualityResponseDTO dto = parseAirQualityItem(item, sidoName);
+                    // 여기서 requestSidoName("전국")을 그대로 넘기면 안 됨!
+                    // 각 아이템 내부의 실제 sidoName을 사용하도록 parseAirQualityItem 내부 로직이 중요함
+                    AirQualityResponseDTO dto = parseAirQualityItem(item, requestSidoName);
                     if (dto != null) result.add(dto);
                 } catch (Exception e) {
                 }
@@ -156,44 +169,54 @@ public class AirQualityApiService {
         return null;
     }
 
-    // [수정] 예보 파싱 시 informCause 추가
     private List<AirQualityResponseDTO.AirQualityForecast> parseForecastResponse(String jsonResponse) throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items");
         List<AirQualityResponseDTO.AirQualityForecast> forecasts = new ArrayList<>();
         if (items.isArray()) {
             for (JsonNode item : items) {
+                String dataTime = item.path("dataTime").asText(); // [핵심] 발표 시간 추출
                 String informData = item.path("informData").asText();
                 String informOverall = item.path("informOverall").asText();
-                String informCause = item.path("informCause").asText(); // [추가]
+                String informCause = item.path("informCause").asText();
                 String informGrade = item.path("informGrade").asText();
                 String overallGrade = extractGradeFromForecast(informGrade, "서울");
 
                 forecasts.add(AirQualityResponseDTO.AirQualityForecast.builder()
+                        .dataTime(dataTime) // [추가]
                         .date(informData)
                         .overallGrade(overallGrade)
                         .pm10Grade(overallGrade)
                         .pm25Grade(overallGrade)
                         .advice(informOverall)
-                        .cause(informCause) // [추가]
+                        .cause(informCause)
                         .build());
             }
         }
         return forecasts;
     }
 
-    private AirQualityResponseDTO parseAirQualityItem(JsonNode item, String sidoName) {
-        // ... (기존과 동일, 생략)
+    // [핵심 수정] JSON Item 내부의 sidoName을 우선 사용
+    private AirQualityResponseDTO parseAirQualityItem(JsonNode item, String defaultSidoName) {
         try {
+            // 1. JSON에서 sidoName 추출 시도
+            String itemSidoName = item.path("sidoName").asText(null);
+
+            // 2. 없으면 요청 시 사용한 defaultSidoName("전국" 등) 사용
+            // 하지만 "전국"일 경우엔 반드시 item 내부 값이 있어야 정상적인 저장이 가능함
+            String finalSidoName = (itemSidoName != null && !itemSidoName.isEmpty()) ? itemSidoName : defaultSidoName;
+
             String stationName = item.path("stationName").asText(null);
             String dataTimeStr = item.path("dataTime").asText(null);
             if (stationName == null || dataTimeStr == null) return null;
+
             LocalDateTime dataTime;
             try {
                 dataTime = LocalDateTime.parse(dataTimeStr.replace(" ", "T"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             } catch (Exception e) {
                 dataTime = LocalDateTime.now();
             }
+
             Integer pm10Value = parseIntegerSafe(item.path("pm10Value").asText());
             String pm10Grade = item.path("pm10Grade").asText("2");
             Integer pm25Value = parseIntegerSafe(item.path("pm25Value").asText());
@@ -209,17 +232,38 @@ public class AirQualityApiService {
             Integer khaiValue = parseIntegerSafe(item.path("khaiValue").asText());
             String khaiGrade = item.path("khaiGrade").asText("2");
             String overallGrade = determineOverallGrade(pm10Grade, pm25Grade, o3Grade, no2Grade);
-            return AirQualityResponseDTO.builder().stationName(stationName).sidoName(sidoName).dataTime(dataTime).khai(createIndex(khaiValue, khaiGrade, "")).pm10(createIndex(pm10Value, pm10Grade, "㎍/㎥")).pm25(createIndex(pm25Value, pm25Grade, "㎍/㎥")).o3(createIndex(o3Value, o3Grade, "ppm")).no2(createIndex(no2Value, no2Grade, "ppm")).co(createIndex(coValue, coGrade, "ppm")).so2(createIndex(so2Value, so2Grade, "ppm")).overallGrade(overallGrade).overallStatus(convertGradeToStatus(overallGrade)).healthAdvice(generateHealthAdvice(overallGrade)).build();
+
+            return AirQualityResponseDTO.builder()
+                    .stationName(stationName)
+                    .sidoName(finalSidoName) // [수정됨] 실제 지역명 저장
+                    .dataTime(dataTime)
+                    .khai(createIndex(khaiValue, khaiGrade, ""))
+                    .pm10(createIndex(pm10Value, pm10Grade, "㎍/㎥"))
+                    .pm25(createIndex(pm25Value, pm25Grade, "㎍/㎥"))
+                    .o3(createIndex(o3Value, o3Grade, "ppm"))
+                    .no2(createIndex(no2Value, no2Grade, "ppm"))
+                    .co(createIndex(coValue, coGrade, "ppm"))
+                    .so2(createIndex(so2Value, so2Grade, "ppm"))
+                    .overallGrade(overallGrade)
+                    .overallStatus(convertGradeToStatus(overallGrade))
+                    .healthAdvice(generateHealthAdvice(overallGrade))
+                    .build();
         } catch (Exception e) {
             return null;
         }
     }
 
     private List<AirQualityResponseDTO> getMockDataList(String sidoName) {
-        // ... (기존과 동일)
         List<AirQualityResponseDTO> list = new ArrayList<>();
-        String[] fakeStations = {sidoName + " 본청(가상)", sidoName + " 동부(가상)", "테스트측정소"};
-        for (String station : fakeStations) list.add(createMockDTO(sidoName, station));
+        // 모의 데이터 생성 시에도 "전국"이면 가상의 여러 지역을 만들어줌
+        if ("전국".equals(sidoName)) {
+            list.add(createMockDTO("서울", "서울본청(가상)"));
+            list.add(createMockDTO("부산", "부산본청(가상)"));
+            list.add(createMockDTO("대구", "대구본청(가상)"));
+        } else {
+            String[] fakeStations = {sidoName + " 본청(가상)", sidoName + " 동부(가상)", "테스트측정소"};
+            for (String station : fakeStations) list.add(createMockDTO(sidoName, station));
+        }
         return list;
     }
 
@@ -233,25 +277,17 @@ public class AirQualityApiService {
         return AirQualityResponseDTO.builder().sidoName(sidoName).stationName(stationName).dataTime(LocalDateTime.now()).khai(createIndex(random.nextInt(200), grade, "점")).pm10(createIndex(random.nextInt(150), grade, "㎍/㎥")).pm25(createIndex(random.nextInt(100), grade, "㎍/㎥")).o3(createIndex(0.035, "2", "ppm")).no2(createIndex(0.021, "1", "ppm")).co(createIndex(0.4, "1", "ppm")).so2(createIndex(0.003, "1", "ppm")).overallGrade(grade).overallStatus(convertGradeToStatus(grade)).healthAdvice("📢 [테스트 모드] API 호출 한도 초과").build();
     }
 
-    // [수정] 가상 예보 생성 시에도 cause 추가
     private List<AirQualityResponseDTO.AirQualityForecast> getMockForecasts() {
         List<AirQualityResponseDTO.AirQualityForecast> list = new ArrayList<>();
         LocalDate today = LocalDate.now();
         for (int i = 0; i < 2; i++) {
             String grade = String.valueOf(random.nextInt(3) + 1);
-            list.add(AirQualityResponseDTO.AirQualityForecast.builder()
-                    .date(today.plusDays(i).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                    .overallGrade(grade)
-                    .pm10Grade(grade)
-                    .pm25Grade(grade)
-                    .advice("📢 [가상 예보] 현재 API 상태가 원활하지 않습니다.")
-                    .cause("대기질 정보 통신 상태를 확인해주세요.") // [추가]
-                    .build());
+            list.add(AirQualityResponseDTO.AirQualityForecast.builder().date(today.plusDays(i).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).overallGrade(grade).pm10Grade(grade).pm25Grade(grade).advice("📢 [가상 예보] 현재 API 상태가 원활하지 않습니다.").cause("대기질 정보 통신 상태를 확인해주세요.").build());
         }
         return list;
     }
 
-    // ... (유틸리티 메서드 동일) ...
+    // 유틸리티 메서드들 (기존 유지)
     private Integer parseIntegerSafe(String value) {
         try {
             if (value == null || value.trim().isEmpty() || "-".equals(value.trim())) return null;
