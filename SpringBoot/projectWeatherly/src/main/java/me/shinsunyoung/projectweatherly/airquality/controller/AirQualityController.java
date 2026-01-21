@@ -22,50 +22,20 @@ public class AirQualityController {
     @GetMapping("/current")
     public ApiResponse<AirQualityResponseDTO> getCurrentAirQuality(HttpServletRequest request) {
         try {
-            AirQualityResponseDTO airQuality = airQualityService.getAirQualityByIp(request);
-            return ApiResponse.success(airQuality);
-        } catch (Exception e) {
-            log.error("현재 위치 대기질 조회 실패", e);
-            // 에러 시 null을 담아 성공으로 처리 (프론트에서 처리)
-            return ApiResponse.success(null);
-        }
+            return ApiResponse.success(airQualityService.getAirQualityByIp(request));
+        } catch (Exception e) { return ApiResponse.success(null); }
     }
 
     @PostMapping("/gps")
     public ApiResponse<AirQualityResponseDTO> getAirQualityByGps(@RequestParam Double latitude, @RequestParam Double longitude) {
         try {
-            AirQualityResponseDTO airQuality = airQualityService.getAirQualityByGps(latitude, longitude);
-            return ApiResponse.success("GPS 위치 기반 대기질 정보", airQuality);
-        } catch (Exception e) {
-            log.error("GPS 대기질 조회 실패", e);
-            return ApiResponse.error("GPS 대기질 정보를 가져오는데 실패했습니다.");
-        }
+            return ApiResponse.success("GPS 위치 기반 대기질 정보", airQualityService.getAirQualityByGps(latitude, longitude));
+        } catch (Exception e) { return ApiResponse.error("GPS 대기질 정보를 가져오는데 실패했습니다."); }
     }
 
     @GetMapping("/forecast/{sidoName}")
     public ApiResponse<List<AirQualityResponseDTO.AirQualityForecast>> getAirQualityForecast(@PathVariable String sidoName) {
-        List<AirQualityResponseDTO.AirQualityForecast> forecasts = airQualityService.getAirQualityForecast(sidoName);
-        return ApiResponse.success(forecasts);
-    }
-
-    @GetMapping("/compare")
-    public ApiResponse<List<AirQualityResponseDTO>> compareRegionalAirQuality(@RequestParam List<String> sidoNames) {
-        List<AirQualityResponseDTO> results = new ArrayList<>();
-
-        // [수정] try-catch를 for문 안으로 넣어서 하나가 에러나도 멈추지 않게 함
-        for (String sidoName : sidoNames) {
-            try {
-                List<AirQualityResponseDTO> sidoData = airQualityService.getAirQualityBySido(sidoName);
-                if (!sidoData.isEmpty()) {
-                    results.add(sidoData.get(0));
-                }
-            } catch (Exception e) {
-                // 특정 지역 조회 실패 시 로그만 남기고 계속 진행
-                log.warn("지역별 비교 조회 실패 (지역: {}): {}", sidoName, e.getMessage());
-            }
-        }
-
-        return ApiResponse.success(results);
+        return ApiResponse.success(airQualityService.getAirQualityForecast(sidoName));
     }
 
     @GetMapping("/sido/{sidoName}")
@@ -73,13 +43,11 @@ public class AirQualityController {
         return ApiResponse.success(airQualityService.getAirQualityBySido(sidoName));
     }
 
-    @GetMapping("/station/{stationName}")
-    public ApiResponse<AirQualityResponseDTO> getAirQualityByStation(@PathVariable String stationName) {
-        return ApiResponse.success(airQualityService.getAirQualityByStation(stationName));
-    }
-
-    @GetMapping("/health-check")
-    public ApiResponse<String> healthCheck() {
-        return ApiResponse.success("OK");
+    // 강제 업데이트 (테스트용)
+    @GetMapping("/force-update")
+    public ApiResponse<String> forceUpdate() {
+        airQualityService.updateRealtimeData();
+        airQualityService.updateForecastData();
+        return ApiResponse.success("강제 업데이트 실행됨");
     }
 }
