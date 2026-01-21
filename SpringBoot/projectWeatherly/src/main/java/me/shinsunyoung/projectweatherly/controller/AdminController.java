@@ -38,10 +38,9 @@ public class AdminController {
     // 1. 대시보드 메인
     @GetMapping({"", "/"})
     public String dashboard(Model model, @AuthenticationPrincipal UserSecurityDTO user) {
-<<<<<<< HEAD
+
         checkAdmin(user);
         model.addAttribute("stats", adminService.getDashboardStats());
-=======
 
         if (user == null || user.getUser().getRole() != MemberRole.ADMIN) {
             return "redirect:/";
@@ -60,7 +59,7 @@ public class AdminController {
         Page<ReportResponse> reportPage = reportService.getAllReports(top5);
         model.addAttribute("recentReports", reportPage.getContent()); // List 형태로 전달
 
->>>>>>> 38ce84da02626845d11ae847017a5165b54adfc7
+
         return "admin";
     }
 
