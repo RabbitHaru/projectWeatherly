@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Weatherly Main Dashboard Stylesheet
+   Weatherly Main Dashboard Stylesheet (Color Fixed Version)
    ========================================================================== */
 
 /* 1. 날씨 상태 */
@@ -112,12 +112,18 @@
 }
 
 .aqi-item {
-    background: rgba(255, 255, 255, 0.1);
+    /* [수정] 배경을 조금 더 밝게 (0.1 -> 0.2) */
+    background: rgba(255, 255, 255, 0.2);
     padding: 15px;
     border-radius: 10px;
     display: flex;
     flex-direction: column;
     gap: 5px;
+    transition: 0.3s;
+}
+
+.aqi-item:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .aqi-label {
@@ -130,6 +136,7 @@
     font-weight: 700;
 }
 
+/* [핵심 수정] 실시간 상태 뱃지 색상 복구 */
 .aqi-status {
     padding: 4px 12px;
     border-radius: 12px;
@@ -137,9 +144,31 @@
     font-weight: bold;
     align-self: flex-start;
     margin-top: 5px;
-    background: white;
+    background: white; /* 기본값 */
     color: #333;
 }
+
+/* 여기서 색상을 덮어씌워야 원래대로 나옵니다 */
+.aqi-status.aqi-good {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.aqi-status.aqi-moderate {
+    background-color: var(--warning-color);
+    color: #333;
+}
+
+.aqi-status.aqi-bad {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.aqi-status.aqi-very-bad {
+    background-color: #8e44ad;
+    color: white;
+}
+
 
 /* 4. 예보 요약 카드 */
 .forecast-summary {
@@ -451,8 +480,9 @@ body.dark-mode .region-name {
     font-weight: 500;
 }
 
+/* [수정] 사이드바 리스트 온도 크기 복구 (크게!) */
 .region-temp {
-    font-size: 1.5rem;
+    font-size: 1.8rem; /* 1.5rem -> 1.8rem 으로 확대 */
     font-weight: 800;
     color: var(--accent-color);
 }
@@ -461,7 +491,6 @@ body.dark-mode .region-name {
    [NEW] 사이드바 날씨 지도 스타일
    ========================================= */
 
-/* 지도 컨테이너 배경 (바다 색상) */
 .korea-map-container {
     background: radial-gradient(circle at 50% 50%, #f0f4f8 0%, #d9e2ec 100%);
     border-radius: 12px;
@@ -470,28 +499,25 @@ body.dark-mode .region-name {
 #korea-map {
     width: 100%;
     height: 100%;
-    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.1));
     transform: scale(1.1); /* 지도 살짝 키우기 */
 }
 
-/* 지역(땅) 스타일 */
 .region-path {
-    fill: #ffffff;      /* 기본 흰색 땅 */
-    stroke: #bcccdc;    /* 경계선 색상 (연한 회색) */
+    fill: #ffffff;
+    stroke: #bcccdc;
     stroke-width: 1.5;
     transition: all 0.3s ease;
     cursor: pointer;
 }
 
-/* 마우스 올렸을 때 효과 */
 .map-region:hover .region-path {
-    fill: #e3f2fd;      /* 아주 연한 파란색 */
-    stroke: #2196f3;    /* 경계선 강조 */
+    fill: #e3f2fd;
+    stroke: #2196f3;
     stroke-width: 2;
-    transform: translateY(-2px); /* 살짝 떠오름 */
+    transform: translateY(-2px);
 }
 
-/* 텍스트 스타일 */
 .region-label {
     font-size: 14px;
     font-weight: bold;
@@ -500,15 +526,6 @@ body.dark-mode .region-name {
     pointer-events: none;
 }
 
-.region-temp {
-    font-size: 16px;
-    font-weight: 800;
-    fill: #2d3436;
-    text-anchor: middle;
-    pointer-events: none;
-}
-
-/* 아이콘 둥둥 떠다니는 애니메이션 */
 .map-weather-icon {
     display: flex;
     justify-content: center;
@@ -521,83 +538,83 @@ body.dark-mode .region-name {
 }
 
 @keyframes floatMapIcon {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
 }
 
-/* =========================================
-   [NEW] 이미지 기반 날씨 지도 스타일
-   ========================================= */
-
-/* 아이콘 컨테이너 (위치 잡기용) */
 .map-overlay-item {
     position: absolute;
-    transform: translate(-50%, -50%); /* 정확한 중앙 정렬 */
+    transform: translate(-50%, -50%);
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 10;
 }
 
-/* 호버 효과 */
 .map-overlay-item:hover {
-    transform: translate(-50%, -60%) scale(1.1); /* 살짝 위로 뜸 */
+    transform: translate(-50%, -60%) scale(1.1);
     z-index: 20;
 }
 
-/* 날씨 아이콘 크기 및 애니메이션 */
 .map-overlay-item .map-weather-icon {
     font-size: 1.8rem;
     margin-bottom: 2px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
     animation: floatIcon 3s ease-in-out infinite;
 }
 
-/* 텍스트 스타일 */
 .map-overlay-item .region-label {
     font-size: 0.85rem;
     font-weight: bold;
     color: #333;
-    background: rgba(255, 255, 255, 0.8); /* 글자 잘 보이게 배경 깔기 */
+    background: rgba(255, 255, 255, 0.8);
     padding: 2px 6px;
     border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .map-overlay-item .region-temp {
-    color: #e74c3c; /* 온도 색상 강조 */
+    color: #e74c3c;
     margin-left: 2px;
 }
 
-/* 둥둥 떠다니는 애니메이션 */
 @keyframes floatIcon {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
-/* 다크모드 대응 */
 body.dark-mode .korea-map-container {
     background: radial-gradient(circle at 50% 50%, #2c3e50 0%, #1a252f 100%);
 }
+
 body.dark-mode .region-path {
     fill: #34495e;
     stroke: #455a64;
 }
+
 body.dark-mode .map-region:hover .region-path {
     fill: #2980b9;
     stroke: #3498db;
 }
 
 /* =========================================
-   [최종 수정] 말풍선 스타일 (작고 가깝게)
+   [최종 수정] 말풍선 스타일
    ========================================= */
 .customoverlay {
     position: relative;
-    bottom: 15px; /* [중요] 50px -> 15px 로 변경 (지도에 훨씬 가까워짐) */
+    bottom: 15px;
     border-radius: 6px;
     border: 1px solid #ccc;
     background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     padding: 0;
     width: auto;
     min-width: auto;
@@ -620,13 +637,13 @@ body.dark-mode .map-region:hover .region-path {
     overflow: hidden;
 }
 
-/* 지역 이름 (폰트 작게) */
+/* 지역 이름 */
 .customoverlay .title {
     display: block;
     text-align: center;
     background: #f1f3f5;
     padding: 2px 5px;
-    font-size: 11px; /* 글자 크기 축소 */
+    font-size: 11px;
     font-weight: bold;
     color: #555;
     border-bottom: 1px solid #eee;
@@ -643,17 +660,18 @@ body.dark-mode .map-region:hover .region-path {
 }
 
 .customoverlay .weather-content i {
-    font-size: 1.0rem; /* 아이콘 크기 축소 */
+    font-size: 1.0rem;
 }
 
+/* [수정] 지도 말풍선 온도 크기 복구 (크게!) */
 .customoverlay .temp {
-    font-size: 0.9rem; /* 온도 크기 축소 */
+    font-size: 1.4rem; /* 0.9rem -> 1.4rem 으로 확대 */
     color: #333;
     font-weight: 800;
     margin-top: 1px;
 }
 
-/* 말풍선 꼬리 (더 작고 뾰족하게) */
+/* 말풍선 꼬리 */
 .customoverlay:after {
     content: '';
     position: absolute;
@@ -674,18 +692,122 @@ body.dark-mode .customoverlay {
     background: rgba(44, 62, 80, 0.95);
     border-color: #555;
 }
+
 body.dark-mode .customoverlay .title {
     background: #34495e;
     color: #ecf0f1;
     border-bottom-color: #555;
 }
+
 body.dark-mode .customoverlay .weather-content {
     background: transparent;
 }
+
 body.dark-mode .customoverlay .temp {
     color: #fff;
 }
+
 body.dark-mode .customoverlay:after {
     background: #2c3e50;
     border-color: #555;
+}
+
+/* [추가] 메인 페이지 미세먼지 카드 스타일 (다크모드 & 디자인 통일) */
+.aqi-forecast-card {
+    flex: 1; /* 반반 채우기 */
+    background: #ffffff; /* 날씨 카드 기본 배경 */
+    border: 1px solid #eee; /* 날씨 카드 테두리 */
+    border-radius: 15px; /* 둥근 모서리 통일 */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.3s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02); /* 날씨 카드 그림자 */
+    cursor: default;
+}
+
+/* 호버 효과 (날씨 카드와 동일) */
+.aqi-forecast-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 헤더 영역 (제목 + 날짜) */
+.aqi-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.aqi-label {
+    font-size: 1.1rem;
+    font-weight: 800; /* 굵게 */
+    color: var(--secondary-color); /* 날씨 카드 제목 색상 */
+}
+
+.aqi-date {
+    font-size: 0.85rem;
+    color: #888; /* 날짜 색상 */
+    font-weight: 600;
+}
+
+/* 본문 영역 (아이콘 + 뱃지) */
+.aqi-card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.aqi-icon {
+    font-size: 2.5rem; /* 아이콘 크기 날씨와 비슷하게 */
+    margin: 5px 0;
+}
+
+/* 상태 뱃지 */
+.aqi-status-badge {
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* ★★★ 다크모드 완벽 대응 ★★★ */
+body.dark-mode .aqi-forecast-card {
+    background: #34495e !important; /* 날씨 카드 다크모드 배경 */
+    border-color: #4a6278; /* 테두리 */
+    color: #eee;
+}
+
+body.dark-mode .aqi-label {
+    color: white !important; /* 다크모드 제목 흰색 */
+}
+
+body.dark-mode .aqi-date {
+    color: #ccc !important; /* 날짜 밝은 회색 */
+}
+
+/* 등급별 뱃지 색상 */
+.aqi-status-badge.aqi-good {
+    background-color: var(--success-color);
+}
+
+.aqi-status-badge.aqi-moderate {
+    background-color: var(--warning-color);
+    color: #333;
+}
+
+.aqi-status-badge.aqi-bad {
+    background-color: var(--danger-color);
+}
+
+.aqi-status-badge.aqi-very-bad {
+    background-color: #8e44ad;
 }
