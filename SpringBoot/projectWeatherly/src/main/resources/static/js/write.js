@@ -1,10 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Write page script loaded."); // 디버깅용 로그
+    console.log("Write page script loaded.");
 
     // ==========================================
     // 1. 다크모드 로직 (헤더의 토글 버튼 연동)
     // ==========================================
-    const darkModeToggle = document.getElementById('darkModeToggle');
+
+    // [수정됨] HTML의 id인 'darkmode-toggle'로 변경
+    const darkModeToggle = document.getElementById('darkmode-toggle');
 
     // 1-1. 저장된 설정 불러오기
     const savedMode = localStorage.getItem('darkMode');

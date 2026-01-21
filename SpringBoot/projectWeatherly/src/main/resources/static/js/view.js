@@ -1,4 +1,4 @@
-// [수정됨] IDE 오류 방지 주석 처리 (postId는 HTML에서 inline script로 정의됨을 가정하거나 여기서 fallback 처리)
+// [수정됨] IDE 오류 방지 주석 처리
 // const postId = ... (HTML 내 inline script에서 처리됨)
 
 function getCsrfToken() {
@@ -38,7 +38,7 @@ function toggleLike() {
         .catch(err => console.error("Error:", err));
 }
 
-// 2. 댓글 좋아요 (새로 추가됨)
+// 2. 댓글 좋아요
 function toggleCommentLike(commentId) {
     if (!commentId) return;
 
@@ -80,12 +80,8 @@ function toggleCommentLike(commentId) {
         .catch(err => console.error("Error:", err));
 }
 
-// 조회수 증가
+// [중요] 조회수 증가 fetch 로직 제거됨 (Controller에서 처리)
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof postId !== 'undefined' && postId > 0) {
-        fetch('/community/boards/' + postId + '/view', { method: 'POST', headers: { 'X-CSRF-TOKEN': getCsrfToken() }});
-    }
-
     // 이미지 모달 처리
     document.querySelectorAll('.gallery-image').forEach(img => {
         img.addEventListener('click', function() {

@@ -19,6 +19,7 @@ import me.shinsunyoung.projectweatherly.member.dto.response.*;
 import me.shinsunyoung.projectweatherly.member.exception.MemberException;
 import me.shinsunyoung.projectweatherly.member.repository.AgreementRepository;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -129,26 +130,24 @@ public class MemberService implements UserDetailsService {
         int pageNum = (page > 0) ? page - 1 : 0;
         Pageable pageable = PageRequest.of(pageNum, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        List<CommunityPostResponse> boardList = boardRepository.findByMember(member, pageable)
-                .stream().map(CommunityPostResponse::new).collect(Collectors.toList());
+        Page<CommunityPostResponse> boardList = boardRepository.findByMember(member, pageable)
+                .map(CommunityPostResponse::new);
         response.setMyCommunityPosts(boardList);
 
         // 2. 신고 내역 (전체, 최신순)
-        List<Report> reports = reportRepository.findByReporterIdOrderByCreatedAtDesc(memberId);
-        List<ReportResponse> reportList = reports.stream()
-                .map(ReportResponse::from).collect(Collectors.toList());
+        Page<ReportResponse> reportList = reportRepository.findByReporterIdOrderByCreatedAtDesc(memberId, pageable)
+                .map(ReportResponse::from);
         response.setMyReports(reportList);
 
         // 3. [★추가] 작성한 댓글 목록 (10개)
-        List<Comment> comments = commentRepository.findByMemberOrderByCreatedAtDesc(member, pageable);
-        List<MyCommentResponse> commentList = comments.stream()
-                .map(MyCommentResponse::from).collect(Collectors.toList());
+        Page<MyCommentResponse> commentList = commentRepository.findByMemberOrderByCreatedAtDesc(member, pageable)
+                .map(MyCommentResponse::from);
         response.setMyComments(commentList);
 
         // 4. 통계 정보
-        response.setPostCount(boardList.size()); // 실제로는 count 쿼리 권장
-        response.setReportCount(reportList.size());
-        response.setCommentCount(commentRepository.countByMember(member)); // [★추가]
+        response.setPostCount(boardList.getSize()); // 실제로는 count 쿼리 권장
+        response.setReportCount(reportList.getSize());
+        response.setCommentCount(commentList.getSize()); // [★추가]
         response.setLikeCount(0);
 
         return response;

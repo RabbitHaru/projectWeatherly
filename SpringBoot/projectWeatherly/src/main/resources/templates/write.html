@@ -14,9 +14,9 @@
 <body>
 <div th:replace="layout/header :: header"></div>
 
-<div class="container">
-    <div class="write-header-section">
-        <h1 class="write-title">새 글 작성</h1>
+<div class="container ">
+    <div class="write-header-section weather-summary">
+        <h1 class="write-title ">새 글 작성</h1>
         <p class="write-subtitle">커뮤니티에 새로운 이야기를 공유해보세요!</p>
     </div>
 </div>
@@ -71,6 +71,7 @@
 <div th:replace="layout/footer :: footer"></div>
 
 <script th:src="@{/js/write.js}"></script>
+<script th:src="@{/js/common.js}"></script>
 
 </body>
 </html>

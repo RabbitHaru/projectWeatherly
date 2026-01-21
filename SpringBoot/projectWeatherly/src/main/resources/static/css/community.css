@@ -202,6 +202,7 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    list-style: none;
 }
 
 .page-link {
@@ -222,6 +223,7 @@
 }
 
 .page-item.active .page-link {
+
     background: #667eea;
     color: white;
     font-weight: bold;
@@ -230,6 +232,9 @@
 .page-item.disabled .page-link {
     opacity: 0.5;
     cursor: not-allowed;
+}
+.page-item{
+    list-style: none;
 }
 
 .page-prev, .page-next {

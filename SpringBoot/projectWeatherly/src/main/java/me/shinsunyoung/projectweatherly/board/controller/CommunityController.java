@@ -1,6 +1,8 @@
 package me.shinsunyoung.projectweatherly.board.controller;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.board.dto.BoardRequest;
@@ -39,7 +41,6 @@ public class CommunityController {
 
     /**
      * 커뮤니티 메인 페이지
-     * [수정됨] "/boards" 경로를 추가하여 HTML의 페이지네이션 링크와 일치시킴
      */
     @GetMapping({"", "/", "/boards"})
     public String community(
@@ -146,11 +147,13 @@ public class CommunityController {
     }
 
     /**
-     * 게시글 상세 보기
+     * 게시글 상세 보기 (조회수 중복 방지 로직 적용됨)
      */
     @GetMapping("/boards/{id}")
     public String getBoard(@PathVariable Long id, Model model,
-                           @AuthenticationPrincipal UserSecurityDTO user) {
+                           @AuthenticationPrincipal UserSecurityDTO user,
+                           HttpServletRequest request,
+                           HttpServletResponse response) { // [변경] response 추가
         try {
             if (id == null || id <= 0) return "redirect:/community?error=invalid_id";
 
@@ -158,6 +161,36 @@ public class CommunityController {
                 model.addAttribute("nickname", user.getUser().getNickname());
                 model.addAttribute("memberId", user.getUser().getId());
             }
+
+            // ============================================================
+            // [수정] 쿠키를 이용한 조회수 중복 증가 방지 로직 (하루 1회)
+            // ============================================================
+            Cookie oldCookie = null;
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals("postView")) {
+                        oldCookie = cookie;
+                    }
+                }
+            }
+
+            if (oldCookie != null) {
+                if (!oldCookie.getValue().contains("[" + id.toString() + "]")) {
+                    boardService.increaseViewCount(id); // 서비스 호출
+                    oldCookie.setValue(oldCookie.getValue() + "_[" + id + "]");
+                    oldCookie.setPath("/");
+                    oldCookie.setMaxAge(60 * 60 * 24); // 24시간
+                    response.addCookie(oldCookie);
+                }
+            } else {
+                boardService.increaseViewCount(id); // 서비스 호출
+                Cookie newCookie = new Cookie("postView", "[" + id + "]");
+                newCookie.setPath("/");
+                newCookie.setMaxAge(60 * 60 * 24); // 24시간
+                response.addCookie(newCookie);
+            }
+            // ============================================================
 
             BoardResponse board = boardService.getBoard(id);
 
@@ -240,7 +273,6 @@ public class CommunityController {
 
     /**
      * 검색 기능
-     * [수정됨] "/boards/search" 경로 추가 (HTML 폼의 action 속성과 일치시킴)
      */
     @GetMapping({"/search", "/boards/search"})
     public String searchBoards(@RequestParam String keyword, @PageableDefault(size = 15) Pageable pageable, Model model, HttpServletRequest request) {

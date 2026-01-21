@@ -22,6 +22,7 @@ import me.shinsunyoung.projectweatherly.member.dto.response.ReportResponse;
 import me.shinsunyoung.projectweatherly.member.exception.MemberException;
 import me.shinsunyoung.projectweatherly.member.repository.AgreementRepository;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -49,14 +50,14 @@ public class MyPageService {
 
     // 마이페이지 정보 조회
     public MyPageResponse getMyPageInfo(String email) {
-        return getMyPageInfo(email, 0);
+        return getMyPageInfo(email, 1 );
     }
 
-    public MyPageResponse getMyPageInfo(String email, int page) {
+    public MyPageResponse getMyPageInfo(String email, Integer page) {
         return getMyPageInfo(memberService.getMemberByEmail(email).getMemberId(), page);
     }
 
-    public MyPageResponse getMyPageInfo(Long memberId, int page) {
+    public MyPageResponse getMyPageInfo(Long memberId, Integer page) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException("회원을 찾을 수 없습니다."));
 
@@ -64,46 +65,40 @@ public class MyPageService {
         MyPageResponse response = MyPageResponse.fromMemberResponse(memberResponse);
 
         // 게시글
-        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
-        List<CommunityPostResponse> postList = boardRepository.findByMemberAndBoardStatus(member,BoardStatus.ACTIVE, pageable)
-                .stream().map(CommunityPostResponse::new).collect(Collectors.toList());
+        Pageable pageable = PageRequest.of((int) (page-1), 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<CommunityPostResponse> postList = boardRepository.findByMemberAndBoardStatus(member,BoardStatus.ACTIVE, pageable)
+                .map(CommunityPostResponse::new);
         response.setMyCommunityPosts(postList);
 
         // 신고 내역
-        List<Report> reports = reportRepository.findByReporterIdOrderByCreatedAtDesc(memberId);
-        List<ReportResponse> reportList = reports.stream()
-                .map(ReportResponse::from).collect(Collectors.toList());
+        Page<ReportResponse> reportList = reportRepository.findByReporterIdOrderByCreatedAtDesc(memberId, pageable).map(ReportResponse::from);;
         response.setMyReports(reportList);
 
         // 댓글 내역
         if (commentRepository != null) {
-            List<Comment> comments = commentRepository.findByMemberOrderByCreatedAtDesc(member, pageable);
-            List<MyCommentResponse> commentList = comments.stream()
-                    .map(MyCommentResponse::from).collect(Collectors.toList());
+            Page<MyCommentResponse> commentList = commentRepository.findByMemberOrderByCreatedAtDesc(member, pageable)
+                    .map(MyCommentResponse::from);
             response.setMyComments(commentList);
             response.setCommentCount(commentRepository.countByMember(member));
         }
 
         // 통계
-        response.setPostCount(postList.size());
-        response.setReportCount(reportList.size());
+        response.setPostCount(postList.getSize());
+        response.setReportCount(reportList.getSize());
 
         return response;
     }
 
     @Transactional
-    public MyPageResponse updateMemberForMyPage(String email, UpdateMemberRequest request) {
-        return updateMemberForMyPage(memberService.getMemberByEmail(email).getMemberId(), request);
-    }
-
-    @Transactional
-    public MyPageResponse updateMemberForMyPage(Long memberId, UpdateMemberRequest request) {
-        Member member = memberRepository.findById(memberId).orElseThrow();
+    public void updateMemberForMyPage(String email, UpdateMemberRequest request) {
+        Member member = memberRepository.findByEmail(email).orElseThrow();
         if (request.getNickname() != null) member.setNickname(request.getNickname());
         if (request.getProfileImage() != null) member.setProfileImage(request.getProfileImage());
         memberRepository.save(member);
-        return getMyPageInfo(memberId, 0);
+
     }
+
+
 
     // [★수정됨] 비밀번호 변경 로직 (save 추가)
     @Transactional

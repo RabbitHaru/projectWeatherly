@@ -255,3 +255,79 @@ body.dark-mode .modal-content {
     background-color: #1e1e1e;
     border: 1px solid #444;
 }
+.pagination-container {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    list-style: none;
+}
+
+.page-link {
+    border: none;
+    background: #f8f9fa;
+    color: #495057;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: all 0.2s;
+    text-decoration: none;
+    min-width: 40px;
+    text-align: center;
+}
+
+.page-link:hover {
+    background: #667eea;
+    color: white;
+}
+
+.page-item.active .page-link {
+    background: #667eea;
+    color: white;
+    font-weight: bold;
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-prev, .page-next {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.page-prev i, .page-next i {
+    font-size: 0.9rem;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 8px;
+}
+
+.page-number {
+    font-weight: normal;
+}
+
+/* 페이지네이션 */
+body.dark-mode .page-link {
+    background: #2d2d2d;
+    color: #ccc;
+    border-color: #444;
+}
+
+body.dark-mode .page-link:hover {
+    background: #667eea;
+    color: white;
+}
+
+body.dark-mode .page-item.active .page-link {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}

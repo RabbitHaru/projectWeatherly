@@ -13,8 +13,8 @@
 <body>
 <div th:replace="~{layout/header :: header}"></div>
 
-<div class="container">
-    <div class="view-header-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; margin-top: 3rem;">
+<div class="container ">
+    <div class="view-header-section weather-summary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; margin-top: 3rem;">
         <h1 class="view-title" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;" th:text="${board.title}">게시글 제목</h1>
         <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 5px; opacity: 0.9;"><i class="fas fa-user-circle"></i><span th:text="${board.memberNickname}">작성자</span></div>
@@ -33,7 +33,7 @@
     <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
     <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
 
-    <div class="view-content-section">
+    <div class="view-content-section " >
         <div th:if="${not #lists.isEmpty(board.images)}" class="image-gallery">
             <img th:each="image : ${board.images}"
                  th:src="|/community/images/post/${image}|"
