@@ -3,7 +3,6 @@ package me.shinsunyoung.projectweatherly.airquality.service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityRequestDTO;
 import me.shinsunyoung.projectweatherly.airquality.dto.AirQualityResponseDTO;
 import me.shinsunyoung.projectweatherly.airquality.entity.AirQualityEntity;
 import me.shinsunyoung.projectweatherly.airquality.entity.AirQualityForecastEntity;
@@ -74,11 +73,10 @@ public class AirQualityService {
         String advice = forecasts.get(0).getAdvice();
         if (advice != null && advice.contains("[가상 예보]")) return;
 
-        // [핵심 변경] 중복 방지 로직: DB의 최신 데이터와 API 데이터의 '발표 시각(dataTime)' 비교
+        // [중복 방지] DB의 최신 데이터와 API 데이터의 '발표 시각(dataTime)' 비교
         AirQualityForecastEntity lastSaved = airQualityForecastRepository.findTopByOrderByRecordedAtDesc();
         AirQualityResponseDTO.AirQualityForecast newForecast = forecasts.get(0);
 
-        // 예: DB "11시 발표" == API "11시 발표" -> 중복! 저장 안 함.
         if (lastSaved != null &&
                 newForecast.getDataTime() != null &&
                 newForecast.getDataTime().equals(lastSaved.getDataTime())) {
@@ -89,7 +87,7 @@ public class AirQualityService {
 
         List<AirQualityForecastEntity> entities = forecasts.stream()
                 .map(dto -> AirQualityForecastEntity.builder()
-                        .dataTime(dto.getDataTime()) // [저장] 발표 시각 저장
+                        .dataTime(dto.getDataTime())
                         .informData(dto.getDate())
                         .informOverall(dto.getAdvice())
                         .informCause(dto.getCause())
@@ -180,12 +178,11 @@ public class AirQualityService {
         return null;
     }
 
-    // [수정된 부분] dataTime을 (LocalDateTime)으로 강제 형변환
     private AirQualityEntity convertToEntity(AirQualityResponseDTO dto) {
         return AirQualityEntity.builder()
                 .sidoName(dto.getSidoName())
                 .stationName(dto.getStationName())
-                .dataTime((LocalDateTime) dto.getDataTime()) // 👈 여기서 (LocalDateTime) 캐스팅 추가!
+                .dataTime((LocalDateTime) dto.getDataTime())
                 .pm10Value(dto.getPm10().getValue())
                 .pm10Grade(dto.getPm10().getGrade())
                 .pm25Value(dto.getPm25().getValue())
@@ -270,9 +267,5 @@ public class AirQualityService {
             if (regionName.contains(key)) return map.get(key);
         }
         return (regionName.length() >= 2) ? regionName.substring(0, 2) : regionName;
-    }
-
-    public AirQualityResponseDTO getAirQuality(AirQualityRequestDTO requestDto) {
-        return null;
     }
 }
