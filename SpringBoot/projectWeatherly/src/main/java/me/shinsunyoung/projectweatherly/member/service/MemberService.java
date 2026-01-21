@@ -23,6 +23,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mail.SimpleMailMessage; // [필수] 메일 객체
+import org.springframework.mail.javamail.JavaMailSender; // [필수] 메일 전송 도구
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,7 +48,8 @@ public class MemberService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final BoardRepository boardRepository;
     private final ReportRepository reportRepository;
-    private final CommentRepository commentRepository; // [★추가]
+    private final CommentRepository commentRepository;
+    private final JavaMailSender javaMailSender; // [추가됨] 진짜 메일 발송 도구
 
     // ==================== UserDetails 반환 ====================
     @Override
@@ -119,7 +123,7 @@ public class MemberService implements UserDetailsService {
     public boolean checkEmailExists(String email) { return memberRepository.existsByEmail(email); }
     public boolean checkNicknameExists(String nickname) { return memberRepository.existsByNickname(nickname); }
 
-    // ==================== [핵심] 마이페이지 정보 조회 ====================
+    // ==================== 마이페이지 정보 조회 ====================
     public MyPageResponse getMyPageInfo(Long memberId, int page) {
         MemberResponse memberResponse = getMemberById(memberId);
         MyPageResponse response = MyPageResponse.fromMemberResponse(memberResponse);
@@ -139,15 +143,15 @@ public class MemberService implements UserDetailsService {
                 .map(ReportResponse::from);
         response.setMyReports(reportList);
 
-        // 3. [★추가] 작성한 댓글 목록 (10개)
+        // 3. 작성한 댓글 목록 (10개)
         Page<MyCommentResponse> commentList = commentRepository.findByMemberOrderByCreatedAtDesc(member, pageable)
                 .map(MyCommentResponse::from);
         response.setMyComments(commentList);
 
         // 4. 통계 정보
-        response.setPostCount(boardList.getSize()); // 실제로는 count 쿼리 권장
+        response.setPostCount(boardList.getSize());
         response.setReportCount(reportList.getSize());
-        response.setCommentCount(commentList.getSize()); // [★추가]
+        response.setCommentCount(commentList.getSize());
         response.setLikeCount(0);
 
         return response;
@@ -235,5 +239,44 @@ public class MemberService implements UserDetailsService {
                 .boardNotificationAgree(agreement != null ? agreement.getBoardNotificationAgree() : null)
                 .weatherAlertAgree(agreement != null ? agreement.getWeatherAlertAgree() : null)
                 .build();
+    }
+
+    // ==================== [NEW] 아이디/비밀번호 찾기 ====================
+
+    // [추가] 닉네임으로 이메일 찾기
+    public String findEmailByNickname(String nickname) {
+        Member member = memberRepository.findByNickname(nickname)
+                .orElseThrow(() -> new MemberException("해당 닉네임을 가진 회원이 존재하지 않습니다."));
+        return member.getEmail();
+    }
+
+    // [수정됨] 실제 이메일 전송 (JavaMailSender)
+    @Transactional
+    public void sendTemporaryPassword(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberException("가입되지 않은 이메일입니다."));
+
+        // 1. 임시 비밀번호 생성 (8자리 랜덤 문자열)
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+
+        // 2. 비밀번호 암호화 및 DB 업데이트
+        member.setPassword(passwordEncoder.encode(tempPassword));
+
+        // 3. 실제 이메일 전송
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("[Weatherly] 임시 비밀번호 발급 안내");
+        message.setText("안녕하세요, Weatherly입니다.\n\n" +
+                "회원님의 임시 비밀번호는 아래와 같습니다.\n" +
+                "로그인 후 반드시 비밀번호를 변경해주세요.\n\n" +
+                "임시 비밀번호: " + tempPassword);
+
+        try {
+            javaMailSender.send(message);
+            log.info("임시 비밀번호 이메일 전송 성공: {}", email);
+        } catch (Exception e) {
+            log.error("이메일 전송 실패: {}", e.getMessage());
+            throw new MemberException("이메일 전송 중 오류가 발생했습니다.");
+        }
     }
 }

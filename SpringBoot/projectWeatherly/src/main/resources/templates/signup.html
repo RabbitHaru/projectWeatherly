@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weatherly - 회원가입</title>
-    <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/signup.css">
     <link rel="stylesheet" th:href="@{/css/common.css}">
@@ -22,13 +21,9 @@
             <h1><i class="fas fa-user-plus"></i> 회원가입</h1>
             <p class="subtitle">Weatherly 회원이 되어 정확한 날씨 정보와 커뮤니티를 즐기세요</p>
         </div>
-        <form id="signupForm" class="signup-form"  method="post" enctype="multipart/form-data">
+        <form id="signupForm" class="signup-form"  method="post" enctype="multipart/form-data" novalidate>
 
 
-            <div id="loginErrorMsg" class="error-box" th:classappend="${param.error} ? 'show' : ''">
-                <i class="fas fa-times-circle"></i>
-                <span>회원가입을 실패하였습니다.</span>
-            </div>
             <!-- 기본 정보 입력 -->
             <div class="form-section">
                 <h2><i class="fas fa-id-card"></i> 기본 정보</h2>
@@ -63,7 +58,7 @@
 
                 <div class="form-group">
                     <label for="user_password">비밀번호 <span class="required">*</span></label>
-                    <input type="password" id="user_password" name="password" placeholder="영문 8자 이상" required>
+                    <input type="password" id="user_password" name="password" placeholder="8자 이상" required>
                     <div class="validation-message" id="passwordMessage"></div>
                 </div>
 
@@ -257,7 +252,6 @@
                     <i class="fas fa-times"></i> 취소
                 </button>
             </div>
-
             <div class="login-link">
                 이미 계정이 있으신가요? <a href="/login">로그인하기</a>
             </div>
@@ -269,5 +263,6 @@
 <div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="/js/signup.js"></script>
+<script src="/js/common.js"></script>
 </body>
 </html>

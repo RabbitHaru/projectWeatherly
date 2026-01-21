@@ -40,7 +40,7 @@
             <div class="control-buttons">
                 <button class="control-btn notification-btn" title="알림" sec:authorize="isAuthenticated()">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge">0</span>
+                    <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
                 </button>
                 <button class="control-btn favorites-btn" title="즐겨찾기" sec:authorize="isAuthenticated()">
                     <i class="fas fa-star"></i>
@@ -73,6 +73,33 @@
             </div>
         </div>
     </div>
+
+    <script sec:authorize="isAuthenticated()">
+        document.addEventListener("DOMContentLoaded", function() {
+            updateNotificationCount();
+
+            // 10초마다 알림 갱신
+            setInterval(updateNotificationCount, 10000);
+        });
+
+        function updateNotificationCount() {
+            fetch('/api/notifications/count')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(count => {
+                    const badge = document.getElementById('notification-badge');
+                    if (count > 0) {
+                        badge.innerText = count;
+                        badge.style.display = 'inline-block'; // 뱃지 보이기
+                    } else {
+                        badge.style.display = 'none'; // 0개면 숨기기
+                    }
+                })
+                .catch(error => console.error('알림 로드 실패:', error));
+        }
+    </script>
 </header>
 </body>
 </html>

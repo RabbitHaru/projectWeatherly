@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Comment;
-import me.shinsunyoung.projectweatherly.board.domain.entity.CommentLike; // 추가됨
+import me.shinsunyoung.projectweatherly.board.domain.entity.CommentLike;
 import me.shinsunyoung.projectweatherly.board.dto.CommentRequest;
 import me.shinsunyoung.projectweatherly.board.dto.CommentResponse;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
-import me.shinsunyoung.projectweatherly.board.repository.CommentLikeRepository; // 추가됨
+import me.shinsunyoung.projectweatherly.board.repository.CommentLikeRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
@@ -27,10 +27,11 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
-    private final CommentLikeRepository commentLikeRepository; // 의존성 추가
+    private final CommentLikeRepository commentLikeRepository;
+    private final NotificationService notificationService; // [사용] 같은 패키지라 import 불필요
 
     /**
-     * 댓글 생성
+     * 댓글 생성 (알림 전송 기능 추가됨)
      */
     public CommentResponse createComment(Long postId, Long memberId, CommentRequest request) {
         Board board = boardRepository.findById(postId)
@@ -49,6 +50,13 @@ public class CommentService {
 
         Comment savedComment = commentRepository.save(comment);
 
+        // [추가됨] 게시글 작성자에게 알림 전송
+        try {
+            notificationService.send(board.getMember(), member, board);
+        } catch (Exception e) {
+            log.error("알림 전송 실패: ", e); // 알림 실패해도 댓글은 등록되어야 함
+        }
+
         return CommentResponse.builder()
                 .id(savedComment.getId())
                 .content(savedComment.getContent())
@@ -56,7 +64,7 @@ public class CommentService {
                 .boardId(board.getId())
                 .createdAt(savedComment.getCreatedAt())
                 .likeCount(0)
-                .isLiked(false) // 초기값은 false
+                .isLiked(false)
                 .build();
     }
 
@@ -75,8 +83,7 @@ public class CommentService {
     }
 
     /**
-     * [수정됨] 댓글 좋아요 토글 (Toggle)
-     * return: true(좋아요 추가됨), false(좋아요 취소됨)
+     * 댓글 좋아요 토글
      */
     public boolean toggleLike(Long commentId, Long memberId) {
         Comment comment = commentRepository.findById(commentId)
@@ -85,19 +92,15 @@ public class CommentService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다."));
 
-        // 1. 이미 좋아요를 눌렀는지 확인
         if (commentLikeRepository.existsByCommentAndMember(comment, member)) {
-            // 이미 있음 -> 삭제 (좋아요 취소)
             commentLikeRepository.deleteByCommentAndMember(comment, member);
-            comment.setLikeCount(Math.max(0, comment.getLikeCount() - 1)); // 숫자 감소
-            return false; // 좋아요 취소됨
+            comment.setLikeCount(Math.max(0, comment.getLikeCount() - 1));
+            return false;
         } else {
-            // 없음 -> 추가 (좋아요)
             commentLikeRepository.save(new CommentLike(comment, member));
-            comment.setLikeCount(comment.getLikeCount() + 1); // 숫자 증가
-            return true; // 좋아요 추가됨
+            comment.setLikeCount(comment.getLikeCount() + 1);
+            return true;
         }
-        // Dirty Checking으로 comment.likeCount는 자동 저장됨
     }
 
     /**
