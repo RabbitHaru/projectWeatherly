@@ -559,8 +559,3 @@ body.dark-mode .list-btn {
     color: #e2e8f0;
 }
 
-body.dark-mode .comments-title,
-body.dark-mode .report-modal-title,
-body.dark-mode .comment-author-name {
-    color: white;
-}
