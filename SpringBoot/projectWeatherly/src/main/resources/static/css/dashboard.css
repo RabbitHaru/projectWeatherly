@@ -142,6 +142,10 @@
     font-weight: bold;
     background-color: #eee;
     color: #555;
+
+    /* ★ [수정] 글자가 좁아도 절대 줄바꿈 되지 않도록 설정 */
+    white-space: nowrap;
+    display: inline-block;
 }
 .status-badge.active { background-color: #e8f5e9; color: #2e7d32; }
 .status-badge.banned { background-color: #ffebee; color: #c62828; }
@@ -183,7 +187,7 @@
 }
 
 /* ==========================================================================
-   [ADMIN] 관리자 대시보드 전용 스타일 (추가됨)
+   [ADMIN] 관리자 대시보드 전용 스타일
    ========================================================================== */
 
 /* 1. 관리자 상단 통계 카드 (3열) */
@@ -373,24 +377,83 @@
 
 
 /* ==========================================================================
-   [DARK MODE] 다크모드 대응
+   [DARK MODE] 다크모드 대응 (완벽 수정본)
    ========================================================================== */
+/* 1. 전체 배경색 변경 */
+body.dark-mode {
+    background-color: #1e272e; /* 짙은 남색 배경 */
+    color: #ecf0f1;
+}
+
+/* 2. 섹션(카드) 배경 변경 */
 body.dark-mode .dashboard-section {
     background-color: #2c3e50;
     color: #ecf0f1;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
+
+/* 3. 헤더/위치 박스 변경 */
 body.dark-mode .location-display-wrapper {
     background-color: #34495e;
     border-color: #455a64;
 }
 body.dark-mode .location-title-row {
-    color: white;
+    color: #ecf0f1;
 }
+body.dark-mode .station-text,
+body.dark-mode .location-desc,
+body.dark-mode .stat-desc,
 body.dark-mode .insight-text {
     color: #bdc3c7;
 }
 
-/* 다크모드 GPS 버튼 (Glassmorphism) */
+/* 4. 테이블 스타일 변경 */
+body.dark-mode .admin-table th {
+    border-bottom-color: #3a3a5d;
+    color: #a0a0b0;
+    background-color: #2c3e50;
+}
+body.dark-mode .admin-table td {
+    border-bottom-color: #3a3a5d;
+    color: #ecf0f1;
+}
+
+/* 5. 버튼 및 아이콘 변경 */
+body.dark-mode .icon-btn {
+    background: #34495e;
+    color: #bdc3c7;
+}
+body.dark-mode .icon-btn:hover {
+    background: #455a64;
+    color: white;
+}
+body.dark-mode .action-btn-outline {
+    border-color: #555;
+    color: #bbb;
+}
+body.dark-mode .action-btn-outline:hover {
+    background: #333;
+    color: white;
+}
+
+/* 6. 통계 텍스트 색상 */
+body.dark-mode .stat-value {
+    color: #ecf0f1;
+}
+body.dark-mode .stat-content h3 {
+    color: #bdc3c7;
+}
+
+/* 7. 상태 배지 (약간 어둡게 조정) */
+body.dark-mode .status-badge {
+    background-color: #455a64;
+    color: #ecf0f1;
+}
+body.dark-mode .status-badge.active { background-color: #1b5e20; color: #a5d6a7; }
+body.dark-mode .status-badge.banned { background-color: #b71c1c; color: #ffcdd2; }
+body.dark-mode .report-tag { background: rgba(198, 40, 40, 0.2); color: #ff8a80; }
+
+/* 8. GPS 동기화 버튼 (Glassmorphism) */
 body.dark-mode .gps-sync-btn {
     background: rgba(255, 255, 255, 0.1) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -407,15 +470,3 @@ body.dark-mode .gps-sync-btn:disabled {
     color: #7f8c8d !important;
     border-color: rgba(255, 255, 255, 0.1) !important;
 }
-
-/* 다크모드 관리자 스타일 */
-body.dark-mode .stat-value { color: white; }
-body.dark-mode .stat-content h3 { color: #bdc3c7; }
-body.dark-mode .admin-table th { border-bottom-color: #3a3a5d; color: #a0a0b0; }
-body.dark-mode .admin-table td { border-bottom-color: #3a3a5d; color: #ecf0f1; }
-body.dark-mode .report-tag { background: rgba(198, 40, 40, 0.2); color: #ff8a80; }
-body.dark-mode .action-btn-outline { border-color: #555; color: #bbb; }
-body.dark-mode .action-btn-outline:hover { background: #333; color: white; }
-body.dark-mode .icon-btn { background: #333; color: #aaa; }
-body.dark-mode .icon-btn.edit:hover { background: rgba(52, 152, 219, 0.2); }
-body.dark-mode .icon-btn.delete:hover { background: rgba(231, 76, 60, 0.2); }

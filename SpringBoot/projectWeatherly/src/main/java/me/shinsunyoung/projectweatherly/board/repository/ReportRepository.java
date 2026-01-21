@@ -1,6 +1,7 @@
 package me.shinsunyoung.projectweatherly.board.repository;
 
 import me.shinsunyoung.projectweatherly.board.domain.entity.Report;
+import me.shinsunyoung.projectweatherly.board.domain.enums.ReportStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -41,5 +42,5 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     Page<Report> findAll(Pageable pageable);
 
     // 7. [대시보드용] 상태별 신고 개수 (예: PENDING 개수 세기)
-    long countByStatus(String status);
+    long countByStatus(ReportStatus status);
 }

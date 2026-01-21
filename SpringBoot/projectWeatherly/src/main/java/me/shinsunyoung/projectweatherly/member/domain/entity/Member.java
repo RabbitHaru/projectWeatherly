@@ -36,17 +36,24 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_role", length = 20)
+    @Builder.Default
     private MemberRole role = MemberRole.USER;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider", length = 20)
+    @Builder.Default
     private AuthProvider authProvider = AuthProvider.local;
 
     @Column(name = "provider_id", length = 100)
     private String providerId;
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
+
+    // ★ [추가됨] 정지 해제 날짜 (null이면 영구 정지 혹은 정지 아님 상태)
+    @Column(name = "ban_expires_at")
+    private LocalDateTime banExpiresAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
@@ -55,10 +62,8 @@ public class Member {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Agreement agreement;
-
 
     @PrePersist
     protected void onCreate() {
@@ -70,7 +75,8 @@ public class Member {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-    // 역할 이름을 문자열로 반환하는 헬퍼 메서드 추가
+
+    // 역할 이름을 문자열로 반환하는 헬퍼 메서드
     public String getRoleName() {
         return this.role != null ? this.role.name() : MemberRole.USER.name();
     }
