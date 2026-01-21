@@ -1,10 +1,45 @@
-<footer class="main-footer" th:fragment="footer">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<footer th:fragment="footer" class="modern-footer">
     <div class="footer-container">
-        <div class="footer-content">
-            <p class="copyright">© 2026 Weatherly. All rights reserved.</p>
-            <p class="footer-info" th:text="${footerInfo}">날씨 정보 서비스</p>
-            <p class="project-info">Project by GMR</p>
+        <div class="footer-col">
+            <div class="footer-logo">
+                <i class="fas fa-cloud-sun"></i> Weatherly
+            </div>
+            <p class="footer-desc">
+                실시간 기상 정보와 대기질 데이터를<br>
+                직관적인 시각화로 제공하는<br>
+                스마트 날씨 대시보드입니다.
+            </p>
+            <div class="footer-socials">
+                <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+                <a href="#" title="Email"><i class="fas fa-envelope"></i></a>
+            </div>
+        </div>
+
+        <div class="footer-col">
+            <h4>바로가기</h4>
+            <ul class="footer-links">
+                <li><a href="/">홈 (대시보드)</a></li>
+                <li><a href="/fine-dust">미세먼지 상세</a></li>
+                <li><a href="javascript:void(0);" onclick="window.scrollTo({top:0, behavior:'smooth'})">맨 위로</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h4>Tech Stack & Data</h4>
+            <ul class="footer-links">
+                <li><i class="fab fa-java"></i> Java 17 & Spring Boot 3.x</li>
+                <li><i class="fas fa-database"></i> JPA & MySQL</li>
+                <li><i class="fas fa-map"></i> Kakao Maps API</li>
+                <li><i class="fas fa-database"></i> 공공데이터포털 (AirKorea)</li>
+            </ul>
         </div>
     </div>
-    <script th:src="@{/js/common.js}"></script>
+
+    <div class="footer-bottom">
+        <p>&copy; 2026 Weatherly. All rights reserved.</p>
+        <p>Designed & Developed by GMR.</p>
+    </div>
 </footer>
+</html>
