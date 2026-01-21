@@ -2,6 +2,7 @@ package me.shinsunyoung.projectweatherly.member.dto.response;
 
 import lombok.*;
 import me.shinsunyoung.projectweatherly.board.dto.MyCommentResponse;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,9 +28,9 @@ public class MyPageResponse {
     private Boolean weatherAlertAgree;
 
     // [목록 데이터]
-    private List<CommunityPostResponse> myCommunityPosts; // 내가 쓴 글
-    private List<ReportResponse> myReports;               // 신고 내역
-    private List<MyCommentResponse> myComments;           // [★추가] 내가 쓴 댓글
+    private Page<CommunityPostResponse> myCommunityPosts; // 내가 쓴 글
+    private Page<ReportResponse> myReports;               // 신고 내역
+    private Page<MyCommentResponse> myComments;           // [★추가] 내가 쓴 댓글
 
     // [통계]
     private Integer postCount;

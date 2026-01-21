@@ -53,6 +53,7 @@
     </div>
 
     <div class="mypage-grid">
+
         <aside class="profile-section">
             <div class="section-card">
                 <div class="profile-view" id="profileView">
@@ -128,10 +129,34 @@
                             </form>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div id="tab-password" class="tab-content">
+                    <div th:if="${totalPosts > 1}" class="pagination-container">
+                        <ul class="pagination">
+                            <li class="page-item page-prev" th:classappend="${myPage.myCommunityPosts.first} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{'/mypage'(page=${myPage.myCommunityPosts.number})}">
+                                    <i class="fas fa-chevron-left"></i> 이전
+                                </a>
+                            </li>
+
+                            <th:block th:with="currentPage=${myPage.myCommunityPosts.number + 1},
+                          startPage=${T(java.lang.Math).max(1, currentPage - 4)},
+                          endPage=${T(java.lang.Math).min(totalPosts, startPage + 9)}">
+                                <li th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                                    class="page-item page-number"
+                                    th:classappend="${i == currentPage} ? 'active' : ''">
+                                    <a class="page-link" th:href="@{'/mypage'(page=${i})}" th:text="${i}"></a>
+                                </li>
+                            </th:block>
+
+                            <li class="page-item page-next" th:classappend="${myPage.myCommunityPosts.last} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{'/mypage'(page=${myPage.myCommunityPosts.number + 2})}">
+                                    다음 <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div> </div>     <div id="tab-password" class="tab-content">
                 <div class="section-card">
                     <div class="section-title"><i class="fas fa-lock"></i> 비밀번호 변경</div>
                     <form th:action="@{/mypage/password/change}" method="post" th:object="${passwordRequest}">
@@ -199,9 +224,9 @@
                                 <td th:text="${report.targetContent}">신고 내용...</td>
                                 <td th:text="${report.reason}">스팸</td>
                                 <td>
-                                        <span class="status-badge"
-                                              th:classappend="${report.statusClass}"
-                                              th:text="${report.status}">대기중</span>
+                                    <span class="status-badge"
+                                          th:classappend="${report.statusClass}"
+                                          th:text="${report.status}">대기중</span>
                                 </td>
                             </tr>
                             </tbody>
@@ -210,13 +235,12 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-</main>
+        </div> </div>
 
 <div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
 <script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/mypage.js}"></script>
 </body>
+
 </html>

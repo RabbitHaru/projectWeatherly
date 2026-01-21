@@ -23,6 +23,7 @@ public class CommentResponse {
     private Integer likeCount;
     private Long memberId;
     private String memberNickname;
+    private boolean isLiked;
 
     // 빌더 메서드들
     public static class CommentResponseBuilder {
