@@ -9,6 +9,7 @@ import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
 import me.shinsunyoung.projectweatherly.board.repository.ReportRepository;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
+import me.shinsunyoung.projectweatherly.member.dto.response.ReportResponse; // ★ DTO Import 추가
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -74,10 +75,12 @@ public class ReportService {
         return reportRepository.findByReporterIdOrderByCreatedAtDesc(memberId);
     }
 
-    // 3. [관리자용] 전체 신고 목록 페이징
+    // ★ 3. [수정됨] 전체 신고 목록 페이징 (DTO 변환 포함)
+    // 트랜잭션 안에서 변환하므로 LazyInitializationException 해결!
     @Transactional(readOnly = true)
-    public Page<Report> getAllReports(Pageable pageable) {
-        return reportRepository.findAll(pageable);
+    public Page<ReportResponse> getAllReports(Pageable pageable) {
+        return reportRepository.findAll(pageable)
+                .map(ReportResponse::from);
     }
 
     // 4. [관리자용] 신고 처리 (승인/반려)
@@ -85,10 +88,9 @@ public class ReportService {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신고입니다."));
 
-        report.setStatus(status); // ACCEPTED or REJECTED
+        report.setStatus(status);
 
-        // 승인(ACCEPTED) 시 해당 콘텐츠 강제 삭제
-        if ("ACCEPTED".equalsIgnoreCase(status)) {
+        if ("ACCEPTED".equalsIgnoreCase(status) || "RESOLVED".equalsIgnoreCase(status)) {
             deleteReportedContent(report);
         }
 

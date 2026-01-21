@@ -804,3 +804,7 @@ body.dark-mode .aqi-date {
 .aqi-status-badge.aqi-very-bad {
     background-color: #8e44ad;
 }
+
+.status-icon.safe { color: var(--success-color); }
+.status-icon.caution { color: #f1c40f !important; }
+.status-icon.danger { color: #e74c3c !important; }

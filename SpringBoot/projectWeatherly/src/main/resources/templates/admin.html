@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weatherly - 관리자 대시보드</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
@@ -68,29 +67,39 @@
                     <tr th:each="member : ${recentMembers}">
                         <td>
                             <div class="user-info">
-                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}" class="user-avatar" style="object-fit:cover;">
-                                <div th:unless="${member.profileImage != null}" class="user-avatar" style="background:#a29bfe"
-                                     th:text="${#strings.substring(member.nickname, 0, 1)}">U</div>
+                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}"
+                                     class="user-avatar" style="object-fit:cover;">
+                                <div th:unless="${member.profileImage != null}" class="user-avatar"
+                                     style="background:#a29bfe"
+                                     th:text="${#strings.substring(member.nickname, 0, 1)}">U
+                                </div>
                                 <span th:text="${member.nickname}">닉네임</span>
                             </div>
                         </td>
                         <td th:text="${member.email}">email</td>
                         <td th:text="${#temporals.format(member.createdAt, 'MM-dd')}">날짜</td>
                         <td>
-                                <span class="status-badge"
-                                      th:classappend="${member.isActive} ? 'active' : 'banned'"
-                                      th:text="${member.isActive} ? '활동중' : '정지됨'">상태</span>
+                            <span th:if="${member.isActive}" class="status-badge active">활동중</span>
+                            <div th:unless="${member.isActive}" style="text-align: center;">
+                                <span class="status-badge banned">정지됨</span>
+                                <div th:if="${member.banExpiresAt != null}"
+                                     style="font-size: 0.75rem; color: #e74c3c; margin-top: 4px; font-weight: 600;">
+                                    ~<span th:text="${#temporals.format(member.banExpiresAt, 'yy.MM.dd')}"></span>
+                                </div>
+                            </div>
                         </td>
                         <td>
                             <button class="icon-btn"
                                     th:classappend="${member.isActive} ? 'delete' : 'edit'"
-                                    th:onclick="|toggleMemberStatus(${member.id}, ${member.isActive})|"
-                                    th:title="${member.isActive} ? '회원 정지' : '정지 해제'">
-                                <i th:class="${member.isActive} ? 'fas fa-ban' : 'fas fa-unlock'"></i>
+                                    th:onclick="|suspendUser(${member.id})|"
+                                    th:title="${member.isActive} ? '회원 정지 관리' : '정지 해제 관리'">
+                                <i th:class="${member.isActive} ? 'fas fa-user-clock' : 'fas fa-unlock'"></i>
                             </button>
                         </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(recentMembers)}"><td colspan="5" style="text-align:center">데이터 없음</td></tr>
+                    <tr th:if="${#lists.isEmpty(recentMembers)}">
+                        <td colspan="5" style="text-align:center">데이터 없음</td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
@@ -106,6 +115,7 @@
                     <tr>
                         <th>유형/사유</th>
                         <th>신고자</th>
+                        <th>대상</th>
                         <th>상태</th>
                         <th>처리</th>
                     </tr>
@@ -113,25 +123,40 @@
                     <tbody>
                     <tr th:each="report : ${recentReports}">
                         <td>
-                            <span class="report-tag" th:text="${report.type == 'post' ? '게시글' : '댓글'}">TYPE</span>
+                            <span class="report-tag" th:text="${report.type}">TYPE</span>
                             <span th:text="${report.reason}">사유</span>
                         </td>
-                        <td th:text="${report.reporter.nickname}">신고자</td>
+                        <td th:text="${report.reporterName}">신고자</td>
+
                         <td>
-                                <span class="status-badge"
-                                      th:classappend="${report.status == 'PENDING'} ? 'banned' : 'active'"
-                                      th:text="${report.status == 'PENDING'} ? '대기중' : ${report.status}">상태</span>
+                            <a th:if="${report.targetId != null}"
+                               th:href="@{/boards/{id}(id=${report.targetId})}"
+                               target="_blank"
+                               class="action-btn-outline"
+                               style="font-size: 0.75rem; text-decoration: none;">
+                                <i class="fas fa-external-link-alt"></i> 확인
+                            </a>
+                            <span th:unless="${report.targetId != null}" style="color:#aaa;">-</span>
+                        </td>
+
+                        <td>
+                            <span class="status-badge"
+                                  th:classappend="${report.rawStatus == 'PENDING'} ? 'banned' : 'active'"
+                                  th:text="${report.status}">상태</span>
                         </td>
                         <td>
-                            <button th:if="${report.status == 'PENDING'}"
+                            <button th:if="${report.rawStatus == 'PENDING'}"
                                     class="btn-xs danger"
                                     th:onclick="|resolveReport(${report.id})|">
                                 처리완료
                             </button>
-                            <span th:unless="${report.status == 'PENDING'}" style="color:#aaa; font-size:0.8rem;">완료됨</span>
+                            <span th:unless="${report.rawStatus == 'PENDING'}"
+                                  style="color:#aaa; font-size:0.8rem;">완료됨</span>
                         </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(recentReports)}"><td colspan="4" style="text-align:center">데이터 없음</td></tr>
+                    <tr th:if="${#lists.isEmpty(recentReports)}">
+                        <td colspan="5" style="text-align:center">접수된 신고 내역이 없습니다.</td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
@@ -143,6 +168,16 @@
 
 <script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/admin.js}"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // localStorage에 저장된 설정 확인
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+        }
+    });
+</script>
 
 </body>
 </html>

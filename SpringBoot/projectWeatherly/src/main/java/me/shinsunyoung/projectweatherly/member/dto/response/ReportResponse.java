@@ -13,59 +13,68 @@ import java.time.format.DateTimeFormatter;
 public class ReportResponse {
     private Long id;
     private String type;          // "게시글" 또는 "댓글"
-    private String targetContent; // 신고한 글 제목 또는 댓글 내용 요약
-    private String reason;        // 신고 사유 (화면 표시용)
-    private String status;        // 처리 상태 (대기중, 완료 등)
-    private String statusClass;   // 상태별 뱃지 색상 (CSS용)
+
+    // ★ [핵심] 이 3개 필드가 없으면 화면이 하얗게 변합니다!
+    private Long targetId;        // 신고 대상 ID (링크용)
+    private String reporterName;  // 신고자 닉네임 (화면 표시용)
+    private String rawStatus;     // 상태 원본 (PENDING 등 - 버튼 로직용)
+
+    private String targetContent; // 내용 요약
+    private String reason;        // 신고 사유 (한글)
+    private String status;        // 상태 (한글)
+    private String statusClass;   // CSS 클래스
     private String createdAt;     // 작성일
 
-    // Entity -> DTO 변환 메서드
     public static ReportResponse from(Report report) {
-        // 1. 신고 대상 내용 요약 (게시글이면 제목, 댓글이면 내용)
+        // 1. 내용 요약
         String content = "삭제된 항목입니다.";
-
-        if ("post".equals(report.getType()) && report.getTargetBoard() != null) {
-            content = report.getTargetBoard().getTitle();
-        } else if ("comment".equals(report.getType()) && report.getTargetComment() != null) {
-            content = report.getTargetComment().getContent();
-        } else if ("POST".equals(report.getType()) && report.getTargetBoard() != null) { // 대소문자 호환
-            content = report.getTargetBoard().getTitle();
-        } else if ("COMMENT".equals(report.getType()) && report.getTargetComment() != null) {
-            content = report.getTargetComment().getContent();
+        if (report.getType() != null) {
+            String t = report.getType().toUpperCase();
+            if (("POST".equals(t) || "게시글".equals(t)) && report.getTargetBoard() != null) {
+                content = report.getTargetBoard().getTitle();
+            } else if (("COMMENT".equals(t) || "댓글".equals(t)) && report.getTargetComment() != null) {
+                content = report.getTargetComment().getContent();
+            }
         }
+        if (content != null && content.length() > 20) content = content.substring(0, 20) + "...";
 
-        // 내용이 너무 길면 자르기 (20자)
-        if (content != null && content.length() > 20) {
-            content = content.substring(0, 20) + "...";
-        }
-
-        // 2. 사유 한글 변환
+        // 2. 사유 변환 (other -> 기타 사유)
         String reasonDisplay = report.getReason();
-        if ("spam".equals(reasonDisplay)) reasonDisplay = "스팸/광고";
-        else if ("abuse".equals(reasonDisplay)) reasonDisplay = "욕설/비하";
-        else if ("illegal".equals(reasonDisplay)) reasonDisplay = "불법 정보";
-        else if ("other".equals(reasonDisplay)) reasonDisplay = "기타 사유";
-
-        // 3. 상태 한글 변환 및 CSS 클래스 지정
-        String statusDisplay = "대기중";
-        String cssClass = "status-pending"; // 노란색 (CSS에 정의 필요)
-
-        if ("COMPLETED".equals(report.getStatus()) || "RESOLVED".equals(report.getStatus())) {
-            statusDisplay = "처리완료";
-            cssClass = "status-completed"; // 초록색
-        } else if ("REJECTED".equals(report.getStatus())) {
-            statusDisplay = "반려됨";
-            cssClass = "status-rejected"; // 빨간색
+        if (reasonDisplay != null) {
+            String r = reasonDisplay.trim(); // 공백 제거
+            if ("spam".equalsIgnoreCase(r)) reasonDisplay = "스팸/광고";
+            else if ("abuse".equalsIgnoreCase(r)) reasonDisplay = "욕설/비하";
+            else if ("illegal".equalsIgnoreCase(r)) reasonDisplay = "불법 정보";
+            else if ("other".equalsIgnoreCase(r)) reasonDisplay = "기타 사유"; // ★ 여기가 있어야 한글로 나옵니다
         }
+
+        // 3. 상태 변환
+        String statusStr = report.getStatus() != null ? report.getStatus().toString() : "PENDING";
+        String statusDisplay = "대기중";
+        String cssClass = "status-pending";
+
+        if ("COMPLETED".equals(statusStr) || "RESOLVED".equals(statusStr)) {
+            statusDisplay = "처리완료";
+            cssClass = "status-completed";
+        } else if ("REJECTED".equals(statusStr)) {
+            statusDisplay = "반려됨";
+            cssClass = "status-rejected";
+        }
+
+        // 4. 신고자 이름 안전하게 가져오기
+        String rName = (report.getReporter() != null) ? report.getReporter().getNickname() : "알 수 없음";
 
         return ReportResponse.builder()
                 .id(report.getId())
                 .type("post".equalsIgnoreCase(report.getType()) ? "게시글" : "댓글")
+                .targetId(report.getTargetId())
                 .targetContent(content)
+                .reporterName(rName)   // ★ DTO에 담기
                 .reason(reasonDisplay)
                 .status(statusDisplay)
+                .rawStatus(statusStr)  // ★ DTO에 담기
                 .statusClass(cssClass)
-                .createdAt(report.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                .createdAt(report.getCreatedAt().format(DateTimeFormatter.ofPattern("MM-dd")))
                 .build();
     }
 }
