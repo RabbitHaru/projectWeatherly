@@ -39,8 +39,9 @@ public class CommunityController {
 
     /**
      * 커뮤니티 메인 페이지
+     * [수정됨] "/boards" 경로를 추가하여 HTML의 페이지네이션 링크와 일치시킴
      */
-    @GetMapping({"", "/"})
+    @GetMapping({"", "/", "/boards"})
     public String community(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(value = "category", required = false) String category,
@@ -145,7 +146,7 @@ public class CommunityController {
     }
 
     /**
-     * 게시글 상세 보기 (수정됨: 닉네임 모델 추가)
+     * 게시글 상세 보기
      */
     @GetMapping("/boards/{id}")
     public String getBoard(@PathVariable Long id, Model model,
@@ -153,7 +154,6 @@ public class CommunityController {
         try {
             if (id == null || id <= 0) return "redirect:/community?error=invalid_id";
 
-            // [수정] 닉네임과 회원 ID를 모델에 추가 (헤더 표시용)
             if (user != null && user.getUser() != null) {
                 model.addAttribute("nickname", user.getUser().getNickname());
                 model.addAttribute("memberId", user.getUser().getId());
@@ -165,12 +165,10 @@ public class CommunityController {
                 board.setImages(board.getImageUrls());
             }
 
-            // 좋아요 상태 별도 변수로 처리 (DTO 필드 부재 대비)
             boolean isLiked = false;
             if (user != null && user.getUser() != null) {
                 board.setIsAuthor(board.getMemberId().equals(user.getUser().getId()));
                 try {
-                    // BoardService에 isLiked 메서드가 있다면 호출, 없다면 주석 처리하거나 false 유지
                     board.setLiked(boardService.isLiked(id, user.getUser().getId()));
                 } catch (Exception e) {
                     log.debug("좋아요 확인 불가 (로그인 안함 또는 메서드 없음): {}", e.getMessage());
@@ -181,7 +179,6 @@ public class CommunityController {
 
             model.addAttribute("board", board);
 
-
             return "view";
         } catch (Exception e) {
             log.error("게시글 상세 조회 중 오류: ", e);
@@ -190,7 +187,7 @@ public class CommunityController {
     }
 
     /**
-     * 게시글 수정 폼 (수정됨: 닉네임 모델 추가)
+     * 게시글 수정 폼
      */
     @GetMapping("/boards/{boardId}/edit")
     public String editForm(@PathVariable Long boardId, @AuthenticationPrincipal UserSecurityDTO user, Model model, HttpServletRequest request) {
@@ -203,7 +200,6 @@ public class CommunityController {
             CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
             if (csrfToken != null) model.addAttribute("_csrf", csrfToken);
 
-            // [수정] 닉네임과 회원 ID를 모델에 추가 (헤더 표시용)
             model.addAttribute("nickname", user.getUser().getNickname());
             model.addAttribute("memberId", user.getUser().getId());
 
@@ -242,7 +238,11 @@ public class CommunityController {
         }
     }
 
-    @GetMapping("/search")
+    /**
+     * 검색 기능
+     * [수정됨] "/boards/search" 경로 추가 (HTML 폼의 action 속성과 일치시킴)
+     */
+    @GetMapping({"/search", "/boards/search"})
     public String searchBoards(@RequestParam String keyword, @PageableDefault(size = 15) Pageable pageable, Model model, HttpServletRequest request) {
         try {
             Page<BoardResponse> boardPage = boardService.searchBoards(keyword, pageable);
@@ -282,7 +282,6 @@ public class CommunityController {
         }
     }
 
-    // 기타 메서드들... (favicon, my-posts 등)
     @GetMapping("/favicon.ico")
     @ResponseBody
     public ResponseEntity<Void> favicon() { return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); }
@@ -291,7 +290,7 @@ public class CommunityController {
     public String getMyPosts(@PageableDefault(size = 15) Pageable pageable, Model model, HttpServletRequest request, @AuthenticationPrincipal UserSecurityDTO user) {
         if (user == null) return "redirect:/login";
         model.addAttribute("boards", boardService.getMyBoards(user.getUser().getId(), pageable));
-        model.addAttribute("nickname", user.getUser().getNickname()); // 마이 포스트에도 닉네임 추가 (안전장치)
+        model.addAttribute("nickname", user.getUser().getNickname());
         model.addAttribute("requestURI", request.getRequestURI());
         return "my-posts";
     }

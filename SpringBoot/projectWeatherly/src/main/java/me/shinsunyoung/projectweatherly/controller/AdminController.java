@@ -36,7 +36,7 @@ public class AdminController {
     public String dashboard(Model model, @AuthenticationPrincipal UserSecurityDTO user) {
         checkAdmin(user);
         model.addAttribute("stats", adminService.getDashboardStats());
-        return "admin/index";
+        return "admin";
     }
 
     // 2. 회원 관리 페이지
@@ -46,7 +46,7 @@ public class AdminController {
                                 @AuthenticationPrincipal UserSecurityDTO user) {
         checkAdmin(user);
         model.addAttribute("members", adminService.getAllMembers(pageable));
-        return "admin/members";
+        return "/members";
     }
 
     // 3. 회원 정지/해제 처리 (POST)

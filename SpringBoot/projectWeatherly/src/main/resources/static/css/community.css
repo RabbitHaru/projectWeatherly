@@ -5,7 +5,7 @@
     padding: 2rem;
     border-radius: 10px;
     margin-bottom: 2rem;
-    margin-top: 2rem; /* 메인 헤더와의 간격 추가 */
+    margin-top: 2rem;
 }
 
 .community-title {
@@ -33,7 +33,6 @@
     position: relative;
     flex: 1;
     min-width: 300px;
-
 }
 
 .search-icon {
@@ -89,7 +88,6 @@
     box-shadow: 0 3px 15px rgba(0,0,0,0.08);
 }
 
-/* 글번호와 제목 간격 증가 */
 .board-header {
     display: grid;
     grid-template-columns: 100px 1fr 150px 100px 100px;
@@ -101,7 +99,6 @@
     gap: 15px;
 }
 
-/* 게시판 헤더 중앙 정렬 추가 */
 .board-header > div {
     display: flex;
     align-items: center;
@@ -129,7 +126,6 @@
     transform: translateX(5px);
 }
 
-/* 글번호, 날짜, 좋아요, 조회수 중앙 정렬 추가 */
 .post-number, .post-date, .post-likes, .post-views {
     display: flex;
     align-items: center;
@@ -143,7 +139,6 @@
     font-size: 1rem;
 }
 
-/* 제목 열 수직 중앙 정렬 추가 */
 .post-title {
     padding: 5px 0;
     display: flex;
@@ -237,7 +232,6 @@
     cursor: not-allowed;
 }
 
-/* 페이지네이션 화살표 스타일 */
 .page-prev, .page-next {
     font-weight: bold;
     font-size: 1.1rem;
@@ -339,12 +333,10 @@
         flex-direction: column;
         align-items: stretch;
     }
-
     .write-btn {
         width: 100%;
         order: 2;
     }
-
     .search-container {
         order: 1;
         min-width: 100%;
@@ -357,8 +349,6 @@
         gap: 10px;
         padding: 12px 15px;
     }
-
-    /* 모바일에서도 중앙 정렬 유지 */
     .board-header > div,
     .post-number,
     .post-date,
@@ -369,18 +359,15 @@
         justify-content: center;
         text-align: center;
     }
-
     .post-title {
         display: flex;
         flex-direction: column;
         justify-content: center;
     }
-
     .community-header-section {
         margin-top: 2rem;
         padding: 1.5rem;
     }
-
     .community-title {
         font-size: 2rem;
     }
@@ -391,19 +378,137 @@
         grid-template-columns: 50px 1fr 90px 70px 70px;
         font-size: 0.9rem;
     }
-
     .post-title a {
         font-size: 0.95rem;
     }
 }
+
 body .container {
     max-width: 1000px !important;
     margin: 30px auto !important;
     padding: 0 20px !important;
 }
 
-/* 메모리 카드는 800px로 (회원가입 카드 크기와 유사) */
 .memory-card {
     max-width: 800px !important;
     margin: 30px auto !important;
+}
+
+/* =========================================
+   [추가] 다크모드 전용 스타일
+   ========================================= */
+
+/* 배경 및 기본 텍스트 */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+/* 커뮤니티 게시판 컨테이너 */
+body.dark-mode .community-board {
+    background: #1e1e1e;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.5);
+}
+
+/* 게시판 헤더 */
+body.dark-mode .board-header {
+    background: #2d2d2d;
+    color: #e0e0e0;
+    border-bottom: 2px solid #404040;
+}
+
+/* 게시글 리스트 아이템 */
+body.dark-mode .post-item {
+    background-color: #1e1e1e;
+    border-bottom: 1px solid #333;
+    color: #cccccc;
+}
+
+body.dark-mode .post-item:hover {
+    background: #2c2c2c;
+}
+
+/* 게시글 제목 링크 */
+body.dark-mode .post-title a {
+    color: #e0e0e0;
+}
+
+body.dark-mode .post-title a:hover {
+    color: #8fa4ff;
+}
+
+/* 글번호, 작성자 등 보조 텍스트 */
+body.dark-mode .post-number,
+body.dark-mode .post-date,
+body.dark-mode .post-likes,
+body.dark-mode .post-views,
+body.dark-mode .post-author {
+    color: #999;
+}
+
+/* 검색창 */
+body.dark-mode .community-search {
+    background: #2d2d2d;
+    color: #ffffff;
+    border: 1px solid #444;
+}
+
+body.dark-mode .community-search::placeholder {
+    color: #888;
+}
+
+body.dark-mode .search-icon {
+    color: #bbb;
+}
+
+/* 페이지네이션 */
+body.dark-mode .page-link {
+    background: #2d2d2d;
+    color: #ccc;
+    border-color: #444;
+}
+
+body.dark-mode .page-link:hover {
+    background: #667eea;
+    color: white;
+}
+
+body.dark-mode .page-item.active .page-link {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* 게시판 비었을 때 아이콘 */
+body.dark-mode .empty-board i {
+    color: #444;
+}
+
+/* 하단 커뮤니티 안내 카드 */
+body.dark-mode .memory-card {
+    background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .memory-card h3 {
+    color: #e0e0e0;
+    border-bottom: 2px solid #444;
+}
+
+body.dark-mode .memory-item {
+    background: #333;
+    box-shadow: none;
+}
+
+body.dark-mode .memory-item-title {
+    color: #eee;
+}
+
+body.dark-mode .memory-item-content {
+    color: #ccc;
+}
+
+body.dark-mode .pc-badge {
+    background: #667eea; /* 어두운 색 대신 포인트 컬러 사용 */
+    color: white;
 }
