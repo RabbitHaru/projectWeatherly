@@ -1,11 +1,11 @@
 /**
- * common.js - Weatherly 공통 유틸리티
+ * common.js - Weatherly 공통 유틸리티 (수정: 변수 중복 오류 방지)
  */
 
 var API_BASE_URL = window.location.origin;
 
-// [추가] 주요 도시 GPS 좌표 (날씨 조회용)
-const CITY_COORDINATES = {
+// [수정] const -> var 로 변경하여 중복 선언 에러 방지
+var CITY_COORDINATES = {
     '서울': {lat: 37.5665, lng: 126.9780},
     '부산': {lat: 35.1796, lng: 129.0756},
     '대구': {lat: 35.8714, lng: 128.6014},
@@ -15,7 +15,7 @@ const CITY_COORDINATES = {
     '울산': {lat: 35.5384, lng: 129.3114},
     '세종': {lat: 36.4800, lng: 127.2890},
     '제주': {lat: 33.4996, lng: 126.5312},
-    '경기': {lat: 37.4138, lng: 127.5183}, // 경기도청(수원) 기준
+    '경기': {lat: 37.4138, lng: 127.5183},
     '강원': {lat: 37.8228, lng: 128.1555},
     '충북': {lat: 36.6350, lng: 127.4914},
     '충남': {lat: 36.6588, lng: 126.6728},
@@ -56,17 +56,13 @@ function initCommonFeatures() {
 function setupDarkMode() {
     let toggleBtn = document.getElementById('darkmode-toggle') || document.querySelector('.darkmode-toggle');
     const body = document.body;
-
     if (toggleBtn && toggleBtn.dataset.eventAttached === 'true') return;
-
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
     if (isDarkMode) {
         body.classList.add('dark-mode');
         updateDarkModeIcon(true, toggleBtn);
     }
-
     if (!toggleBtn) return;
-
     toggleBtn.addEventListener('click', (e) => {
         e.preventDefault();
         const isCurrentlyDark = body.classList.contains('dark-mode');
@@ -242,7 +238,6 @@ function bindGpsButton(btnId, onSuccessCallback) {
     });
 }
 
-// [추가] 지역명 변환 함수 (서울 -> 서울특별시)
 function getFullSidoName(short) {
     const map = {
         '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시',
@@ -251,5 +246,5 @@ function getFullSidoName(short) {
         '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
         '제주': '제주특별자치도'
     };
-    return map[short] || short; // 없으면 원래 값 반환
+    return map[short] || short;
 }

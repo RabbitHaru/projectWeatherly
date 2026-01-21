@@ -97,61 +97,41 @@
 
         <section class="forecast-section">
             <div class="forecast-tabs">
-                <button class="tab-btn active" data-tab="hourly">
-                    <i class="fas fa-clock"></i> 시간별
-                </button>
-                <button class="tab-btn" data-tab="tomorrow">
-                    <i class="fas fa-sun"></i> 내일
-                </button>
-                <button class="tab-btn" data-tab="weekly">
-                    <i class="fas fa-calendar-week"></i> 이번주
-                </button>
-                <button class="tab-btn" data-tab="air-quality">
-                    <i class="fas fa-wind"></i> 미세먼지
-                </button>
+                <button class="tab-btn active" data-tab="hourly"><i class="fas fa-clock"></i> 시간별</button>
+                <button class="tab-btn" data-tab="tomorrow"><i class="fas fa-sun"></i> 내일</button>
+                <button class="tab-btn" data-tab="weekly"><i class="fas fa-calendar-week"></i> 이번주</button>
+                <button class="tab-btn" data-tab="air-quality"><i class="fas fa-wind"></i> 미세먼지</button>
             </div>
-
             <div class="tab-content active" id="tab-hourly">
                 <div class="horizontal-forecast-card">
-                    <div class="card-header">
-                        <h4><i class="fas fa-clock"></i> 오늘 시간별 예보</h4>
-                        <span class="card-subtitle">24시간 예측</span>
+                    <div class="card-header"><h4><i class="fas fa-clock"></i> 오늘 시간별 예보</h4><span class="card-subtitle">24시간 예측</span>
                     </div>
                     <div class="horizontal-scroll-container">
                         <div class="hourly-forecast-items" id="hourly-forecast"></div>
                     </div>
                 </div>
             </div>
-
             <div class="tab-content" id="tab-tomorrow">
                 <div class="horizontal-forecast-card">
-                    <div class="card-header">
-                        <h4><i class="fas fa-sun"></i> 내일 예보</h4>
-                        <span class="card-subtitle">24시간 시간별</span>
+                    <div class="card-header"><h4><i class="fas fa-sun"></i> 내일 예보</h4><span class="card-subtitle">24시간 시간별</span>
                     </div>
                     <div class="horizontal-scroll-container">
                         <div class="tomorrow-forecast-items" id="tomorrow-forecast"></div>
                     </div>
                 </div>
             </div>
-
             <div class="tab-content" id="tab-weekly">
                 <div class="horizontal-forecast-card">
-                    <div class="card-header">
-                        <h4><i class="fas fa-calendar-week"></i> 이번 주 예보</h4>
-                        <span class="card-subtitle">7일간 일별</span>
-                    </div>
+                    <div class="card-header"><h4><i class="fas fa-calendar-week"></i> 이번 주 예보</h4><span
+                            class="card-subtitle">7일간 일별</span></div>
                     <div class="horizontal-scroll-container">
                         <div class="weekly-forecast-items" id="weekly-forecast"></div>
                     </div>
                 </div>
             </div>
-
             <div class="tab-content" id="tab-air-quality">
                 <div class="horizontal-forecast-card">
-                    <div class="card-header">
-                        <h4><i class="fas fa-wind"></i> 미세먼지 예보</h4>
-                        <span class="card-subtitle">주요 지역별</span>
+                    <div class="card-header"><h4><i class="fas fa-wind"></i> 미세먼지 예보</h4><span class="card-subtitle">주요 지역별</span>
                     </div>
                     <div class="horizontal-scroll-container">
                         <div class="aqi-forecast-items" id="aqi-forecast-details"></div>
@@ -162,60 +142,38 @@
 
         <section class="forecast-summary">
             <div class="summary-card ultra-short">
-                <div class="summary-header">
-                    <h3><i class="fas fa-bolt"></i> 초단기예보</h3>
-                    <span class="summary-range">6시간 후까지</span>
+                <div class="summary-header"><h3><i class="fas fa-bolt"></i> 초단기예보</h3><span class="summary-range">6시간 후까지</span>
                 </div>
-                <div class="summary-content">
-                    <p class="summary-text" id="ultra-short-summary">데이터를 불러오는 중...</p>
+                <div class="summary-content"><p class="summary-text" id="ultra-short-summary">데이터를 불러오는 중...</p>
                     <div class="summary-details">
-                        <div class="detail">
-                            <span class="label">기온</span>
-                            <span class="value" id="ultra-short-temp">--</span>
-                        </div>
-                        <div class="detail">
-                            <span class="label">습도</span>
-                            <span class="value" id="ultra-short-humidity">--</span>
+                        <div class="detail"><span class="label">기온</span><span class="value"
+                                                                               id="ultra-short-temp">--</span></div>
+                        <div class="detail"><span class="label">습도</span><span class="value" id="ultra-short-humidity">--</span>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div class="summary-card short-term">
-                <div class="summary-header">
-                    <h3><i class="fas fa-clock"></i> 단기예보</h3>
-                    <span class="summary-range">3일 후까지</span>
-                </div>
-                <div class="summary-content">
-                    <p class="summary-text" id="short-term-summary">데이터를 불러오는 중...</p>
+                <div class="summary-header"><h3><i class="fas fa-clock"></i> 단기예보</h3><span
+                        class="summary-range">3일 후까지</span></div>
+                <div class="summary-content"><p class="summary-text" id="short-term-summary">데이터를 불러오는 중...</p>
                     <div class="summary-details">
-                        <div class="detail">
-                            <span class="label">최고기온</span>
-                            <span class="value" id="short-term-max-temp">--</span>
+                        <div class="detail"><span class="label">최고기온</span><span class="value" id="short-term-max-temp">--</span>
                         </div>
-                        <div class="detail">
-                            <span class="label">최저기온</span>
-                            <span class="value" id="short-term-min-temp">--</span>
+                        <div class="detail"><span class="label">최저기온</span><span class="value" id="short-term-min-temp">--</span>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div class="summary-card mid-term">
-                <div class="summary-header">
-                    <h3><i class="fas fa-calendar-alt"></i> 중기예보</h3>
-                    <span class="summary-range">10일 후까지</span>
-                </div>
-                <div class="summary-content">
-                    <p class="summary-text" id="mid-term-summary">데이터를 불러오는 중...</p>
+                <div class="summary-header"><h3><i class="fas fa-calendar-alt"></i> 중기예보</h3><span
+                        class="summary-range">10일 후까지</span></div>
+                <div class="summary-content"><p class="summary-text" id="mid-term-summary">데이터를 불러오는 중...</p>
                     <div class="summary-details">
-                        <div class="detail">
-                            <span class="label">주간강수</span>
-                            <span class="value" id="weekly-precipitation">--</span>
+                        <div class="detail"><span class="label">주간강수</span><span class="value"
+                                                                                 id="weekly-precipitation">--</span>
                         </div>
-                        <div class="detail">
-                            <span class="label">기온변화</span>
-                            <span class="value" id="temp-trend">--</span>
+                        <div class="detail"><span class="label">기온변화</span><span class="value" id="temp-trend">--</span>
                         </div>
                     </div>
                 </div>
@@ -223,54 +181,41 @@
         </section>
 
         <section class="community-preview">
-            <div class="community-header">
-                <h3><i class="fas fa-comments"></i> 커뮤니티 인기글</h3>
-                <a href="/community" class="view-all-btn">더보기 <i class="fas fa-arrow-right"></i></a>
-            </div>
-            <div class="community-posts" id="community-posts">
-            </div>
+            <div class="community-header"><h3><i class="fas fa-comments"></i> 커뮤니티 인기글</h3><a href="/community"
+                                                                                              class="view-all-btn">더보기
+                <i class="fas fa-arrow-right"></i></a></div>
+            <div class="community-posts" id="community-posts"></div>
         </section>
     </div>
 
     <aside class="sidebar">
         <div class="sidebar-card warning-card">
-            <div class="card-header">
-                <h3><i class="fas fa-exclamation-triangle"></i> 기상특보</h3>
-            </div>
+            <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> 기상특보</h3></div>
             <div class="card-content">
-                <div class="warning-status">
-                    <i class="fas fa-check-circle status-icon safe"></i>
-                    <div class="warning-text">
-                        <strong id="weather-alert-title">발표된 기상특보 없음</strong>
-                        <p id="weather-alert-desc">안전한 날씨가 예상됩니다.</p>
-                    </div>
+                <div class="warning-status"><i class="fas fa-check-circle status-icon safe"></i>
+                    <div class="warning-text"><strong id="weather-alert-title">발표된 기상특보 없음</strong>
+                        <p id="weather-alert-desc">안전한 날씨가 예상됩니다.</p></div>
                 </div>
             </div>
         </div>
 
         <div class="sidebar-card map-card">
-            <div class="card-header">
-                <h3><i class="fas fa-map-marked-alt"></i> 실시간 날씨 지도</h3>
-            </div>
+            <div class="card-header"><h3><i class="fas fa-map-marked-alt"></i> 실시간 날씨 지도</h3></div>
             <div class="card-content" style="padding: 0; position: relative;">
-
                 <div id="kakao-map" style="width:100%; height:500px; border-radius: 0 0 12px 12px;"></div>
-
-                <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=0f3de110d5e6ac3f80df13d3cb65279f"></script>
-
+                <script type="text/javascript"
+                        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=0f3de110d5e6ac3f80df13d3cb65279f&autoload=false"></script>
                 <div class="map-controls" style="position: absolute; bottom: 20px; right: 20px; z-index: 2;">
-                    <button class="map-control-btn" onclick="refreshMap()" title="새로고침"><i class="fas fa-sync-alt"></i></button>
+                    <button class="map-control-btn" onclick="refreshMap()" title="새로고침"><i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
         <div class="sidebar-card regional-card">
-            <div class="card-header">
-                <h3><i class="fas fa-city"></i> 지역별 날씨</h3>
-            </div>
+            <div class="card-header"><h3><i class="fas fa-city"></i> 지역별 날씨</h3></div>
             <div class="card-content">
-                <div class="regional-weather-list" id="regional-weather">
-                </div>
+                <div class="regional-weather-list" id="regional-weather"></div>
             </div>
         </div>
     </aside>
