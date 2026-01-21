@@ -1,9 +1,11 @@
 package me.shinsunyoung.projectweatherly.board.domain.entity;
 
-import lombok.*;
-import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
-
 import jakarta.persistence.*;
+import lombok.*;
+import me.shinsunyoung.projectweatherly.board.domain.enums.ReportStatus; // ★ Enum 임포트
+import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,63 +16,46 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Report {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 신고자
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_id", nullable = false)
+    @JoinColumn(name = "reporter_id")
     private Member reporter;
 
-    @Column(name = "type", nullable = false)
-    private String type; // "post" or "comment"
+    private String type; // "POST" or "COMMENT"
 
-    @Column(name = "target_id", nullable = false)
-    private Long targetId;
+    @Column(name = "target_id")
+    private Long targetId; // 게시글 ID 또는 댓글 ID
 
-    @Column(nullable = false)
-    private String reason;
-
-    @Column(columnDefinition = "TEXT")
-    private String details;
-
-    @Column(nullable = false)
-    private String status; // "PENDING", "PROCESSING", "COMPLETED", "REJECTED", "CANCELLED"
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "processed_at")
-    private LocalDateTime processedAt;
-
-    // 선택적 참조
+    // 신고된 게시글 (POST일 때 연결)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
     private Board targetBoard;
 
+    // 신고된 댓글 (COMMENT일 때 연결)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id")
     private Comment targetComment;
 
-    // 편의 메서드
-    public boolean isPending() {
-        return "PENDING".equals(this.status);
-    }
+    private String reason; // 신고 사유 (spam, abuse 등)
 
-    public boolean isCompleted() {
-        return "COMPLETED".equals(this.status);
-    }
+    @Column(columnDefinition = "TEXT")
+    private String details; // 상세 내용
 
-    // === [추가된 부분] 저장 전 자동 실행되어 필수 값을 채워줍니다 ===
-    @PrePersist
-    public void prePersist() {
-        // 생성 일시가 없으면 현재 시간으로 설정
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-        // 상태가 없으면 'PENDING'(대기중)으로 설정
-        if (this.status == null) {
-            this.status = "PENDING";
-        }
-    }
+    // ★ [핵심 수정] String -> ReportStatus (Enum) 변경
+    // DB에는 "PENDING", "RESOLVED" 같은 문자열로 저장됨
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private ReportStatus status;
+
+    @Column(name = "processed_at")
+    private LocalDateTime processedAt;
+
+    @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }

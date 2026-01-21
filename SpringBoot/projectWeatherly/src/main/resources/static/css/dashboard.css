@@ -1,472 +1,421 @@
 /* ==========================================================================
-   Weatherly Dashboard Stylesheet (Insights & Admin Integrated)
+   Weatherly Dashboard Stylesheet (Balanced Wide Layout + Popup Design)
    ========================================================================== */
 
-/* 1. 전체 레이아웃 & 공통 */
+/* 1. 기본 레이아웃 및 폰트 설정 */
 .dashboard-main {
-    padding: 20px;
-    max-width: 1200px;
+    width: 100%;
+    max-width: 1600px;
+    padding: 30px;
     margin: 0 auto;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
-/* 2. 위치/페이지 헤더 (공통) */
+/* 2. 헤더 디자인 */
 .location-header {
-    text-align: center;
     margin-bottom: 30px;
-    margin-top: 10px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding-bottom: 20px;
 }
 
 .location-display-wrapper {
-    display: inline-block;
-    background: white;
-    padding: 15px 30px;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px 25px;
     border-radius: 50px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    border: 1px solid #eee;
-    transition: background 0.3s, border-color 0.3s;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
 
 .location-title-row {
     margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #2c3e50;
-}
-
-.location-icon {
-    color: #667eea;
-    margin-right: 10px;
-    font-size: 1.4rem;
-}
-
-.station-text {
-    font-size: 1rem;
-    color: #7f8c8d;
-    font-weight: 500;
-}
-
-.divider {
-    margin: 0 15px;
-    color: #ddd;
-    font-weight: 300;
+    gap: 12px;
+    color: #1e293b;
 }
 
 .location-desc {
-    margin-top: 15px;
-    color: #95a5a6;
+    margin-top: 8px;
+    color: #64748b;
     font-size: 0.95rem;
+    margin-left: 10px;
 }
 
-/* 3. 대시보드 섹션 (카드 스타일) */
-.dashboard-section {
-    background: white;
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-    height: 100%;
-}
-
-.dashboard-section:hover {
-    transform: translateY(-5px);
-}
-
-.dashboard-section.highlight {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.section-header.center {
-    justify-content: center;
-}
-
-.section-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
-
-.section-header h3.large-title {
-    font-size: 1.6rem;
-    font-weight: 800;
-}
-
-/* 4. 그리드 레이아웃 (Insights용) */
-.stats-grid.two-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 20px;
-}
-
-@media (max-width: 768px) {
-    .stats-grid.two-columns {
-        grid-template-columns: 1fr;
-    }
-}
-
-.chart-container-lg {
-    position: relative;
-    height: 320px;
-    width: 100%;
-}
-
-.chart-container-sm {
-    position: relative;
-    height: 250px;
-    width: 100%;
-}
-
-.insight-text {
-    margin-top: 15px;
-    text-align: center;
-    font-size: 0.95rem;
-    color: #666;
-}
-
-/* 5. 상태 배지 (공통) */
-.status-badge {
-    padding: 5px 12px;
-    border-radius: 15px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    background-color: #eee;
-    color: #555;
-
-    /* ★ [수정] 글자가 좁아도 절대 줄바꿈 되지 않도록 설정 */
-    white-space: nowrap;
-    display: inline-block;
-}
-.status-badge.active { background-color: #e8f5e9; color: #2e7d32; }
-.status-badge.banned { background-color: #ffebee; color: #c62828; }
-
-/* 6. GPS 동기화 버튼 (Glassmorphism 적용) */
-.gps-sync-btn {
-    background: white !important;
-    border: 1px solid #e0e0e0 !important;
-    color: #555 !important;
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    margin-left: 15px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    height: 40px;
-    white-space: nowrap;
-}
-
-.gps-sync-btn i {
-    color: #2ecc71 !important;
-    font-size: 1rem;
-}
-
-.gps-sync-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.gps-sync-btn:disabled {
-    color: #999 !important;
-    cursor: not-allowed;
-    background-color: #f9f9f9 !important;
-}
-
-/* ==========================================================================
-   [ADMIN] 관리자 대시보드 전용 스타일
-   ========================================================================== */
-
-/* 1. 관리자 상단 통계 카드 (3열) */
+/* 3. 상단 통계 카드 */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 25px;
     margin-bottom: 30px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .stats-grid { grid-template-columns: 1fr; }
+}
+
+.dashboard-section {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.02);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stat-card-wrapper {
     display: flex;
     align-items: center;
-    padding: 25px;
     gap: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
 .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 15px;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.8rem;
     flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.stat-icon.warning { background: rgba(241, 196, 15, 0.15); color: #f39c12; }
-.stat-icon.primary { background: rgba(52, 152, 219, 0.15); color: #3498db; }
-.stat-icon.success { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+/* 아이콘 색상 포인트 */
+.stat-icon.warning { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #fff; }
+.stat-icon.primary { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: #fff; }
+.stat-icon.success { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); color: #fff; }
 
 .stat-content h3 {
-    font-size: 0.95rem;
-    color: #888;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748b;
     margin-bottom: 5px;
     font-weight: 600;
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 800;
-    color: #2c3e50;
+    color: #1e293b;
+    margin: 0;
     line-height: 1;
-    margin-bottom: 5px;
 }
 
 .stat-value .unit {
     font-size: 1rem;
+    color: #94a3b8;
+    margin-left: 4px;
     font-weight: 500;
-    margin-left: 3px;
-    color: #95a5a6;
 }
 
-.stat-desc {
-    font-size: 0.85rem;
-    color: #95a5a6;
-}
 
-/* 2. 관리자 메인 레이아웃 (2열: 회원관리/게시글) */
+/* 4. 메인 컨텐츠 (좌:회원 / 우:신고) 레이아웃 */
 .two-columns-admin {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: 20px;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 25px;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1200px) {
     .two-columns-admin { grid-template-columns: 1fr; }
 }
 
-/* 3. 관리자 테이블 스타일 */
+.section-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.section-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 5. 테이블 디자인 */
 .table-responsive {
     overflow-x: auto;
+    border-radius: 16px;
 }
 
 .admin-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    margin-top: 10px;
 }
 
 .admin-table th {
     text-align: left;
-    padding: 15px;
-    color: #95a5a6;
+    padding: 16px 20px;
+    color: #64748b;
     font-weight: 600;
     font-size: 0.9rem;
-    border-bottom: 2px solid #f0f2f5;
+    background: #f8fafc;
+    white-space: nowrap;
 }
 
 .admin-table td {
-    padding: 15px;
+    padding: 16px 20px;
     vertical-align: middle;
-    border-bottom: 1px solid #f0f2f5;
-    color: #2c3e50;
+    border-top: 1px solid #f1f5f9;
+    color: #334155;
     font-size: 0.95rem;
+    white-space: nowrap;
 }
 
-.admin-table tr:last-child td {
-    border-bottom: none;
+.admin-table tbody tr:hover td {
+    background-color: #f8fafc;
 }
 
-/* 유저 아바타 & 정보 */
+/* 유저 정보 */
 .user-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .user-avatar {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
+    object-fit: cover;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
     font-weight: bold;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    color: white;
 }
 
 /* 신고 태그 */
 .report-tag {
-    background: #ffebee;
-    color: #c62828;
-    padding: 2px 6px;
-    border-radius: 4px;
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
     font-size: 0.75rem;
-    font-weight: bold;
-    margin-right: 5px;
+    font-weight: 800;
+    margin-right: 8px;
+    background: #fee2e2;
+    color: #ef4444;
 }
 
-/* 4. 버튼 및 액션 스타일 */
-.action-btn-outline {
-    background: transparent;
-    border: 1px solid #ddd;
-    padding: 5px 12px;
-    border-radius: 15px;
+/* 6. 버튼 및 뱃지 스타일 */
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
     font-size: 0.85rem;
-    color: #666;
-    cursor: pointer;
-    transition: all 0.2s;
+    font-weight: 700;
+    white-space: nowrap;
+    display: inline-block;
 }
-
-.action-btn-outline:hover {
-    background: #f8f9fa;
-    color: #333;
-    border-color: #bbb;
-}
+.status-badge.active { background: #dcfce7; color: #16a34a; }
+.status-badge.banned { background: #fee2e2; color: #ef4444; }
 
 .icon-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     border: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+.icon-btn:hover {
+    background: #3b82f6;
+    color: white;
+    transform: scale(1.05);
+}
+.icon-btn.delete:hover { background: #ef4444; }
+
+.action-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #64748b;
+    text-decoration: none;
     transition: 0.2s;
-    background: #f8f9fa;
-    color: #777;
+    white-space: nowrap;
+}
+.action-btn-outline:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #eff6ff;
 }
 
-.icon-btn:hover { transform: translateY(-2px); }
-.icon-btn.edit:hover { background: #e3f2fd; color: #3498db; }
-.icon-btn.delete:hover { background: #ffebee; color: #e74c3c; }
-
 .btn-xs {
-    padding: 4px 10px;
-    border-radius: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
     font-size: 0.8rem;
     border: none;
     cursor: pointer;
     font-weight: 600;
+    white-space: nowrap;
+    transition: 0.2s;
 }
-.btn-xs.danger { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
-.btn-xs.danger:hover { background: #e74c3c; color: white; }
-.btn-xs.secondary { background: rgba(149, 165, 166, 0.1); color: #7f8c8d; }
-.btn-xs.secondary:hover { background: #95a5a6; color: white; }
+.btn-xs.danger {
+    background: #ef4444;
+    color: white;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.2);
+}
+.btn-xs.danger:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+}
 
 
 /* ==========================================================================
-   [DARK MODE] 다크모드 대응 (완벽 수정본)
+   [DARK MODE] 다크모드 필수 설정
    ========================================================================== */
-/* 1. 전체 배경색 변경 */
 body.dark-mode {
-    background-color: #1e272e; /* 짙은 남색 배경 */
+    background-color: #1e272e;
     color: #ecf0f1;
 }
 
-/* 2. 섹션(카드) 배경 변경 */
-body.dark-mode .dashboard-section {
-    background-color: #2c3e50;
-    color: #ecf0f1;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+/* 다크모드 헤더 */
+body.dark-mode .location-header {
+    border-bottom-color: rgba(255,255,255,0.1);
 }
-
-/* 3. 헤더/위치 박스 변경 */
 body.dark-mode .location-display-wrapper {
-    background-color: #34495e;
-    border-color: #455a64;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255,255,255,0.1);
 }
-body.dark-mode .location-title-row {
-    color: #ecf0f1;
-}
-body.dark-mode .station-text,
-body.dark-mode .location-desc,
-body.dark-mode .stat-desc,
-body.dark-mode .insight-text {
-    color: #bdc3c7;
-}
+body.dark-mode .location-title-row { color: #f1f5f9; }
+body.dark-mode .location-desc { color: #94a3b8; }
 
-/* 4. 테이블 스타일 변경 */
+/* 다크모드 카드 섹션 */
+body.dark-mode .dashboard-section {
+    background: #2c3e50;
+    border-color: rgba(255,255,255,0.05);
+}
+body.dark-mode .section-header h3 { color: #e2e8f0; }
+body.dark-mode .stat-value { color: #fff; }
+body.dark-mode .stat-content h3 { color: #a0aec0; }
+body.dark-mode .stat-value .unit { color: #718096; }
+
+/* 다크모드 테이블 */
 body.dark-mode .admin-table th {
-    border-bottom-color: #3a3a5d;
-    color: #a0a0b0;
-    background-color: #2c3e50;
+    background: rgba(0,0,0,0.2);
+    color: #94a3b8;
 }
 body.dark-mode .admin-table td {
-    border-bottom-color: #3a3a5d;
-    color: #ecf0f1;
+    border-top-color: rgba(255,255,255,0.05);
+    color: #e2e8f0;
+}
+body.dark-mode .admin-table tbody tr:hover td {
+    background-color: rgba(255,255,255,0.02);
 }
 
-/* 5. 버튼 및 아이콘 변경 */
+/* 다크모드 버튼/뱃지 */
+body.dark-mode .status-badge.active { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+body.dark-mode .status-badge.banned { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+
 body.dark-mode .icon-btn {
-    background: #34495e;
-    color: #bdc3c7;
+    background: rgba(255,255,255,0.05);
+    color: #94a3b8;
 }
-body.dark-mode .icon-btn:hover {
-    background: #455a64;
-    color: white;
-}
+body.dark-mode .icon-btn:hover { background: #3b82f6; color: white; }
+body.dark-mode .icon-btn.delete:hover { background: #ef4444; }
+
 body.dark-mode .action-btn-outline {
-    border-color: #555;
-    color: #bbb;
+    border-color: #475569;
+    color: #cbd5e1;
 }
 body.dark-mode .action-btn-outline:hover {
-    background: #333;
-    color: white;
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
 }
 
-/* 6. 통계 텍스트 색상 */
-body.dark-mode .stat-value {
-    color: #ecf0f1;
-}
-body.dark-mode .stat-content h3 {
-    color: #bdc3c7;
+body.dark-mode .report-tag {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
 }
 
-/* 7. 상태 배지 (약간 어둡게 조정) */
-body.dark-mode .status-badge {
-    background-color: #455a64;
-    color: #ecf0f1;
-}
-body.dark-mode .status-badge.active { background-color: #1b5e20; color: #a5d6a7; }
-body.dark-mode .status-badge.banned { background-color: #b71c1c; color: #ffcdd2; }
-body.dark-mode .report-tag { background: rgba(198, 40, 40, 0.2); color: #ff8a80; }
+/* 스크롤바 디자인 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* 8. GPS 동기화 버튼 (Glassmorphism) */
-body.dark-mode .gps-sync-btn {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+body.dark-mode ::-webkit-scrollbar-track { background: #1e272e; }
+body.dark-mode ::-webkit-scrollbar-thumb { background: #4b5563; }
+
+
+/* ==========================================================================
+   [POPUP] SweetAlert2 커스텀 디자인 (다크모드 대응)
+   ========================================================================== */
+div:where(.swal2-container) div:where(.swal2-popup) {
+    border-radius: 20px !important;
+    padding: 25px !important;
+    font-family: 'Pretendard', sans-serif !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
+}
+
+div:where(.swal2-container) button.swal2-styled {
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    padding: 10px 24px !important;
+}
+
+div:where(.swal2-container) input.swal2-input {
+    border-radius: 10px !important;
+    margin-top: 15px !important;
+}
+
+/* 다크모드일 때 팝업 스타일 변경 */
+body.dark-mode div:where(.swal2-container) div:where(.swal2-popup) {
+    background: #2c3e50 !important;
+    color: #ecf0f1 !important;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+body.dark-mode div:where(.swal2-container) .swal2-title {
+    color: #fff !important;
+}
+
+body.dark-mode div:where(.swal2-container) .swal2-html-container {
+    color: #bdc3c7 !important;
+}
+
+/* ★ [추가/수정] 다크모드에서 입력창과 셀렉트박스 배경 어둡게, 글자 하얗게 */
+body.dark-mode div:where(.swal2-container) input.swal2-input,
+body.dark-mode div:where(.swal2-container) select.swal2-select {
+    background: #34495e !important;
     color: white !important;
-    box-shadow: none;
-    backdrop-filter: blur(5px);
+    border: 1px solid #455a64 !important;
 }
-body.dark-mode .gps-sync-btn:hover {
-    background: rgba(255, 255, 255, 0.2) !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-body.dark-mode .gps-sync-btn:disabled {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: #7f8c8d !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
+
+/* ★ [추가] 옵션(목록) 배경색 지정 (브라우저 호환성용) */
+body.dark-mode div:where(.swal2-container) select.swal2-select option {
+    background-color: #34495e;
+    color: white;
 }

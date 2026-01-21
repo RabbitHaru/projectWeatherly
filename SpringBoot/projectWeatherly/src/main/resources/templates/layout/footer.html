@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <footer th:fragment="footer" class="modern-footer">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <div class="footer-container">
         <div class="footer-col">
             <div class="footer-logo">
@@ -41,5 +43,23 @@
         <p>&copy; 2026 Weatherly. All rights reserved.</p>
         <p>Designed & Developed by GMR.</p>
     </div>
+
+    <script th:if="${message != null}">
+        Swal.fire({
+            icon: 'success',
+            title: '완료',
+            text: '[[${message}]]',
+            confirmButtonColor: '#6c5ce7'
+        });
+    </script>
+
+    <script th:if="${errorMessage != null}">
+        Swal.fire({
+            icon: 'error',
+            title: '오류',
+            text: '[[${errorMessage}]]',
+            confirmButtonColor: '#ef4444'
+        });
+    </script>
 </footer>
 </html>
