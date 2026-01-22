@@ -1,16 +1,46 @@
 /**
- * fine-dust.js - 미세먼지 페이지 (제주/독도 제거 완료)
+ * fine-dust.js - 미세먼지 페이지 (통합 최종본)
+ * - URL 파라미터로 진입 시에도 '전국 리스트' 로딩 추가
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    if (!document.getElementById('fine-dust-location')) return;
+    const locEl = document.getElementById('fine-dust-location');
+    if (!locEl) return;
 
     updateCurrentTime();
     setInterval(updateCurrentTime, 60000);
 
-    // DB가 있으니 안심하고 로딩
-    loadFineDustPageData();
-    setInterval(loadFineDustPageData, 300000); // 5분마다 DB 데이터 확인
+    // 1. URL에서 '?region=지역명' 파라미터 확인
+    const urlParams = new URLSearchParams(window.location.search);
+    const regionParam = urlParams.get('region');
+
+    if (regionParam) {
+        // (A) 메인 페이지에서 넘어온 경우
+        locEl.textContent = regionParam;
+
+        const searchSido = extractSidoName(regionParam);
+
+        // 1. 선택된 지역의 상세 데이터 로드
+        loadFineDustBySido(searchSido);
+
+        // ⭐ [추가] 전국 리스트도 같이 로딩해야지!
+        loadRegionalComparison();
+
+        // 5분마다 갱신 (리스트도 같이 갱신하고 싶으면 loadRegionalComparison도 넣으면 됨)
+        setInterval(() => {
+            loadFineDustBySido(searchSido);
+            loadRegionalComparison();
+        }, 300000);
+
+    } else {
+        // (B) 그냥 접속한 경우
+        if (locEl.textContent.trim() === '??' || locEl.textContent.trim() === '') {
+            locEl.textContent = '위치 확인 중..';
+        }
+
+        loadFineDustPageData(); // 여기엔 이미 loadRegionalComparison이 포함돼 있음
+        setInterval(loadFineDustPageData, 300000);
+    }
 
     if (typeof bindGpsButton === 'function') {
         bindGpsButton('fine-dust-gps-sync-btn', async (lat, lng) => {
@@ -22,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
 async function loadFineDustPageData() {
     try {
         await loadCurrentAirQuality();
-        await loadRegionalComparison();
+        await loadRegionalComparison(); // 리스트 로딩
 
         const locNameEl = document.getElementById('fine-dust-location');
         if (locNameEl) {
@@ -49,12 +79,11 @@ async function loadCurrentAirQuality() {
     }
 }
 
-// 2. 지역별 리스트 (제주/독도 제거됨)
+// 2. 지역별 리스트
 async function loadRegionalComparison() {
     const listContainer = document.getElementById('regional-aqi-list') || document.getElementById('nationwide-list');
     if (!listContainer) return;
 
-    // [수정] 메인 페이지와 동일한 17개 광역 자치단체 리스트 (제주 포함)
     const targetRegions = [
         '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
         '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
@@ -63,7 +92,6 @@ async function loadRegionalComparison() {
     const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
 
     try {
-        // 전국의 데이터를 한 번에 가져와서 리스트 구성
         const res = await fetch(`${baseUrl}/api/air-quality/sido/전국`);
         const result = await res.json();
         let allData = [];
@@ -72,7 +100,6 @@ async function loadRegionalComparison() {
         listContainer.innerHTML = '';
 
         targetRegions.forEach(r => {
-            // 데이터 중에서 해당 시도 이름이 포함된 첫 번째 데이터를 찾음
             const data = allData.find(d => d.sidoName.includes(r));
             if (data) {
                 renderSimpleItem(listContainer, data);
@@ -88,9 +115,8 @@ function renderSimpleItem(container, r) {
     const div = document.createElement('div');
     div.className = 'region-weather';
 
-    // 서버에서 이미 통합지수로 계산해서 보낸 overallStatus를 우선 사용
     const statusText = r.overallStatus ? r.overallStatus : getAqiStatusText(r.overallGrade);
-    const colorClass = getAqiClass(r.overallGrade); // 등급 숫자에 맞는 색상 클래스 반환
+    const colorClass = getAqiClass(r.overallGrade);
     const testBadge = r.isMock ? '<span style="color:#e74c3c; font-size:0.7em; margin-left:5px;">[TEST]</span>' : '';
 
     div.innerHTML = `
@@ -103,7 +129,7 @@ function renderSimpleItem(container, r) {
     div.addEventListener('click', () => {
         document.querySelectorAll('.region-weather').forEach(el => el.classList.remove('selected'));
         div.classList.add('selected');
-        loadFineDustBySido(r.sidoName); // 클릭 시 상세 정보도 해당 지역 데이터로 변경
+        loadFineDustBySido(r.sidoName);
     });
 
     container.appendChild(div);
@@ -173,7 +199,7 @@ function updateFineDustUI(data) {
     if (locNameEl && data.sidoName) {
         let name = getFullSidoName(data.sidoName);
 
-        // ⭐ [추가] 미세먼지 페이지 제목 강제 변경 (null 방지)
+        // 브라우저 탭 제목 변경
         document.title = `${name} 대기질 - Weatherly`;
 
         if (data.isMock) {
@@ -268,11 +294,12 @@ function extractSidoName(full) {
     const mapping = {
         '서울': '서울', '부산': '부산', '대구': '대구', '인천': '인천',
         '광주': '광주', '대전': '대전', '울산': '울산', '세종': '세종',
-        '경기': '경기', '강원': '강원', '제주': '제주', // 제주 추가
+        '경기': '경기', '강원': '강원', '제주': '제주',
         '충청': full.includes('북') ? '충북' : '충남',
         '전라': full.includes('북') ? '전북' : '전남',
         '경상': full.includes('북') ? '경북' : '경남',
-        '서울특별시': '서울', '부산광역시': '부산'
+        '서울특별시': '서울', '부산광역시': '부산', '대전광역시': '대전',
+        '대구광역시': '대구', '인천광역시': '인천', '광주광역시': '광주', '울산광역시': '울산'
     };
     if (full.length === 2) return full;
     const shortName = full.substring(0, 2);
@@ -285,7 +312,7 @@ function getFullSidoName(short) {
         '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
         '경기': '경기도', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
         '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
-        '제주': '제주특별자치도' // 제주 추가
+        '제주': '제주특별자치도'
     };
     return map[short] || short;
 }
@@ -314,9 +341,9 @@ function getAqiStatusText(grade) {
         case '3':
             return '나쁨';
         case '4':
-            return '매우나쁨'; // '매우 나쁨'에서 공백 제거하여 통일
+            return '매우나쁨';
         default:
-            return '보통'; // 정보 없을 시 '보통'으로 기본값 설정
+            return '보통';
     }
 }
 
@@ -329,7 +356,7 @@ function getAqiIcon(grade) {
         case '3':
             return '<i class="fas fa-frown" style="color:#e74c3c"></i>';
         case '4':
-            return '<i class="fas fa-dizzy" style="color:#8e44ad"></i>';
+            return '<i class="fas fa-dizzy" style="color:#e74c3c"></i>';
         default:
             return '<i class="fas fa-meh"></i>';
     }
