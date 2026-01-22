@@ -3,6 +3,8 @@ package me.shinsunyoung.projectweatherly.member.repository;
 import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -107,4 +109,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     // [관리자용] 가장 최근에 가입한 회원 5명 조회
     List<Member> findTop5ByOrderByCreatedAtDesc();
+    Page<Member> findAll(Pageable pageable);
 }

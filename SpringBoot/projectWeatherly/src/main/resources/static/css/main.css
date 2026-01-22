@@ -287,13 +287,15 @@ body.dark-mode .detail {
 
 .detail .label {
     font-size: 0.9rem;
-    color: #777;
+    color: #666;
+    white-space: nowrap; /* ⭐ [추가] 라벨(제목)도 절대 줄바꿈 하지 않음 */
 }
 
 .detail .value {
     font-weight: 700;
     color: var(--primary-color);
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    white-space: nowrap;  /* ⭐ [추가] 글자가 길어져도 절대 줄바꿈 하지 않음 */
 }
 
 body.dark-mode .detail .value {
@@ -803,6 +805,24 @@ body.dark-mode .aqi-date {
 
 .aqi-status-badge.aqi-very-bad {
     background-color: #8e44ad;
+}
+
+.regional-weather-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 500px; /* 높이 제한 */
+    overflow-y: auto;  /* 스크롤 생성 */
+    padding-right: 5px; /* 스크롤바 여백 */
+}
+
+/* 스크롤바 디자인 (선택) */
+.regional-weather-list::-webkit-scrollbar {
+    width: 5px;
+}
+.regional-weather-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
 }
 
 .status-icon.safe { color: var(--success-color); }

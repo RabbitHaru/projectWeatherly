@@ -115,6 +115,11 @@ public class MemberService implements UserDetailsService {
         return convertToResponse(member);
     }
 
+    // [NEW] 관리자 페이지용: 전체 회원 조회 (페이징)
+    public Page<Member> findAllMembers(Pageable pageable) {
+        return memberRepository.findAll(pageable);
+    }
+
     public MyPageResponse getMyPageInfoByEmail(String email) {
         Member member = memberRepository.findByEmailAndIsActiveTrue(email).orElseThrow();
         return getMyPageInfo(member.getId(), 1);
@@ -222,24 +227,7 @@ public class MemberService implements UserDetailsService {
         boardRepository.delete(board);
     }
 
-    private MemberResponse convertToResponse(Member member) {
-        Agreement agreement = member.getAgreement();
-        return MemberResponse.builder()
-                .memberId(member.getId())
-                .email(member.getEmail())
-                .nickname(member.getNickname())
-                .profileImage(member.getProfileImage())
-                .role(member.getRole())
-                .authProvider(member.getAuthProvider())
-                .isActive(member.getIsActive())
-                .createdAt(member.getCreatedAt())
-                .updatedAt(member.getUpdatedAt())
-                .termsOfServiceAgree(agreement != null ? agreement.getTermsOfServiceAgree() : null)
-                .privacyPolicyAgree(agreement != null ? agreement.getPrivacyPolicyAgree() : null)
-                .boardNotificationAgree(agreement != null ? agreement.getBoardNotificationAgree() : null)
-                .weatherAlertAgree(agreement != null ? agreement.getWeatherAlertAgree() : null)
-                .build();
-    }
+
 
     // ==================== [NEW] 아이디/비밀번호 찾기 ====================
 
@@ -279,4 +267,25 @@ public class MemberService implements UserDetailsService {
             throw new MemberException("이메일 전송 중 오류가 발생했습니다.");
         }
     }
+
+    // ==================== 유틸리티 ====================
+    private MemberResponse convertToResponse(Member member) {
+        Agreement agreement = member.getAgreement();
+        return MemberResponse.builder()
+                .memberId(member.getId())
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .profileImage(member.getProfileImage())
+                .role(member.getRole())
+                .authProvider(member.getAuthProvider())
+                .isActive(member.getIsActive())
+                .createdAt(member.getCreatedAt())
+                .updatedAt(member.getUpdatedAt())
+                .termsOfServiceAgree(agreement != null ? agreement.getTermsOfServiceAgree() : null)
+                .privacyPolicyAgree(agreement != null ? agreement.getPrivacyPolicyAgree() : null)
+                .boardNotificationAgree(agreement != null ? agreement.getBoardNotificationAgree() : null)
+                .weatherAlertAgree(agreement != null ? agreement.getWeatherAlertAgree() : null)
+                .build();
+    }
+
 }

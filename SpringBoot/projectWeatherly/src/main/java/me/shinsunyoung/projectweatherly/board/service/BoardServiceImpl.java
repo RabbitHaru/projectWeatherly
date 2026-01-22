@@ -77,6 +77,11 @@ public class BoardServiceImpl implements BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
+        // (선택사항) 삭제된 글 접근 시 예외 발생시키려면 아래 주석 해제
+        // if (board.getBoardStatus() == BoardStatus.DELETED) {
+        //    throw new IllegalArgumentException("삭제된 게시글입니다.");
+        // }
+
         board.increaseViewCount();
         boardRepository.save(board);
 
@@ -133,10 +138,17 @@ public class BoardServiceImpl implements BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
+        // ★ [추가] 이미 삭제된 게시글 수정 차단
+        if (board.getBoardStatus() == BoardStatus.DELETED) {
+            throw new IllegalArgumentException("이미 삭제된 게시글은 수정할 수 없습니다.");
+        }
+
         Member requestMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
 
+
         // 작성자 본인 확인 OR 관리자 권한 확인
+
         boolean isOwner = board.getMember().getId().equals(memberId);
         boolean isAdmin = requestMember.getRole() == MemberRole.ADMIN;
 
@@ -144,16 +156,16 @@ public class BoardServiceImpl implements BoardService {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
+
         // 공지사항 카테고리로 변경 시 관리자 권한 체크
+
         if (Board.CATEGORY_NOTICE.equalsIgnoreCase(request.getCategory())) {
             if (!isAdmin) {
                 throw new IllegalStateException("관리자만 공지사항으로 설정할 수 있습니다.");
             }
         }
 
-        board.setTitle(request.getTitle());
-        board.setContent(request.getContent());
-        board.setCategory(request.getCategory());
+        board.update(request.getTitle(), request.getContent(), request.getCategory());
 
         // 이미지 삭제 처리
         if (request.getDeleteImages() != null && !request.getDeleteImages().isEmpty()) {
@@ -191,10 +203,17 @@ public class BoardServiceImpl implements BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
+        // ★ [추가] 이미 삭제된 게시글 중복 삭제 방지
+        if (board.getBoardStatus() == BoardStatus.DELETED) {
+            throw new IllegalArgumentException("이미 삭제된 게시글입니다.");
+        }
+
         Member requestMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
 
+
         // 작성자 본인 확인 OR 관리자 권한 확인 (강제 삭제 로직)
+
         boolean isOwner = board.getMember().getId().equals(memberId);
         boolean isAdmin = requestMember.getRole() == MemberRole.ADMIN;
 
@@ -210,6 +229,12 @@ public class BoardServiceImpl implements BoardService {
     public boolean toggleLike(Long boardId, Long memberId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        // (선택사항) 삭제된 글 좋아요 방지
+        if (board.getBoardStatus() == BoardStatus.DELETED) {
+            return false;
+        }
+
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 

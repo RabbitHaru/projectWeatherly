@@ -1,0 +1,456 @@
+/* ==========================================================================
+   Weatherly Admin Styles (Admin Only)
+   ========================================================================== */
+
+/* 1. 상단 통계 카드 (3개 Grid) */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.stat-card-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.stat-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 아이콘 색상 */
+.stat-icon.warning {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    color: #fff;
+}
+
+.stat-icon.primary {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    color: #fff;
+}
+
+.stat-icon.success {
+    background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    color: #fff;
+}
+
+.stat-content h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-value .unit {
+    font-size: 1rem;
+    color: #94a3b8;
+    margin-left: 4px;
+    font-weight: 500;
+}
+
+/* 2. 관리자 메인 레이아웃 (회원:신고 = 1.3:1) */
+.two-columns-admin {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 25px;
+}
+
+@media (max-width: 1200px) {
+    .stats-grid, .two-columns-admin {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 3. 테이블 스타일 */
+.table-responsive {
+    overflow-x: auto;
+    border-radius: 16px;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 16px 20px;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: #f8fafc;
+    white-space: nowrap;
+}
+
+.admin-table td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    border-top: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.admin-table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* 유저 정보 & 태그 */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    color: white;
+}
+
+.report-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin-right: 8px;
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+/* 4. 버튼 & 뱃지 */
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-badge.banned {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.icon-btn:hover {
+    background: #3b82f6;
+    color: white;
+    transform: scale(1.05);
+}
+
+.action-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #64748b;
+    text-decoration: none;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+.action-btn-outline:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #eff6ff;
+}
+
+.btn-xs {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: 0.2s;
+}
+
+.btn-xs.danger {
+    background: #ef4444;
+    color: white;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.2);
+}
+
+.btn-xs.danger:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+}
+
+/* 5. 관리자 전용 다크모드 */
+body.dark-mode .stat-value {
+    color: #fff;
+}
+
+body.dark-mode .stat-content h3 {
+    color: #a0aec0;
+}
+
+body.dark-mode .stat-value .unit {
+    color: #718096;
+}
+
+body.dark-mode .admin-table th {
+    background: rgba(0, 0, 0, 0.2);
+    color: #94a3b8;
+}
+
+body.dark-mode .admin-table td {
+    border-top-color: rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+}
+
+body.dark-mode .admin-table tbody tr:hover td {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+body.dark-mode .status-badge.active {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+}
+
+body.dark-mode .status-badge.banned {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+}
+
+body.dark-mode .icon-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+}
+
+body.dark-mode .icon-btn:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+body.dark-mode .action-btn-outline {
+    border-color: #475569;
+    color: #cbd5e1;
+}
+
+body.dark-mode .report-tag {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+}
+
+
+/* ==========================================================================
+   [NEW] 권한 관리 및 페이징
+   ========================================================================== */
+
+/* 권한 뱃지 스타일 */
+.role-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.role-badge.user-role {
+    background-color: #f1f2f6;
+    color: #747d8c;
+    border: 1px solid #dfe4ea;
+}
+
+.role-badge.admin-role {
+    background-color: #eccc68;
+    color: #ffffff;
+    border: 1px solid #ffa502;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 다크모드 대응 - 권한 뱃지 */
+body.dark-mode .role-badge.user-role {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ced6e0;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 페이지네이션 스타일 */
+.pagination-area {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    gap: 5px;
+}
+
+.pagination li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: 0.2s;
+    background: #fff;
+}
+
+.pagination li.active a {
+    background: var(--primary-color); /* common.css의 변수 사용 */
+    color: white;
+    border-color: var(--primary-color);
+    font-weight: bold;
+}
+
+.pagination li.disabled a {
+    color: #cbd5e1;
+    pointer-events: none;
+    background: #f8fafc;
+}
+
+.pagination li a:hover:not(.active) {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+/* 다크모드 대응 - 페이지네이션 */
+body.dark-mode .pagination li a {
+    background: #2d3436;
+    border-color: #4a6278;
+    color: #dfe6e9;
+}
+
+body.dark-mode .pagination li.active a {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+
+body.dark-mode .pagination li.disabled a {
+    background: rgba(0, 0, 0, 0.2);
+    color: #636e72;
+}
+
+/* ==========================================================================
+   [FIX] SweetAlert2 다크모드 가시성 완벽 해결 (Final)
+   ========================================================================== */
+
+/* 1. 팝업창 본체 배경 강제 적용 (JS 설정보다 우선순위 높임) */
+body.dark-mode div:where(.swal2-container) div:where(.swal2-popup) {
+    background-color: #2d3436 !important; /* 짙은 회색 */
+    color: #f1f2f6 !important;            /* 밝은 회색 글자 */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 2. 제목(Title)과 본문(Content) 글자색 강제 적용 */
+body.dark-mode .swal2-title,
+body.dark-mode .swal2-html-container {
+    color: #ffffff !important;
+}
+
+/* 3. 라디오 버튼(권한 선택) 컨테이너 정렬 및 배경 */
+body.dark-mode .swal2-radio {
+    display: grid !important;
+    gap: 10px;
+    background-color: transparent !important; /* 혹시 모를 흰 배경 제거 */
+}
+
+/* 4. 라디오 버튼 라벨 (박스 형태 디자인) */
+body.dark-mode .swal2-radio label {
+    color: #ffffff !important;            /* 글자색: 흰색 */
+    background-color: #636e72 !important; /* 배경색: 회색 (팝업보다 약간 밝게) */
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #b2bec3;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* 5. 라디오 버튼 마우스 올렸을 때 */
+body.dark-mode .swal2-radio label:hover {
+    background-color: #3498db !important; /* 파란색 하이라이트 */
+    border-color: #3498db;
+    color: white !important;
+}
+
+/* 6. 드롭다운(Select), 입력필드(Input) 스타일 */
+body.dark-mode .swal2-select,
+body.dark-mode .swal2-input,
+body.dark-mode .swal2-textarea {
+    background-color: #636e72 !important;
+    color: #ffffff !important;
+    border: 1px solid #b2bec3 !important;
+}
+
+/* 7. 플레이스홀더 색상 */
+body.dark-mode .swal2-input::placeholder,
+body.dark-mode .swal2-textarea::placeholder {
+    color: #dfe6e9 !important;
+}

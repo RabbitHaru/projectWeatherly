@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weatherly - 기상 인사이트</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/insights.css}">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -40,8 +43,7 @@
         </div>
     </section>
 
-    <div class="stats-grid two-columns">
-
+    <div class="grid-container two-columns">
         <section class="dashboard-section">
             <div class="section-header">
                 <h3><i class="fas fa-history"></i> 시간별 대기질 추이 (12H)</h3>
@@ -66,7 +68,6 @@
                 <p>오늘의 <strong>습도</strong>와 <strong>바람</strong> 정보를 확인하세요.</p>
             </div>
         </section>
-
     </div>
 </main>
 

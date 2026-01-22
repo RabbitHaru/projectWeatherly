@@ -1,5 +1,5 @@
 /**
- * fine-dust.js - 미세먼지 페이지 (예보 문구 가운데 정렬 수정)
+ * fine-dust.js - 미세먼지 페이지 (제주/독도 제거 완료)
  */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -8,8 +8,9 @@ document.addEventListener('DOMContentLoaded', function () {
     updateCurrentTime();
     setInterval(updateCurrentTime, 60000);
 
+    // DB가 있으니 안심하고 로딩
     loadFineDustPageData();
-    setInterval(loadFineDustPageData, 300000);
+    setInterval(loadFineDustPageData, 300000); // 5분마다 DB 데이터 확인
 
     if (typeof bindGpsButton === 'function') {
         bindGpsButton('fine-dust-gps-sync-btn', async (lat, lng) => {
@@ -33,6 +34,7 @@ async function loadFineDustPageData() {
     }
 }
 
+// 1. 상단 배너
 async function loadCurrentAirQuality() {
     const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
     try {
@@ -47,40 +49,67 @@ async function loadCurrentAirQuality() {
     }
 }
 
-async function loadFineDustByGPS(lat, lng) {
-    const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
-    try {
-        const res = await fetch(`${baseUrl}/api/air-quality/gps?latitude=${lat}&longitude=${lng}`, {method: 'POST'});
-        const data = await res.json();
+// 2. 지역별 리스트 (제주/독도 제거됨)
+async function loadRegionalComparison() {
+    const listContainer = document.getElementById('regional-aqi-list') || document.getElementById('nationwide-list');
+    if (!listContainer) return;
 
-        if (data.success && data.data) {
-            updateFineDustUI(data.data);
-            const sido = extractSidoName(data.data.sidoName);
-            await loadForecast(sido);
-        } else {
-            alert('위치 정보를 찾을 수 없습니다.');
-        }
+    // [수정] 메인 페이지와 동일한 17개 광역 자치단체 리스트 (제주 포함)
+    const targetRegions = [
+        '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
+        '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+    ];
+
+    const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
+
+    try {
+        // 전국의 데이터를 한 번에 가져와서 리스트 구성
+        const res = await fetch(`${baseUrl}/api/air-quality/sido/전국`);
+        const result = await res.json();
+        let allData = [];
+        if (result.success) allData = result.data;
+
+        listContainer.innerHTML = '';
+
+        targetRegions.forEach(r => {
+            // 데이터 중에서 해당 시도 이름이 포함된 첫 번째 데이터를 찾음
+            const data = allData.find(d => d.sidoName.includes(r));
+            if (data) {
+                renderSimpleItem(listContainer, data);
+            }
+        });
+
     } catch (e) {
-        console.error(e);
-        alert("서버 연결 실패");
+        console.error("리스트 로드 실패:", e);
     }
 }
 
-async function loadFineDustBySido(sidoName) {
-    const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
-    try {
-        const res = await fetch(`${baseUrl}/api/air-quality/sido/${encodeURIComponent(sidoName)}`);
-        const data = await res.json();
+function renderSimpleItem(container, r) {
+    const div = document.createElement('div');
+    div.className = 'region-weather';
 
-        if (data.success && data.data && data.data.length > 0) {
-            updateFineDustUI(data.data[0]);
-            loadForecast(sidoName);
-        }
-    } catch (e) {
-        console.error("지역 선택 로딩 실패:", e);
-    }
+    // 서버에서 이미 통합지수로 계산해서 보낸 overallStatus를 우선 사용
+    const statusText = r.overallStatus ? r.overallStatus : getAqiStatusText(r.overallGrade);
+    const colorClass = getAqiClass(r.overallGrade); // 등급 숫자에 맞는 색상 클래스 반환
+    const testBadge = r.isMock ? '<span style="color:#e74c3c; font-size:0.7em; margin-left:5px;">[TEST]</span>' : '';
+
+    div.innerHTML = `
+        <div class="region-info">
+            <span class="region-name">${r.sidoName}${testBadge}</span>
+        </div>
+        <span class="aqi-badge ${colorClass}">${statusText}</span>
+    `;
+
+    div.addEventListener('click', () => {
+        document.querySelectorAll('.region-weather').forEach(el => el.classList.remove('selected'));
+        div.classList.add('selected');
+        loadFineDustBySido(r.sidoName); // 클릭 시 상세 정보도 해당 지역 데이터로 변경
+    });
+
+    container.appendChild(div);
 }
 
+// 3. 예보
 async function loadForecast(sido) {
     const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
     if (!sido || sido.includes('?')) sido = '서울';
@@ -89,7 +118,7 @@ async function loadForecast(sido) {
         const data = await res.json();
         if (data.success) updateFineDustForecast(data.data);
     } catch (e) {
-        console.error("예보 로딩 실패:", e);
+        console.error("예보 로드 실패:", e);
     }
 }
 
@@ -110,16 +139,11 @@ function updateFineDustForecast(list) {
     }
 }
 
-// [핵심 수정] 텍스트 정렬을 center로 변경
 function renderForecastCard(item, label) {
     const gradeClass = getAqiClass(item.overallGrade);
     const statusText = getAqiStatusText(item.overallGrade);
     const dateStr = item.date ? item.date : '';
-
-    // 개황
     let adviceText = item.advice || '상세 예보 정보가 없습니다.';
-
-    // 발생 원인
     let causeText = item.cause ? `<br><br><strong><i class="fas fa-search-plus"></i> 원인:</strong><br>${item.cause}` : '';
 
     return `
@@ -132,7 +156,6 @@ function renderForecastCard(item, label) {
                 ${getAqiIcon(item.overallGrade)}
             </div>
             <div class="forecast-overall ${gradeClass}" style="margin-bottom:15px; font-weight:bold;">${statusText}</div>
-            
             <div class="forecast-advice" style="text-align: center; word-break: keep-all; line-height: 1.6;">
                 <i class="fas fa-quote-left" style="color:#ddd; margin-right:5px;"></i>
                 ${adviceText}
@@ -145,20 +168,35 @@ function renderForecastCard(item, label) {
 
 function updateFineDustUI(data) {
     if (!data) return;
-    if (data.sidoName) document.getElementById('fine-dust-location').textContent = getFullSidoName(data.sidoName);
+    const locNameEl = document.getElementById('fine-dust-location');
+
+    if (locNameEl && data.sidoName) {
+        let name = getFullSidoName(data.sidoName);
+        if (data.isMock) {
+            name += ' <span style="background:#e74c3c; color:white; font-size:0.6em; padding:2px 6px; border-radius:4px; vertical-align:middle; margin-left: 5px;">TEST MODE</span>';
+            locNameEl.innerHTML = name;
+        } else {
+            locNameEl.textContent = name;
+        }
+    }
+
     if (data.stationName) {
         const st = document.getElementById('station-name');
         if (st) st.textContent = data.stationName;
     }
+
     if (data.dataTime) {
-        let timeStr = Array.isArray(data.dataTime) ? `${data.dataTime[0]}-${String(data.dataTime[1]).padStart(2, '0')}-${String(data.dataTime[2]).padStart(2, '0')} ${String(data.dataTime[3]).padStart(2, '0')}:00` : data.dataTime;
+        let timeStr = Array.isArray(data.dataTime) ?
+            `${data.dataTime[0]}-${String(data.dataTime[1]).padStart(2, '0')}-${String(data.dataTime[2]).padStart(2, '0')} ${String(data.dataTime[3]).padStart(2, '0')}:00`
+            : data.dataTime;
         document.getElementById('fine-dust-update-time').textContent = `업데이트: ${timeStr}`;
         const mt = document.getElementById('measurement-time');
         if (mt) mt.textContent = timeStr;
     }
     const badge = document.getElementById('fine-dust-overall-badge');
     if (badge) {
-        badge.textContent = data.overallStatus || '--';
+        const statusText = data.overallStatus ? data.overallStatus : getAqiStatusText(data.overallGrade);
+        badge.textContent = statusText;
         badge.className = 'aqi-badge large-badge ' + getAqiClass(data.overallGrade);
     }
     if (data.healthAdvice) {
@@ -189,75 +227,48 @@ function updateDetailCard(prefix, item, unitStr) {
     }
 }
 
-async function loadRegionalComparison() {
-    const regions = ['서울', '부산', '대구', '인천', '광주', '대전', '울산'];
+async function loadFineDustByGPS(lat, lng) {
     const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
-
-    const promises = regions.map(sido =>
-        fetch(`${baseUrl}/api/air-quality/sido/${encodeURIComponent(sido)}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.data && Array.isArray(data.data) && data.data.length > 0) {
-                    return data.data[0];
-                }
-                return null;
-            })
-            .catch(() => null)
-    );
-
     try {
-        const results = await Promise.all(promises);
-        const validData = results.filter(item => item !== null);
-        updateRegionalUI(validData);
+        const res = await fetch(`${baseUrl}/api/air-quality/gps?latitude=${lat}&longitude=${lng}`, {method: 'POST'});
+        const data = await res.json();
+        if (data.success && data.data) {
+            updateFineDustUI(data.data);
+            const sido = extractSidoName(data.data.sidoName);
+            await loadForecast(sido);
+        } else {
+            alert('위치 정보를 찾을 수 없습니다.');
+        }
     } catch (e) {
-        console.error("지역별 대기질 로드 실패:", e);
+        console.error(e);
+        alert("서버 연결 실패");
     }
 }
 
-function updateRegionalUI(list) {
-    const container = document.getElementById('regional-aqi-list');
-    if (!container) return;
-    container.innerHTML = '';
-
-    if (!list || list.length === 0) {
-        container.innerHTML = '<div class="no-data">정보 로딩 실패</div>';
-        return;
+async function loadFineDustBySido(sidoName) {
+    const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
+    try {
+        const res = await fetch(`${baseUrl}/api/air-quality/sido/${encodeURIComponent(sidoName)}`);
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) {
+            updateFineDustUI(data.data[0]);
+            loadForecast(sidoName);
+        }
+    } catch (e) {
+        console.error("지역 로드 실패:", e);
     }
-
-    list.slice(0, 5).forEach(r => {
-        const div = document.createElement('div');
-        div.className = 'region-weather';
-        div.innerHTML = `<div class="region-info"><span class="region-name">${r.sidoName}</span></div><span class="aqi-badge ${getAqiClass(r.overallGrade)}">${r.overallStatus}</span>`;
-
-        div.addEventListener('click', () => {
-            document.querySelectorAll('.region-weather').forEach(el => el.classList.remove('selected'));
-            div.classList.add('selected');
-            loadFineDustBySido(r.sidoName);
-        });
-
-        container.appendChild(div);
-    });
 }
 
 function extractSidoName(full) {
     if (!full) return '서울';
     const mapping = {
-        '서울': '서울',
-        '부산': '부산',
-        '대구': '대구',
-        '인천': '인천',
-        '광주': '광주',
-        '대전': '대전',
-        '울산': '울산',
-        '세종': '세종',
-        '경기': '경기',
-        '강원': '강원',
-        '제주': '제주',
+        '서울': '서울', '부산': '부산', '대구': '대구', '인천': '인천',
+        '광주': '광주', '대전': '대전', '울산': '울산', '세종': '세종',
+        '경기': '경기', '강원': '강원', '제주': '제주', // 제주 추가
         '충청': full.includes('북') ? '충북' : '충남',
         '전라': full.includes('북') ? '전북' : '전남',
         '경상': full.includes('북') ? '경북' : '경남',
-        '서울특별시': '서울',
-        '부산광역시': '부산'
+        '서울특별시': '서울', '부산광역시': '부산'
     };
     if (full.length === 2) return full;
     const shortName = full.substring(0, 2);
@@ -266,23 +277,56 @@ function extractSidoName(full) {
 
 function getFullSidoName(short) {
     const map = {
-        '서울': '서울특별시',
-        '부산': '부산광역시',
-        '대구': '대구광역시',
-        '인천': '인천광역시',
-        '광주': '광주광역시',
-        '대전': '대전광역시',
-        '울산': '울산광역시',
-        '세종': '세종특별자치시',
-        '경기': '경기도',
-        '강원': '강원특별자치도',
-        '충북': '충청북도',
-        '충남': '충청남도',
-        '전북': '전북특별자치도',
-        '전남': '전라남도',
-        '경북': '경상북도',
-        '경남': '경상남도',
-        '제주': '제주특별자치도'
+        '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시',
+        '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
+        '경기': '경기도', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
+        '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
+        '제주': '제주특별자치도' // 제주 추가
     };
     return map[short] || short;
+}
+
+function getAqiClass(grade) {
+    switch (String(grade)) {
+        case '1':
+            return 'aqi-good';
+        case '2':
+            return 'aqi-moderate';
+        case '3':
+            return 'aqi-bad';
+        case '4':
+            return 'aqi-very-bad';
+        default:
+            return 'aqi-moderate';
+    }
+}
+
+function getAqiStatusText(grade) {
+    switch (String(grade).trim()) {
+        case '1':
+            return '좋음';
+        case '2':
+            return '보통';
+        case '3':
+            return '나쁨';
+        case '4':
+            return '매우나쁨'; // '매우 나쁨'에서 공백 제거하여 통일
+        default:
+            return '보통'; // 정보 없을 시 '보통'으로 기본값 설정
+    }
+}
+
+function getAqiIcon(grade) {
+    switch (String(grade).trim()) {
+        case '1':
+            return '<i class="fas fa-smile" style="color:#2ecc71"></i>';
+        case '2':
+            return '<i class="fas fa-meh" style="color:#f39c12"></i>';
+        case '3':
+            return '<i class="fas fa-frown" style="color:#e74c3c"></i>';
+        case '4':
+            return '<i class="fas fa-dizzy" style="color:#8e44ad"></i>';
+        default:
+            return '<i class="fas fa-meh"></i>';
+    }
 }

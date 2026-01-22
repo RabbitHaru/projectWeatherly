@@ -1,0 +1,114 @@
+/* ==========================================================================
+   Weatherly Insights Styles (Insights Only)
+   ========================================================================== */
+
+/* 1. 통계 전용 레이아웃 (1:1 비율) */
+.grid-container.two-columns {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    align-items: start;
+}
+
+@media (max-width: 992px) {
+    .grid-container.two-columns {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+}
+
+/* 2. 상단 하이라이트 섹션 (주간 기온) */
+.dashboard-section.highlight {
+    background: linear-gradient(145deg, #ffffff, #f0f7ff);
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.08);
+    margin-bottom: 35px;
+    padding: 30px;
+}
+.highlight .section-header.center {
+    text-align: center;
+    border-bottom: none;
+    margin-bottom: 25px;
+}
+.large-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.large-title i { color: var(--primary-color); }
+
+/* 3. 헤더 내부 뱃지 정렬 */
+.grid-container.two-columns .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.section-header .status-badge {
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.8rem;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+/* 4. 차트 컨테이너 */
+.chart-container-lg { position: relative; height: 380px; width: 100%; padding: 10px; }
+.chart-container-sm { position: relative; height: 280px; width: 100%; margin-top: 15px; }
+@media (max-width: 992px) {
+    .chart-container-lg { height: 320px; }
+    .chart-container-sm { height: 250px; }
+}
+
+/* 5. 인사이트 텍스트 */
+.insight-text {
+    margin-top: 25px;
+    padding: 18px 25px;
+    background: #f8fafc;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 8px;
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: left;
+    display: flex;
+    align-items: center;
+}
+.insight-text::before {
+    content: '\f05a';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-right: 12px;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+.insight-text strong {
+    color: #1e293b;
+    font-weight: 700;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin: 0 2px;
+}
+
+/* 6. 통계 전용 다크모드 */
+body.dark-mode .dashboard-section.highlight {
+    background: linear-gradient(145deg, #2c3e50, #233242);
+    border-color: rgba(255,255,255,0.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+body.dark-mode .large-title { color: #e2e8f0; }
+body.dark-mode .large-title i { color: #60a5fa; }
+body.dark-mode .section-header .status-badge { background: rgba(255,255,255,0.1); color: #cbd5e1; }
+body.dark-mode .insight-text {
+    background: rgba(255, 255, 255, 0.03);
+    border-left-color: #60a5fa;
+    color: #cbd5e1;
+}
+body.dark-mode .insight-text::before { color: #60a5fa; }
+body.dark-mode .insight-text strong { color: #e2e8f0; background: rgba(96, 165, 250, 0.2); }
