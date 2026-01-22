@@ -36,8 +36,10 @@ public class AirQualityResponseDTO {
     @Builder
     public static class AirQualityForecast {
 
-        // [추가됨] 발표 시각
-        private String dataTime;
+        private String dataTime; // 발표 시각
+
+        // ⭐ [추가] 서비스에서 사용하려면 이 필드가 꼭 있어야 해!
+        private String informCode;
 
         private String date;
         private String overallGrade;

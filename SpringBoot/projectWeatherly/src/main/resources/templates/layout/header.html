@@ -11,64 +11,6 @@
 
 <body>
 <header class="main-header" th:fragment="header">
-
-    <style>
-        /* 1. 알림 목록 박스 (평소에는 숨김) */
-        .notification-dropdown {
-            position: absolute !important; /* 강제 적용 */
-            top: 40px !important;
-            right: 0 !important;
-            width: 320px;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;      /* ★ 중요: 기본적으로 숨김 ★ */
-            z-index: 9999;
-            max-height: 400px;
-            overflow-y: auto;
-            text-align: left;
-        }
-
-        /* 2. 'active' 클래스가 붙으면 보임 */
-        .notification-dropdown.active {
-            display: block !important;
-        }
-
-        /* 3. 알림 아이템 스타일 */
-        .noti-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            transition: background 0.1s;
-        }
-        .noti-item:hover { background-color: #f9f9f9; }
-
-        .noti-content { flex: 1; }
-        .noti-text { font-size: 0.9rem; color: #333; line-height: 1.4; margin-bottom: 4px; }
-        .noti-time { font-size: 0.75rem; color: #888; display: block; }
-        .empty-noti { padding: 20px; text-align: center; color: #999; font-size: 0.9rem; }
-
-        /* 4. 우측 하단 팝업 (토스트 메시지) */
-        .toast-message {
-            position: fixed; bottom: 20px; right: 20px;
-            background-color: #2d3436; color: #fff;
-            padding: 14px 20px; border-radius: 8px;
-            z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: flex; align-items: center; gap: 12px;
-            cursor: pointer; animation: slideUp 0.4s ease-out;
-        }
-        .toast-message:hover { background-color: #404040; transform: translateY(-2px); }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-    </style>
-
     <div class="header-container">
         <div class="header-left">
             <a href="/" class="logo">

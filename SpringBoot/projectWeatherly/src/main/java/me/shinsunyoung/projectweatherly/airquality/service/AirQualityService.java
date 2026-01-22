@@ -41,7 +41,6 @@ public class AirQualityService {
             List<AirQualityResponseDTO> dtos = airQualityApiService.getAirQualityBySido("전국");
             if (dtos == null || dtos.isEmpty()) return;
 
-            // [중요] 가짜 데이터면 저장 안 함
             String advice = dtos.get(0).getHealthAdvice();
             if (advice != null && advice.contains("[테스트 모드]")) return;
 
@@ -56,35 +55,43 @@ public class AirQualityService {
         }
     }
 
+    // ⭐ [핵심 변경] 중복 데이터는 아예 저장하지 않고 건너뜀 (Skip)
     @Transactional
     public void updateForecastData() {
         List<AirQualityResponseDTO.AirQualityForecast> forecasts = airQualityApiService.getAirQualityForecast("서울");
         if (forecasts == null || forecasts.isEmpty()) return;
 
-        // [중요] 가짜 예보면 저장 안 함
         String advice = forecasts.get(0).getAdvice();
         if (advice != null && advice.contains("[가상 예보]")) return;
 
-        // [중복 방지]
-        AirQualityForecastEntity lastSaved = airQualityForecastRepository.findTopByOrderByRecordedAtDesc();
-        AirQualityResponseDTO.AirQualityForecast newForecast = forecasts.get(0);
+        int savedCount = 0;
+        for (AirQualityResponseDTO.AirQualityForecast dto : forecasts) {
+            // 1. 중복 확인 (시간 기준)
+            boolean exists = airQualityForecastRepository.findByDataTime(dto.getDataTime()).isPresent();
 
-        if (lastSaved != null && newForecast.getDataTime() != null && newForecast.getDataTime().equals(lastSaved.getDataTime())) {
-            return;
+            if (exists) {
+                // 2-A. 이미 있으면 -> 저장 안 하고 통과 (Skip)
+                log.info("♻️ 중복된 예보 데이터 발견 (시간: {}) -> 저장 건너뜀", dto.getDataTime());
+                continue;
+            }
+
+            // 2-B. 없으면 -> 새로 저장 (Insert)
+            airQualityForecastRepository.save(AirQualityForecastEntity.builder()
+                    .dataTime(dto.getDataTime())
+                    .informData(dto.getDate())
+                    .informCode(dto.getInformCode())
+                    .informOverall(dto.getAdvice())
+                    .informCause(dto.getCause())
+                    .informGrade(dto.getOverallGrade())
+                    .build());
+            savedCount++;
         }
 
-        List<AirQualityForecastEntity> entities = forecasts.stream()
-                .map(dto -> AirQualityForecastEntity.builder()
-                        .dataTime(dto.getDataTime())
-                        .informData(dto.getDate())
-                        .informOverall(dto.getAdvice())
-                        .informCause(dto.getCause())
-                        .informGrade(dto.getOverallGrade())
-                        .build())
-                .collect(Collectors.toList());
-
-        airQualityForecastRepository.saveAll(entities);
-        log.info("✅ 새로운 대기질 예보 데이터 저장 완료");
+        if (savedCount > 0) {
+            log.info("✅ 새로운 대기질 예보 {}건 저장 완료", savedCount);
+        } else {
+            log.info("👌 새로운 예보 데이터 없음 (모두 중복)");
+        }
     }
 
     public AirQualityResponseDTO getAirQualityByIp(HttpServletRequest request) {
@@ -105,17 +112,14 @@ public class AirQualityService {
 
     public List<AirQualityResponseDTO> getAirQualityBySido(String sidoName) {
         String shortName = extractSidoName(sidoName);
-        // [핵심] DB 먼저 확인
         List<AirQualityEntity> entities = airQualityRepository.findBySidoNameOrderByDataTimeDesc(shortName);
         if (!entities.isEmpty())
             return entities.stream().limit(100).map(this::convertToDTO).collect(Collectors.toList());
 
-        // DB 없으면 API (초기 1회용)
         return airQualityApiService.getAirQualityBySido(shortName);
     }
 
     public List<AirQualityResponseDTO.AirQualityForecast> getAirQualityForecast(String sidoName) {
-        // [핵심] DB 먼저 확인
         List<AirQualityForecastEntity> entities = airQualityForecastRepository.findTop2ByOrderByRecordedAtDesc();
         String targetSido = extractSidoName(sidoName);
 
@@ -127,8 +131,8 @@ public class AirQualityService {
                         .advice(e.getInformOverall())
                         .cause(e.getInformCause())
                         .overallGrade(convertTextToGrade(parsedGrade))
-                        .pm10Grade(convertTextToGrade(parsedGrade))
-                        .pm25Grade(convertTextToGrade(parsedGrade))
+                        .dataTime(e.getDataTime())
+                        .informCode(e.getInformCode())
                         .build();
             }).collect(Collectors.toList());
         }
@@ -138,16 +142,14 @@ public class AirQualityService {
     // 헬퍼 메서드들
     private AirQualityResponseDTO getLatestDataByRegion(String regionName) {
         String shortName = extractSidoName(regionName);
-        // 최신 시간순으로 데이터를 다 가져옴
         List<AirQualityEntity> list = airQualityRepository.findBySidoNameOrderByDataTimeDesc(shortName);
 
         if (!list.isEmpty()) {
-            // ⭐ 수치가 0이 아닌(정상적인) 데이터를 가진 측정소를 우선적으로 검색
             return list.stream()
                     .filter(e -> e.getKhaiValue() != null && e.getKhaiValue() > 0)
                     .findFirst()
                     .map(this::convertToDTO)
-                    .orElseGet(() -> convertToDTO(list.get(0))); // 없으면 어쩔 수 없이 첫 번째꺼 사용
+                    .orElseGet(() -> convertToDTO(list.get(0)));
         }
 
         List<AirQualityResponseDTO> apiResult = airQualityApiService.getAirQualityBySido(shortName);

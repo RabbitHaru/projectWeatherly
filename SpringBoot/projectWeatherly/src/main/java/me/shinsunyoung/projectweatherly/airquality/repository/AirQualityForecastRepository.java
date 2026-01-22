@@ -5,13 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AirQualityForecastRepository extends JpaRepository<AirQualityForecastEntity, Long> {
 
-    // 1. 예보 조회용: 최신순으로 2개 가져오기 (오늘, 내일)
+    // 1. 예보 조회용: 최신순 2개 (오늘, 내일)
     List<AirQualityForecastEntity> findTop2ByOrderByRecordedAtDesc();
 
-    // 2. [추가됨] 중복 체크용: 가장 최신 1개만 가져오기
-    AirQualityForecastEntity findTopByOrderByRecordedAtDesc();
+    // 2. [수정] 중복 확인용: 시간(dataTime)으로만 찾기
+    Optional<AirQualityForecastEntity> findByDataTime(String dataTime);
 }

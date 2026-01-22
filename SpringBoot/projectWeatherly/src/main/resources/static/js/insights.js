@@ -1,8 +1,8 @@
 /**
  * insights.js
- * 기상 인사이트 대시보드 전용 차트 로직
- * - 다크모드 실시간 차트 색상 변경
- * - GPS 위치 동기화 (common.js 연동)
+ * 기상 인사이트 대시보드 로직
+ * - common.js의 RegionManager와 bindGpsButton을 활용하여 위치 동기화
+ * - 차트 시각화 및 다크모드 대응
  */
 
 let tempChartInstance = null;
@@ -10,33 +10,69 @@ let aqiChartInstance = null;
 let envChartInstance = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. 차트 초기화
+
+    // ⭐ 1. 위치 데이터 동기화 (common.js의 RegionManager 활용)
+    syncLocationWithCommonJs();
+
+    // 2. 차트 초기화
     initTemperatureChart();
     initAirQualityChart();
     initEnvChart();
 
-    // 2. 다크모드 감지
+    // 3. 다크모드 감지
     setupDarkModeObserver();
 
-    // 3. [핵심] GPS 버튼 연결 (ID: gps-sync-btn)
-    // HTML에 id="gps-sync-btn"이 있어야 작동합니다!
+    // ⭐ 4. GPS 버튼 연결 (common.js의 bindGpsButton 활용)
     if (typeof bindGpsButton === 'function') {
-        bindGpsButton('gps-sync-btn', function(lat, lon) {
-            // 위치 찾기 성공 시, 해당 좌표로 페이지 새로고침
+        bindGpsButton('gps-sync-btn', function (lat, lon) {
+            // GPS 위치를 찾으면 -> 저장된 고정 위치는 지우고(GPS 모드), 해당 좌표로 이동
+            if (typeof RegionManager !== 'undefined') RegionManager.clear();
+
+            // 페이지 새로고침 (좌표 파라미터 추가)
             window.location.href = `/insights?lat=${lat}&lon=${lon}`;
         });
     } else {
-        console.error("common.js가 로드되지 않아 GPS 기능을 사용할 수 없습니다.");
+        console.warn("common.js가 로드되지 않았습니다.");
     }
 });
+
+// ⭐ [핵심] common.js와 위치 데이터 연동 함수
+function syncLocationWithCommonJs() {
+    // 1. URL에 좌표가 있는지 확인
+    const urlParams = new URLSearchParams(window.location.search);
+    const lat = urlParams.get('lat');
+    const lon = urlParams.get('lon');
+
+    // RegionManager가 로드되었는지 확인
+    if (typeof RegionManager === 'undefined') return;
+
+    if (lat && lon) {
+        // [케이스 A] URL에 좌표가 있음 (지도에서 왔거나 GPS로 옴)
+        // -> 이 위치를 '현재 위치'로 저장해서 다른 페이지(메인 등)와 공유
+        const regionNameEl = document.getElementById('display-region-name');
+        const regionName = regionNameEl ? regionNameEl.innerText.trim() : '사용자 위치';
+
+        // 현재 로드된 위치를 저장소에 업데이트
+        RegionManager.save(regionName, lat, lon);
+
+    } else {
+        // [케이스 B] URL에 좌표가 없음 (메뉴 눌러서 그냥 들어옴)
+        // -> 저장된 위치(메인에서 보던 곳)가 있다면 거기로 강제 이동
+        const saved = RegionManager.load();
+        if (saved) {
+            console.log(`📍 저장된 위치(${saved.name})로 동기화`);
+            window.location.replace(`/insights?lat=${saved.lat}&lon=${saved.lng}`);
+        }
+    }
+}
 
 // [공통] 현재 모드에 따른 차트 색상 반환
 function getChartColors() {
     const isDarkMode = document.body.classList.contains('dark-mode');
     return {
-        text: isDarkMode ? '#ecf0f1' : '#333333',       // 제목/범례
-        subText: isDarkMode ? '#bdc3c7' : '#666666',    // 축 라벨
-        grid: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)' // 그리드 선
+        text: isDarkMode ? '#ecf0f1' : '#333333',
+        subText: isDarkMode ? '#bdc3c7' : '#666666',
+        grid: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
     };
 }
 
@@ -46,13 +82,12 @@ function generateDayLabels() {
     const labels = [];
     const today = new Date().getDay();
     for (let i = 0; i < 7; i++) {
-        const dayIndex = (today + i) % 7;
-        labels.push(days[dayIndex]);
+        labels.push(days[(today + i) % 7]);
     }
     return labels;
 }
 
-// 1. 주간 기온 (배경이 항상 보라색 그라디언트 -> 글씨는 항상 흰색 고정)
+// 1. 주간 기온 차트
 function initTemperatureChart() {
     const ctx = document.getElementById('tempChart');
     if (!ctx) return;
@@ -91,14 +126,14 @@ function initTemperatureChart() {
                 x: {ticks: {color: 'white'}, grid: {color: 'rgba(255,255,255,0.1)'}}
             },
             plugins: {
-                legend: { labels: { color: 'white' } },
+                legend: {labels: {color: 'white'}},
                 tooltip: {mode: 'index', intersect: false}
             }
         }
     });
 }
 
-// 2. 미세먼지 추이 (반응형 색상)
+// 2. 미세먼지 차트
 function initAirQualityChart() {
     const ctx = document.getElementById('airQualityChart');
     if (!ctx) return;
@@ -106,7 +141,6 @@ function initAirQualityChart() {
     const pm25Data = typeof serverPm25Data !== 'undefined' ? serverPm25Data : [];
 
     const colors = getChartColors();
-
     const timeLabels = [];
     for (let i = 11; i >= 0; i--) {
         i === 0 ? timeLabels.push('현재') : timeLabels.push(i + 'H 전');
@@ -141,26 +175,17 @@ function initAirQualityChart() {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {color: colors.subText},
-                    grid: {color: colors.grid}
-                },
-                x: {
-                    ticks: {display: false},
-                    grid: {display: false}
-                }
+                y: {beginAtZero: true, ticks: {color: colors.subText}, grid: {color: colors.grid}},
+                x: {ticks: {display: false}, grid: {display: false}}
             },
-            plugins: {
-                legend: {labels: {color: colors.text}}
-            }
+            plugins: {legend: {labels: {color: colors.text}}}
         }
     });
 
     if (pm10Data.length > 0) updateDustStatus(pm10Data[pm10Data.length - 1]);
 }
 
-// 3. 습도 및 바람 분석 (반응형 색상)
+// 3. 습도 및 바람 차트
 function initEnvChart() {
     const ctx = document.getElementById('envChart');
     if (!ctx) return;
@@ -203,25 +228,13 @@ function initEnvChart() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        color: colors.text,
-                        font: {size: 11},
-                        usePointStyle: true,
-                        boxWidth: 8
-                    }
+                    display: true, position: 'top',
+                    labels: {color: colors.text, font: {size: 11}, usePointStyle: true, boxWidth: 8}
                 },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false
-                }
+                tooltip: {mode: 'index', intersect: false}
             },
             scales: {
-                x: {
-                    ticks: {color: colors.subText, maxTicksLimit: 6},
-                    grid: {display: false}
-                },
+                x: {ticks: {color: colors.subText, maxTicksLimit: 6}, grid: {display: false}},
                 y: {
                     type: 'linear',
                     display: true,
@@ -245,29 +258,24 @@ function initEnvChart() {
     });
 }
 
-// [옵저버] 다크모드 변경 감지 및 차트 업데이트
+// 다크모드 감지 옵저버
 function setupDarkModeObserver() {
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
-            if (mutation.attributeName === 'class') {
-                updateAllChartsColor();
-            }
+            if (mutation.attributeName === 'class') updateAllChartsColor();
         });
     });
-
-    observer.observe(document.body, { attributes: true });
+    observer.observe(document.body, {attributes: true});
 }
 
 function updateAllChartsColor() {
     const colors = getChartColors();
-
     if (aqiChartInstance) {
         aqiChartInstance.options.scales.y.ticks.color = colors.subText;
         aqiChartInstance.options.scales.y.grid.color = colors.grid;
         aqiChartInstance.options.plugins.legend.labels.color = colors.text;
         aqiChartInstance.update();
     }
-
     if (envChartInstance) {
         envChartInstance.options.scales.x.ticks.color = colors.subText;
         envChartInstance.options.scales.y.grid.color = colors.grid;
