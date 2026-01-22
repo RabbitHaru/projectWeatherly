@@ -22,6 +22,16 @@
 <div th:replace="layout/header :: header"></div>
 
 <main class="outfit-detail-main">
+    <div class="page-header">
+        <h2 class="page-title">
+            <i class="fas fa-tshirt"></i> 옷차림 상세 추천
+            <button class="gps-sync-btn" id="gps-sync-btn" title="현재 위치로 동기화">
+                <i class="fas fa-satellite"></i>
+                <span class="btn-text">위치 동기화</span>
+            </button>
+        </h2>
+    </div>
+
     <section class="todays-outfit-section">
         <div class="todays-outfit-card">
             <div class="todays-outfit-header">

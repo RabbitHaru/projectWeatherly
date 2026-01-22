@@ -3,6 +3,14 @@
 document.addEventListener('DOMContentLoaded', function () {
     setupTempCardHover();
     setupConditionCardClick();
+
+    // [추가] GPS 버튼 이벤트 바인딩
+    if (typeof bindGpsButton === 'function') {
+        bindGpsButton('gps-sync-btn', function(lat, lng) {
+            // 위치 정보를 가지고 현재 페이지 리로드 (서버가 쿼리 파라미터를 처리한다고 가정)
+            window.location.href = `/outfit/detail?lat=${lat}&lon=${lng}`;
+        });
+    }
 });
 
 // 1. 온도 카드 호버 효과 (현재 구간 제외)

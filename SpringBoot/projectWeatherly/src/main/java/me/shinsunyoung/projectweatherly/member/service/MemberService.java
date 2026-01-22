@@ -3,8 +3,6 @@ package me.shinsunyoung.projectweatherly.member.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
-import me.shinsunyoung.projectweatherly.board.domain.entity.Comment;
-import me.shinsunyoung.projectweatherly.board.domain.entity.Report;
 import me.shinsunyoung.projectweatherly.board.dto.MyCommentResponse;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
@@ -23,8 +21,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.mail.SimpleMailMessage; // [필수] 메일 객체
-import org.springframework.mail.javamail.JavaMailSender; // [필수] 메일 전송 도구
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,10 +30,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -49,7 +45,7 @@ public class MemberService implements UserDetailsService {
     private final BoardRepository boardRepository;
     private final ReportRepository reportRepository;
     private final CommentRepository commentRepository;
-    private final JavaMailSender javaMailSender; // [추가됨] 진짜 메일 발송 도구
+    private final JavaMailSender javaMailSender;
 
     // ==================== UserDetails 반환 ====================
     @Override
@@ -113,6 +109,11 @@ public class MemberService implements UserDetailsService {
     public MemberResponse getMemberById(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow();
         return convertToResponse(member);
+    }
+
+    // [NEW] 관리자 페이지용: 전체 회원 조회 (페이징)
+    public Page<Member> findAllMembers(Pageable pageable) {
+        return memberRepository.findAll(pageable);
     }
 
     public MyPageResponse getMyPageInfoByEmail(String email) {
@@ -222,25 +223,6 @@ public class MemberService implements UserDetailsService {
         boardRepository.delete(board);
     }
 
-    private MemberResponse convertToResponse(Member member) {
-        Agreement agreement = member.getAgreement();
-        return MemberResponse.builder()
-                .memberId(member.getId())
-                .email(member.getEmail())
-                .nickname(member.getNickname())
-                .profileImage(member.getProfileImage())
-                .role(member.getRole())
-                .authProvider(member.getAuthProvider())
-                .isActive(member.getIsActive())
-                .createdAt(member.getCreatedAt())
-                .updatedAt(member.getUpdatedAt())
-                .termsOfServiceAgree(agreement != null ? agreement.getTermsOfServiceAgree() : null)
-                .privacyPolicyAgree(agreement != null ? agreement.getPrivacyPolicyAgree() : null)
-                .boardNotificationAgree(agreement != null ? agreement.getBoardNotificationAgree() : null)
-                .weatherAlertAgree(agreement != null ? agreement.getWeatherAlertAgree() : null)
-                .build();
-    }
-
     // ==================== [NEW] 아이디/비밀번호 찾기 ====================
 
     // [추가] 닉네임으로 이메일 찾기
@@ -278,5 +260,25 @@ public class MemberService implements UserDetailsService {
             log.error("이메일 전송 실패: {}", e.getMessage());
             throw new MemberException("이메일 전송 중 오류가 발생했습니다.");
         }
+    }
+
+    // ==================== 유틸리티 ====================
+    private MemberResponse convertToResponse(Member member) {
+        Agreement agreement = member.getAgreement();
+        return MemberResponse.builder()
+                .memberId(member.getId())
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .profileImage(member.getProfileImage())
+                .role(member.getRole())
+                .authProvider(member.getAuthProvider())
+                .isActive(member.getIsActive())
+                .createdAt(member.getCreatedAt())
+                .updatedAt(member.getUpdatedAt())
+                .termsOfServiceAgree(agreement != null ? agreement.getTermsOfServiceAgree() : null)
+                .privacyPolicyAgree(agreement != null ? agreement.getPrivacyPolicyAgree() : null)
+                .boardNotificationAgree(agreement != null ? agreement.getBoardNotificationAgree() : null)
+                .weatherAlertAgree(agreement != null ? agreement.getWeatherAlertAgree() : null)
+                .build();
     }
 }
