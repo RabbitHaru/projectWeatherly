@@ -351,6 +351,10 @@ function updateWeatherUI(weather) {
 
     // 1. 지역명 & TEST MODE 배지 처리
     if (weather.regionName) {
+        // ⭐ [추가] 브라우저 탭 제목 강제 변경 (null 방지)
+        const titleName = getFullSidoName(weather.regionName) || '실시간 날씨';
+        document.title = `${titleName} - Weatherly`;
+
         const locationEl = document.getElementById('current-location');
         if (locationEl) {
             let name = getFullSidoName(weather.regionName);

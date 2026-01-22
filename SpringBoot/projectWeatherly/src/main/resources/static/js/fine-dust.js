@@ -172,6 +172,10 @@ function updateFineDustUI(data) {
 
     if (locNameEl && data.sidoName) {
         let name = getFullSidoName(data.sidoName);
+
+        // ⭐ [추가] 미세먼지 페이지 제목 강제 변경 (null 방지)
+        document.title = `${name} 대기질 - Weatherly`;
+
         if (data.isMock) {
             name += ' <span style="background:#e74c3c; color:white; font-size:0.6em; padding:2px 6px; border-radius:4px; vertical-align:middle; margin-left: 5px;">TEST MODE</span>';
             locNameEl.innerHTML = name;
