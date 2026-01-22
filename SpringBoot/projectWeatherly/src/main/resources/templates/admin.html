@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-<div th:replace="layout/header :: header"></div>
+<div th:replace="~{layout/header :: header}"></div>
 
 <main class="dashboard-main">
     <div class="location-header" style="margin-bottom: 40px;">
@@ -35,29 +35,27 @@
             <div class="stat-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
             <div class="stat-content">
                 <h3>신고 접수 (대기)</h3>
-                <p class="stat-value"><span th:text="${pendingReports != null ? pendingReports : 0}">0</span><span
-                        class="unit">건</span></p>
+                <p class="stat-value"><span th:text="${pendingReports != null ? pendingReports : 0}">0</span><span class="unit">건</span></p>
             </div>
         </div>
         <div class="dashboard-section stat-card-wrapper">
             <div class="stat-icon primary"><i class="fas fa-users"></i></div>
             <div class="stat-content">
                 <h3>총 회원수</h3>
-                <p class="stat-value"><span th:text="${totalMembers != null ? totalMembers : 0}">0</span><span
-                        class="unit">명</span></p>
+                <p class="stat-value"><span th:text="${totalMembers != null ? totalMembers : 0}">0</span><span class="unit">명</span></p>
             </div>
         </div>
         <div class="dashboard-section stat-card-wrapper">
             <div class="stat-icon success"><i class="fas fa-comments"></i></div>
             <div class="stat-content">
                 <h3>오늘 게시글</h3>
-                <p class="stat-value"><span th:text="${todayPosts != null ? todayPosts : 0}">0</span><span class="unit">개</span>
-                </p>
+                <p class="stat-value"><span th:text="${todayPosts != null ? todayPosts : 0}">0</span><span class="unit">개</span></p>
             </div>
         </div>
     </div>
 
     <div class="grid-container two-columns-admin">
+
         <section class="dashboard-section">
             <div class="section-header">
                 <h3><i class="fas fa-users-cog"></i> 회원 관리</h3>
@@ -68,18 +66,23 @@
                     <tr>
                         <th>닉네임</th>
                         <th>이메일</th>
+                        <th>권한</th>
                         <th>가입일</th>
                         <th>상태</th>
                         <th>관리</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="member : ${recentMembers}">
+                    <tr th:each="member : ${members}">
                         <td>
                             <div class="user-info">
 <<<<<<< HEAD
+<<<<<<< HEAD
                                 <img th:if="${member.profileImage != null}" th:src="${member.profileImage}"
                                      class="user-avatar">
+=======
+                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}" class="user-avatar">
+>>>>>>> b90320ed1978fcd76a2bce57b1774e65ad000367
                                 <div th:unless="${member.profileImage != null}" class="user-avatar"
                                      style="background:#a29bfe" th:text="${#strings.substring(member.nickname, 0, 1)}">U
 =======
@@ -102,7 +105,15 @@
                             </div>
                         </td>
                         <td th:text="${member.email}">email</td>
+
+                        <td>
+                            <span class="role-badge"
+                                  th:classappend="${#strings.toString(member.role) == 'ADMIN'} ? 'admin-role' : 'user-role'"
+                                  th:text="${member.role}">USER</span>
+                        </td>
+
                         <td th:text="${#temporals.format(member.createdAt, 'MM-dd')}">날짜</td>
+
                         <td>
                             <span th:if="${member.isActive}" class="status-badge active">활동중</span>
                             <div th:unless="${member.isActive}" style="text-align: center;">
@@ -113,14 +124,47 @@
                                 </div>
                             </div>
                         </td>
+
                         <td>
-                            <button class="icon-btn" th:onclick="|suspendUser(${member.id})|">
+                            <button class="icon-btn"
+                                    style="color: #f39c12;"
+                                    th:data-id="${member.id}"
+                                    th:data-role="${member.role}"
+                                    onclick="changeUserRole(this.getAttribute('data-id'), this.getAttribute('data-role'))"
+                                    title="권한 변경">
+                                <i class="fas fa-user-tag"></i>
+                            </button>
+                            <button class="icon-btn"
+                                    th:data-id="${member.id}"
+                                    onclick="suspendUser(this.getAttribute('data-id'))"
+                                    title="활동 정지">
                                 <i class="fas fa-user-clock"></i>
                             </button>
                         </td>
                     </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div class="pagination-area" th:if="${members != null && members.totalPages > 0}">
+                <ul class="pagination">
+                    <li th:classappend="${members.first} ? 'disabled'">
+                        <a th:href="@{/admin(page=${members.number - 1})}" aria-label="Previous">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    <li th:each="pageNum : ${#numbers.sequence(0, members.totalPages - 1)}"
+                        th:classappend="${pageNum == members.number} ? 'active'">
+                        <a th:href="@{/admin(page=${pageNum})}" th:text="${pageNum + 1}">1</a>
+                    </li>
+
+                    <li th:classappend="${members.last} ? 'disabled'">
+                        <a th:href="@{/admin(page=${members.number + 1})}" aria-label="Next">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
             </div>
         </section>
 
@@ -170,7 +214,8 @@
                         </td>
                         <td>
                             <button th:if="${report.rawStatus == 'PENDING'}" class="btn-xs danger"
-                                    th:onclick="|resolveReport(${report.id})|">처리완료
+                                    th:data-id="${report.id}"
+                                    onclick="resolveReport(this.getAttribute('data-id'))">처리완료
                             </button>
                             <span th:unless="${report.rawStatus == 'PENDING'}"
                                   style="color:#aaa; font-size:0.8rem;">완료됨</span>
@@ -243,7 +288,7 @@
 
 </main>
 
-<div th:replace="layout/footer :: footer"></div>
+<div th:replace="~{layout/footer :: footer}"></div>
 <script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/admin.js}"></script>
 <script>
