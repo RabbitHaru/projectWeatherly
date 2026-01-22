@@ -79,8 +79,8 @@
                         <!-- 프로필 이미지 처리 -->
                         <img th:src="${myPage.profileImage != null and myPage.profileImage != ''} ?
                              (${myPage.profileImage.startsWith('/')} ? ${myPage.profileImage} : '/images/' + ${myPage.profileImage}) :
-                             '/images/default-profile.png'"
-                             onerror="this.onerror=null; this.src='/images/default-profile.png'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'"
+                             '/uploads/default.png'"
+                             onerror="this.onerror=null; this.src='/uploads/default.png'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'"
                              alt="프로필">
                     </div>
                     <h3 style="text-align: center; margin-bottom: 0.5rem;" th:text="${myPage.nickname}">닉네임</h3>
@@ -98,8 +98,8 @@
                                 <img id="previewImage"
                                      th:src="${myPage.profileImage != null and myPage.profileImage != ''} ?
                                      (${myPage.profileImage.startsWith('/')} ? ${myPage.profileImage} : '/images/' + ${myPage.profileImage}) :
-                                     '/images/default-profile.png'"
-                                     onerror="this.onerror=null; this.src='/images/default-profile.png'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'"
+                                     '/uploads/default.png'"
+                                     onerror="this.onerror=null; this.src='/uploads/default.png'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'"
                                      alt="프로필 미리보기">
                                 <div style="font-size: 0.8rem; color: #667eea; margin-top: 5px;">사진 변경 클릭</div>
                             </label>
@@ -297,7 +297,7 @@
             const profileImages = document.querySelectorAll('.profile-img-wrapper img, #previewImage');
             profileImages.forEach(img => {
                 img.addEventListener('error', function() {
-                    this.src = '/images/default-profile.png';
+                    this.src = '/uploads/default.png';
                     this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                 });
             });
