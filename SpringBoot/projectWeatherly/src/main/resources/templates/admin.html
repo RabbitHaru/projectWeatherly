@@ -67,10 +67,18 @@
                     <tr th:each="member : ${recentMembers}">
                         <td>
                             <div class="user-info">
-                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}"
-                                     class="user-avatar" style="object-fit:cover;">
-                                <div th:unless="${member.profileImage != null}" class="user-avatar"
-                                     style="background:#a29bfe"
+                                <img th:if="${member.profileImage != null}"
+                                     th:src="${member.profileImage}"
+                                     class="user-avatar" style="object-fit:cover;"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div th:unless="${member.profileImage != null}"
+                                     class="user-avatar"
+                                     style="background:#a29bfe; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;"
+                                     th:text="${#strings.substring(member.nickname, 0, 1)}">U
+                                </div>
+                                <div th:if="${member.profileImage != null}"
+                                     class="user-avatar"
+                                     style="background:#a29bfe; display: none; align-items: center; justify-content: center; font-weight: bold; color: white;"
                                      th:text="${#strings.substring(member.nickname, 0, 1)}">U
                                 </div>
                                 <span th:text="${member.nickname}">닉네임</span>
@@ -171,7 +179,6 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // localStorage에 저장된 설정 확인
         const isDarkMode = localStorage.getItem('darkMode') === 'true';
         if (isDarkMode) {
             document.body.classList.add('dark-mode');
