@@ -352,17 +352,36 @@
     box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
 }
 
-/* ===== 다크모드 대응 (가독성 개선) ===== */
-/* var(--dark-card)가 common.css에 없을 경우를 대비해 #2c3e50 직접 지정 */
+/* ==========================================================================
+   [DARK MODE] 옷차림 상세 페이지 전용 (투명도/유리 효과 적용)
+   ========================================================================== */
+
+/* 1. 큰 섹션 카드 (메인 테마 그라데이션 적용) */
 body.dark-mode .todays-outfit-card,
-body.dark-mode .summary-card,
-body.dark-mode .temp-card,
-body.dark-mode .condition-card,
-body.dark-mode .outfit-set-item {
-    background: #2c3e50 !important;
-    border-color: #444;
+body.dark-mode .summary-card {
+    background: linear-gradient(135deg, #1e1e2f 0%, #16213e 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
+/* 2. 내부 아이템 (반투명 검정 배경 - outfit.css와 통일) */
+body.dark-mode .outfit-set-item,
+body.dark-mode .summary-item,
+body.dark-mode .temp-card,
+body.dark-mode .condition-card,
+body.dark-mode .navigation-card {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 3. 섹션 내부 컨테이너 배경 (투명하게) */
+body.dark-mode .outfit-set,
+body.dark-mode .temp-header {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 4. 텍스트 및 제목 색상 */
 body.dark-mode .page-title,
 body.dark-mode .summary-header-title,
 body.dark-mode .section-header-title,
@@ -373,30 +392,22 @@ body.dark-mode .condition-title {
     color: white;
 }
 
-body.dark-mode .outfit-set,
-body.dark-mode .summary-item,
-body.dark-mode .temp-header,
-body.dark-mode .navigation-card {
-    background: #34495e;
-    border-color: #4a6278;
-}
-
-/* 설명 문구 수정 */
+/* 5. 설명 문구 박스 */
 body.dark-mode .outfit-description {
-    background: #34495e;
-    border-top-color: #4a6278;
+    background: rgba(255, 255, 255, 0.05);
+    border-top-color: rgba(255, 255, 255, 0.1);
     color: #eee;
 }
 
-body.dark-mode .outfit-item-label {
-    color: #ccc;
-}
-
+/* 6. 기타 텍스트 */
+body.dark-mode .outfit-item-label { color: #ccc; }
 body.dark-mode .outfit-list li,
-body.dark-mode .condition-content ul {
-    color: #ddd;
-}
+body.dark-mode .condition-content ul { color: #ddd; }
 
-body.dark-mode .outfit-set-item:hover {
-    background: #3b536b !important;
+/* 7. 호버 효과 */
+body.dark-mode .outfit-set-item:hover,
+body.dark-mode .temp-card:hover,
+body.dark-mode .condition-card:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.15);
 }

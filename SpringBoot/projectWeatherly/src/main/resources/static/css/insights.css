@@ -1,24 +1,15 @@
 /* ==========================================================================
-   Weatherly Insights (Statistics) Styles - Redesigned
+   Weatherly Insights Styles (Insights Only)
    ========================================================================== */
 
-/* ------------------------------------------
-   1. 통계 페이지 전용 레이아웃 및 간격
------------------------------------------- */
-/* 통계 페이지 메인 컨테이너 추가 여백 */
-.dashboard-main {
-    padding-bottom: 60px; /* 하단 여백 추가 */
-}
-
-/* 그리드 레이아웃 (1:1 비율) */
+/* 1. 통계 전용 레이아웃 (1:1 비율) */
 .grid-container.two-columns {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 30px; /* 섹션 사이 간격 넓힘 */
-    align-items: start; /* 높이가 달라도 상단 정렬 */
+    gap: 30px;
+    align-items: start;
 }
 
-/* 반응형: 태블릿 이하에서는 1단으로 변경 */
 @media (max-width: 992px) {
     .grid-container.two-columns {
         grid-template-columns: 1fr;
@@ -26,28 +17,19 @@
     }
 }
 
-
-/* ------------------------------------------
-   2. 섹션별 디자인 강화
------------------------------------------- */
-
-/* [상단 하이라이트 섹션] - 주간 기온 */
+/* 2. 상단 하이라이트 섹션 (주간 기온) */
 .dashboard-section.highlight {
-    /* 배경에 은은한 그라데이션과 약간의 입체감 추가 */
     background: linear-gradient(145deg, #ffffff, #f0f7ff);
-    border: 1px solid rgba(59, 130, 246, 0.1); /* 파란색 계열의 연한 테두리 */
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.08); /* 부드러운 파란색 그림자 */
-    margin-bottom: 35px; /* 하단 섹션과의 간격 */
-    padding: 30px; /* 내부 여백 증가 */
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.08);
+    margin-bottom: 35px;
+    padding: 30px;
 }
-
 .highlight .section-header.center {
     text-align: center;
-    border-bottom: none; /* 하단 선 제거 */
+    border-bottom: none;
     margin-bottom: 25px;
-    padding-bottom: 0;
 }
-
 .large-title {
     font-size: 1.6rem;
     font-weight: 800;
@@ -57,19 +39,14 @@
     justify-content: center;
     gap: 12px;
 }
-.large-title i {
-    color: var(--primary-color); /* 아이콘에 포인트 컬러 적용 */
-}
+.large-title i { color: var(--primary-color); }
 
-
-/* [하단 2단 섹션 헤더] - 제목과 뱃지 정렬 */
+/* 3. 헤더 내부 뱃지 정렬 */
 .grid-container.two-columns .section-header {
     display: flex;
-    justify-content: space-between; /* 제목 왼쪽, 뱃지 오른쪽 정렬 */
+    justify-content: space-between;
     align-items: center;
 }
-
-/* 헤더 내부 뱃지 스타일 ('분석중' 등) */
 .section-header .status-badge {
     background: #f1f5f9;
     color: #64748b;
@@ -77,100 +54,61 @@
     padding: 5px 12px;
     border-radius: 30px;
     font-weight: 600;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    margin-left: auto;
 }
 
-
-/* ------------------------------------------
-   3. 차트 및 콘텐츠 컨테이너
------------------------------------------- */
-/* 큰 차트 컨테이너 */
-.chart-container-lg {
-    position: relative;
-    height: 380px; /* 높이 약간 증가 */
-    width: 100%;
-    padding: 10px; /* 차트 내부 여백 */
-}
-
-/* 작은 차트 컨테이너 */
-.chart-container-sm {
-    position: relative;
-    height: 280px; /* 높이 약간 증가 */
-    width: 100%;
-    margin-top: 15px;
-}
-
+/* 4. 차트 컨테이너 */
+.chart-container-lg { position: relative; height: 380px; width: 100%; padding: 10px; }
+.chart-container-sm { position: relative; height: 280px; width: 100%; margin-top: 15px; }
 @media (max-width: 992px) {
     .chart-container-lg { height: 320px; }
     .chart-container-sm { height: 250px; }
 }
 
-
-/* ------------------------------------------
-   4. 인사이트 요약 텍스트 박스 (디자인 개선)
------------------------------------------- */
+/* 5. 인사이트 텍스트 */
 .insight-text {
     margin-top: 25px;
     padding: 18px 25px;
-    background: #f8fafc; /* 아주 연한 회색/하늘색 배경 */
-    border-left: 4px solid var(--primary-color); /* 왼쪽에 포인트 컬러 테두리 강조 */
-    border-radius: 8px; /* 모서리 둥글게 */
+    background: #f8fafc;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 8px;
     color: #475569;
     font-size: 0.95rem;
     line-height: 1.5;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03); /* 살짝 떠있는 느낌 */
-    text-align: left; /* 텍스트 왼쪽 정렬 */
+    text-align: left;
     display: flex;
     align-items: center;
 }
-
-/* 텍스트 앞의 작은 아이콘 느낌을 주기 위한 가상 요소 (선택 사항) */
 .insight-text::before {
-    content: '\f05a'; /* Font Awesome 정보 아이콘 유니코드 */
+    content: '\f05a';
     font-family: 'Font Awesome 6 Free';
     font-weight: 900;
     margin-right: 12px;
     color: var(--primary-color);
     font-size: 1.1rem;
 }
-
 .insight-text strong {
-    color: #1e293b; /* 강조 텍스트 진하게 */
+    color: #1e293b;
     font-weight: 700;
-    background: rgba(59, 130, 246, 0.1); /* 강조 텍스트 형광펜 효과 */
+    background: rgba(59, 130, 246, 0.1);
     padding: 2px 6px;
     border-radius: 4px;
     margin: 0 2px;
 }
 
-
-/* ------------------------------------------
-   5. 다크모드 대응 (통계 전용)
------------------------------------------- */
+/* 6. 통계 전용 다크모드 */
 body.dark-mode .dashboard-section.highlight {
-    background: linear-gradient(145deg, #2c3e50, #233242); /* 다크모드 그라데이션 */
+    background: linear-gradient(145deg, #2c3e50, #233242);
     border-color: rgba(255,255,255,0.05);
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 }
 body.dark-mode .large-title { color: #e2e8f0; }
-body.dark-mode .large-title i { color: #60a5fa; /* 다크모드에서는 조금 더 밝은 파랑 */ }
-
-body.dark-mode .section-header .status-badge {
-    background: rgba(255,255,255,0.1);
-    color: #cbd5e1;
-    box-shadow: none;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
+body.dark-mode .large-title i { color: #60a5fa; }
+body.dark-mode .section-header .status-badge { background: rgba(255,255,255,0.1); color: #cbd5e1; }
 body.dark-mode .insight-text {
-    background: rgba(255, 255, 255, 0.03); /* 다크모드 배경 */
-    border-left-color: #60a5fa; /* 다크모드 포인트 컬러 */
+    background: rgba(255, 255, 255, 0.03);
+    border-left-color: #60a5fa;
     color: #cbd5e1;
-    box-shadow: none;
-    border: 1px solid rgba(255,255,255,0.05);
 }
 body.dark-mode .insight-text::before { color: #60a5fa; }
-body.dark-mode .insight-text strong {
-    color: #e2e8f0;
-    background: rgba(96, 165, 250, 0.2);
-}
+body.dark-mode .insight-text strong { color: #e2e8f0; background: rgba(96, 165, 250, 0.2); }
