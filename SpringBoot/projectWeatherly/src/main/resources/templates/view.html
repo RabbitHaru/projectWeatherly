@@ -84,7 +84,14 @@
             <div class="comment-item" th:each="comment : ${board.comments}">
                 <div class="comment-header">
                     <div class="comment-author">
-                        <div class="comment-author-img" th:text="${#strings.substring(comment.memberNickname, 0, 1)}">U</div>
+                        <img th:src="${comment.memberProfileImage != null and comment.memberProfileImage != ''} ?
+                             (${comment.memberProfileImage.startsWith('/')} ? ${comment.memberProfileImage} : '/images/' + ${comment.memberProfileImage}) :
+                             '/uploads/default.png'"
+                             class="comment-author-img"
+                             style="object-fit: cover; padding: 0;"
+                             alt="프로필"
+                             onerror="this.onerror=null; this.src='/uploads/default.png';">
+
                         <div class="comment-author-info">
                             <div class="comment-author-name" th:text="${comment.memberNickname}">사용자</div>
                             <div class="comment-date" th:text="${#temporals.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">날짜</div>

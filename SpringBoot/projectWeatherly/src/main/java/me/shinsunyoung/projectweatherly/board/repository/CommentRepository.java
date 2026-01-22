@@ -16,6 +16,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByBoardIdOrderByCreatedAtAsc(Long boardId);
     List<Comment> findByBoardId(Long boardId);
 
+
+
     // [추가됨] 내가 쓴 댓글 목록 조회 (최신순 + 페이징)
     Page<Comment> findByMemberOrderByCreatedAtDesc(Member member, Pageable pageable);
 

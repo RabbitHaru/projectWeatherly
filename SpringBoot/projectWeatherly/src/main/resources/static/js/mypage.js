@@ -41,28 +41,53 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // 2. 마이페이지 기존 기능 유지
+    // 2. 마이페이지 프로필 수정 및 닉네임 중복 확인
     // ==========================================
 
-    // DOM 요소 가져오기
-    const profileImageInput = document.getElementById('file'); // HTML ID가 file임
-    const editProfilePreview = document.getElementById('previewImage');
-    const nicknameCheckBtn = document.getElementById('nicknameCheckBtn'); // HTML에 버튼 ID 필요
-    const passwordChangeForm = document.querySelector('form[action="/mypage/password/change"]'); // form selector 수정
+    const profileImageInput = document.getElementById('file');
+    const nicknameCheckBtn = document.getElementById('nicknameCheckBtn');
+    const nicknameInput = document.getElementById('nicknameInput');
+    const nicknameMessage = document.getElementById('nicknameMessage');
+    const profileEditForm = document.getElementById('profileEditForm');
 
-    // 파일 입력 변경 시 미리보기 (이벤트 리스너 방식 보강)
+    // 파일 입력 변경 시 미리보기
     if (profileImageInput) {
         profileImageInput.addEventListener('change', function() {
             previewFile(this);
         });
     }
 
-    // 닉네임 중복 확인 (버튼이 있다면 동작)
+    // ★ 닉네임 중복 확인 로직 시작
+    let originalNickname = "";
+    let isNicknameVerified = true; // 초기값은 본인이므로 true
+
+    if (nicknameInput) {
+        originalNickname = nicknameInput.value;
+    }
+
+    // 닉네임이 변경되면 검증 상태를 false로 변경
+    if (nicknameInput) {
+        nicknameInput.addEventListener('input', function() {
+            const currentVal = this.value.trim();
+
+            if (currentVal === originalNickname) {
+                // 원래 닉네임으로 돌아오면 검증된 것으로 간주
+                isNicknameVerified = true;
+                nicknameMessage.textContent = "";
+                if(nicknameCheckBtn) nicknameCheckBtn.style.background = "#6c757d"; // 회색
+            } else {
+                // 변경되었으면 검증 필요
+                isNicknameVerified = false;
+                nicknameMessage.textContent = "중복 확인이 필요합니다.";
+                nicknameMessage.style.color = "#e74c3c"; // 빨간색
+                if(nicknameCheckBtn) nicknameCheckBtn.style.background = "#667eea"; // 파란색 (강조)
+            }
+        });
+    }
+
+    // [중복 확인] 버튼 클릭 시
     if (nicknameCheckBtn) {
         nicknameCheckBtn.addEventListener('click', function() {
-            const nicknameInput = document.querySelector('input[name="nickname"]');
-
-            if (!nicknameInput) return;
             const nickname = nicknameInput.value.trim();
 
             if (!nickname) {
@@ -71,14 +96,58 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (nickname.length < 2 || nickname.length > 10) {
-                alert('닉네임은 2~10자로 입력해주세요.');
+                nicknameMessage.textContent = '닉네임은 2~10자로 입력해주세요.';
+                nicknameMessage.style.color = '#e74c3c';
                 return;
             }
 
-            // 가짜 응답 (실제 구현 시 AJAX 사용)
-            alert('사용 가능한 닉네임입니다.');
+            // 원래 닉네임과 같다면 서버 통신 없이 통과
+            if (nickname === originalNickname) {
+                nicknameMessage.textContent = '현재 사용 중인 본인의 닉네임입니다.';
+                nicknameMessage.style.color = '#28a745'; // 초록색
+                isNicknameVerified = true;
+                return;
+            }
+
+            // 서버에 중복 확인 요청 (signup.js와 동일한 API)
+            fetch('/auth/api/check-nickname?nickname=' + encodeURIComponent(nickname))
+                .then(response => response.json())
+                .then(isDuplicate => {
+                    if (isDuplicate) {
+                        nicknameMessage.textContent = '이미 사용 중인 닉네임입니다.';
+                        nicknameMessage.style.color = '#e74c3c';
+                        isNicknameVerified = false;
+                    } else {
+                        nicknameMessage.textContent = '사용 가능한 닉네임입니다.';
+                        nicknameMessage.style.color = '#28a745';
+                        isNicknameVerified = true;
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('중복 확인 중 오류가 발생했습니다.');
+                });
         });
     }
+
+    // [저장] 폼 제출 시 검증
+    if (profileEditForm) {
+        profileEditForm.addEventListener('submit', function(e) {
+            // 닉네임 검증이 안 되었으면 제출 차단
+            if (!isNicknameVerified) {
+                e.preventDefault();
+                alert('닉네임 중복 확인을 해주세요.');
+                nicknameInput.focus();
+                return;
+            }
+        });
+    }
+    // ★ 닉네임 중복 확인 로직 끝
+
+    // ==========================================
+    // 3. 비밀번호 변경 기능
+    // ==========================================
+    const passwordChangeForm = document.querySelector('form[action="/mypage/password/change"]');
 
     if (passwordChangeForm) {
         passwordChangeForm.addEventListener('submit', function(e) {
@@ -86,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const newPassword = document.querySelector('input[name="newPassword"]');
             const confirmPassword = document.querySelector('input[name="confirmPassword"]');
 
-            // 필드 확인
             if (!currentPassword || !newPassword || !confirmPassword) {
                 console.error('비밀번호 필드를 찾을 수 없습니다.');
                 return;
@@ -96,14 +164,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const newValue = newPassword.value.trim();
             const confirmValue = confirmPassword.value.trim();
 
-            // 1. 필수 입력 체크
             if (!currentValue || !newValue || !confirmValue) {
                 e.preventDefault();
                 alert('모든 필드를 입력해주세요.');
                 return;
             }
 
-            // 2. 현재 비밀번호와 새 비밀번호가 같은지 체크 (★ 추가됨)
             if (currentValue === newValue) {
                 e.preventDefault();
                 alert('현재 비밀번호와 새 비밀번호가 같습니다.\n다른 비밀번호를 입력해주세요.');
@@ -111,7 +177,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 3. 새 비밀번호와 확인 비밀번호 일치 체크
             if (newValue !== confirmValue) {
                 e.preventDefault();
                 alert('새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
@@ -119,14 +184,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 4. 비밀번호 길이 체크
             if (newValue.length < 8) {
                 e.preventDefault();
                 alert('비밀번호는 8자 이상이어야 합니다.');
                 newPassword.focus();
-
             }
-
         });
     }
 
@@ -142,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ==========================================
-// 3. 전역 함수 (HTML onclick 속성 지원용)
+// 4. 전역 함수 (HTML onclick 속성 지원용)
 // ==========================================
 
 // 이미지 미리보기
@@ -168,6 +230,10 @@ window.toggleEditMode = function(showEdit) {
         if (showEdit) {
             view.style.display = 'none';
             edit.style.display = 'block';
+
+            // 수정 모드 진입 시 닉네임 검증 상태 초기화 (원래 닉네임이므로 통과 상태)
+            const nicknameMessage = document.getElementById('nicknameMessage');
+            if(nicknameMessage) nicknameMessage.textContent = "";
         } else {
             view.style.display = 'block';
             edit.style.display = 'none';
@@ -177,19 +243,14 @@ window.toggleEditMode = function(showEdit) {
 
 // 탭 전환 함수
 window.switchTab = function(tabName) {
-    // 1. 모든 탭 컨텐츠 숨김
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-
-    // 2. 모든 탭 버튼 비활성화 스타일a
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
-    // 3. 선택된 탭 컨텐츠 표시
     const targetContent = document.getElementById('tab-' + tabName);
     if (targetContent) {
         targetContent.classList.add('active');
     }
 
-    // 4. 클릭된 버튼 스타일 활성화 (탭 순서에 따라 매칭)
     const tabs = ['posts', 'password', 'notification', 'reports'];
     const index = tabs.indexOf(tabName);
 

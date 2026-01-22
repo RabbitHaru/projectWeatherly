@@ -302,9 +302,16 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // [C. 비밀번호 일치 확인]
+        // [C. 비밀번호 유효성 및 일치 확인]
         const password = passwordInput.value;
         const confirmPassword = passwordConfirmInput.value;
+
+        // ★ [추가됨] 비밀번호 길이 검사 (8자 미만 차단)
+        if (password.length < 8) {
+            alert('비밀번호는 최소 8자 이상이어야 합니다.');
+            passwordInput.focus();
+            return; // 제출 중단
+        }
 
         if (password !== confirmPassword) {
             alert('비밀번호가 일치하지 않습니다.');

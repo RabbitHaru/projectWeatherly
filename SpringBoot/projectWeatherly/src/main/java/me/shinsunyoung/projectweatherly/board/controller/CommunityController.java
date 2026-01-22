@@ -37,13 +37,8 @@ import java.util.stream.Collectors;
 public class CommunityController {
 
     private final BoardService boardService;
-    // CommentService는 CommentController에서 쓰므로 여기선 필요 없으면 빼도 되지만,
-    // 혹시 다른 곳에서 쓸 수도 있으니 둬도 상관없습니다. (충돌 원인 아님)
     private final FileUtil fileUtil;
 
-    /**
-     * 커뮤니티 메인 페이지
-     */
     @GetMapping({"", "/", "/boards"})
     public String community(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
@@ -74,7 +69,6 @@ public class CommunityController {
                 }
             }
 
-            // 인기 게시글 (예외 처리 포함)
             List<BoardResponse> popularBoards = new ArrayList<>();
             try {
                 Page<BoardResponse> popularPage = boardService.getPopularBoards(
@@ -127,7 +121,6 @@ public class CommunityController {
         return "write";
     }
 
-    // [유지] 이름표 오류 해결된 버전 (FileNameUtil::getNewFileName 사용)
     @PostMapping("/boards/write")
     public String createBoard(
             @AuthenticationPrincipal UserSecurityDTO user,
@@ -137,10 +130,8 @@ public class CommunityController {
         if (user == null || user.getUser() == null) return "redirect:/login";
 
         try {
-            // 1. 파일 업로드 실행
             List<FileNameUtil> uploadedFiles = fileUtil.uploadFile(boardRequest.getImageFiles());
 
-            // 2. 업로드된 파일명을 리스트로 변환 (getNewFileName 사용)
             if (uploadedFiles != null && !uploadedFiles.isEmpty()) {
                 List<String> fileNames = uploadedFiles.stream()
                         .map(FileNameUtil::getNewFileName)
@@ -159,7 +150,7 @@ public class CommunityController {
     }
 
     /**
-     * 게시글 상세 보기 (조회수 중복 방지 로직 적용됨)
+     * 게시글 상세 보기 (수정됨: 작성자 본인 제외 로직 + 중복 방지)
      */
     @GetMapping("/boards/{id}")
     public String getBoard(@PathVariable Long id, Model model,
@@ -169,46 +160,20 @@ public class CommunityController {
         try {
             if (id == null || id <= 0) return "redirect:/community?error=invalid_id";
 
+            // 1. 게시글 정보를 먼저 조회 (이 시점에서는 조회수 증가 X)
+            // [참고] Service에서 getBoard 호출 시 increaseViewCount를 제거했으므로 순수 데이터만 가져옴
+            BoardResponse board = boardService.getBoard(id);
+
+            // 2. 로그인 유저 정보 및 작성자 여부 확인
+            boolean isAuthor = false;
             if (user != null && user.getUser() != null) {
                 model.addAttribute("nickname", user.getUser().getNickname());
                 model.addAttribute("memberId", user.getUser().getId());
-            }
 
-            // 쿠키 조회수 중복 방지 로직
-            Cookie oldCookie = null;
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (cookie.getName().equals("postView")) {
-                        oldCookie = cookie;
-                    }
-                }
-            }
+                // 작성자 본인인지 확인
+                isAuthor = board.getMemberId().equals(user.getUser().getId());
+                board.setIsAuthor(isAuthor);
 
-            if (oldCookie != null) {
-                if (!oldCookie.getValue().contains("[" + id.toString() + "]")) {
-                    boardService.increaseViewCount(id);
-                    oldCookie.setValue(oldCookie.getValue() + "_[" + id + "]");
-                    oldCookie.setPath("/");
-                    oldCookie.setMaxAge(60 * 60 * 24);
-                    response.addCookie(oldCookie);
-                }
-            } else {
-                boardService.increaseViewCount(id);
-                Cookie newCookie = new Cookie("postView", "[" + id + "]");
-                newCookie.setPath("/");
-                newCookie.setMaxAge(60 * 60 * 24);
-                response.addCookie(newCookie);
-            }
-
-            BoardResponse board = boardService.getBoard(id);
-
-            if (board.getImageUrls() != null && board.getImages() == null) {
-                board.setImages(board.getImageUrls());
-            }
-
-            if (user != null && user.getUser() != null) {
-                board.setIsAuthor(board.getMemberId().equals(user.getUser().getId()));
                 try {
                     board.setLiked(boardService.isLiked(id, user.getUser().getId()));
                 } catch (Exception e) {
@@ -216,6 +181,44 @@ public class CommunityController {
                 }
             } else {
                 board.setIsAuthor(false);
+            }
+
+            // 3. 이미지 URL 처리
+            if (board.getImageUrls() != null && board.getImages() == null) {
+                board.setImages(board.getImageUrls());
+            }
+
+            // 4. 조회수 증가 로직 (작성자가 아닐 때만 실행)
+            if (!isAuthor) {
+                Cookie oldCookie = null;
+                Cookie[] cookies = request.getCookies();
+                if (cookies != null) {
+                    for (Cookie cookie : cookies) {
+                        if (cookie.getName().equals("postView")) {
+                            oldCookie = cookie;
+                        }
+                    }
+                }
+
+                if (oldCookie != null) {
+                    if (!oldCookie.getValue().contains("[" + id.toString() + "]")) {
+                        boardService.increaseViewCount(id); // DB 조회수 증가
+                        board.setViewCount(board.getViewCount() + 1); // 화면 표시용 조회수 +1 (새로고침 없이 반영)
+
+                        oldCookie.setValue(oldCookie.getValue() + "_[" + id + "]");
+                        oldCookie.setPath("/");
+                        oldCookie.setMaxAge(60 * 60 * 24);
+                        response.addCookie(oldCookie);
+                    }
+                } else {
+                    boardService.increaseViewCount(id); // DB 조회수 증가
+                    board.setViewCount(board.getViewCount() + 1); // 화면 표시용 조회수 +1
+
+                    Cookie newCookie = new Cookie("postView", "[" + id + "]");
+                    newCookie.setPath("/");
+                    newCookie.setMaxAge(60 * 60 * 24);
+                    response.addCookie(newCookie);
+                }
             }
 
             model.addAttribute("board", board);
@@ -227,9 +230,6 @@ public class CommunityController {
         }
     }
 
-    /**
-     * 게시글 수정 폼
-     */
     @GetMapping("/boards/{boardId}/edit")
     public String editForm(@PathVariable Long boardId, @AuthenticationPrincipal UserSecurityDTO user, Model model, HttpServletRequest request) {
         if (user == null || user.getUser() == null) return "redirect:/login";
@@ -316,11 +316,6 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
         }
     }
-
-    /* * [삭제됨] 댓글 관련 메서드 (CommentController가 이미 처리 중이므로 삭제함)
-     * createComment, deleteComment, likeComment 제거 완료
-     */
-
 
     @GetMapping("/my-posts")
     public String getMyPosts(@PageableDefault(size = 15) Pageable pageable, Model model, HttpServletRequest request, @AuthenticationPrincipal UserSecurityDTO user) {

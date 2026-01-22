@@ -25,6 +25,8 @@ public class CommentResponse {
     private String memberNickname;
     private boolean isLiked;
 
+    // ★ [추가] 프로필 이미지 경로 필드 추가
+    private String memberProfileImage;
     // 빌더 메서드들
     public static class CommentResponseBuilder {
         public CommentResponseBuilder memberId(Long memberId) {

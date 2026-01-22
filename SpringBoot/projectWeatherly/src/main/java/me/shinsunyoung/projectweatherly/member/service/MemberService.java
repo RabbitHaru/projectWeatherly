@@ -3,8 +3,6 @@ package me.shinsunyoung.projectweatherly.member.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
-import me.shinsunyoung.projectweatherly.board.domain.entity.Comment;
-import me.shinsunyoung.projectweatherly.board.domain.entity.Report;
 import me.shinsunyoung.projectweatherly.board.dto.MyCommentResponse;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
@@ -23,8 +21,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.mail.SimpleMailMessage; // [필수] 메일 객체
-import org.springframework.mail.javamail.JavaMailSender; // [필수] 메일 전송 도구
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,10 +30,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -49,7 +45,7 @@ public class MemberService implements UserDetailsService {
     private final BoardRepository boardRepository;
     private final ReportRepository reportRepository;
     private final CommentRepository commentRepository;
-    private final JavaMailSender javaMailSender; // [추가됨] 진짜 메일 발송 도구
+    private final JavaMailSender javaMailSender;
 
     // ==================== UserDetails 반환 ====================
     @Override
@@ -82,6 +78,7 @@ public class MemberService implements UserDetailsService {
     @Transactional
     public Long signup(SignupRequest request, String profileImg) {
         if (memberRepository.existsByEmail(request.getEmail())) throw new MemberException("이미 사용 중인 이메일");
+        if (memberRepository.existsByNickname(request.getNickname())) throw new MemberException("이미 사용 중인 닉네임"); // 회원가입 시에도 체크
         if (!request.getTermsOfServiceAgree()) throw new MemberException("약관 동의 필요");
 
         Member member = Member.builder()
@@ -115,7 +112,6 @@ public class MemberService implements UserDetailsService {
         return convertToResponse(member);
     }
 
-    // [NEW] 관리자 페이지용: 전체 회원 조회 (페이징)
     public Page<Member> findAllMembers(Pageable pageable) {
         return memberRepository.findAll(pageable);
     }
@@ -135,7 +131,6 @@ public class MemberService implements UserDetailsService {
 
         Member member = memberRepository.findById(memberId).orElseThrow();
 
-        // 1. 게시글 목록 (10개)
         int pageNum = (page > 0) ? page - 1 : 0;
         Pageable pageable = PageRequest.of(pageNum, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
@@ -143,17 +138,14 @@ public class MemberService implements UserDetailsService {
                 .map(CommunityPostResponse::new);
         response.setMyCommunityPosts(boardList);
 
-        // 2. 신고 내역 (전체, 최신순)
         Page<ReportResponse> reportList = reportRepository.findByReporterIdOrderByCreatedAtDesc(memberId, pageable)
                 .map(ReportResponse::from);
         response.setMyReports(reportList);
 
-        // 3. 작성한 댓글 목록 (10개)
         Page<MyCommentResponse> commentList = commentRepository.findByMemberOrderByCreatedAtDesc(member, pageable)
                 .map(MyCommentResponse::from);
         response.setMyComments(commentList);
 
-        // 4. 통계 정보
         response.setPostCount(boardList.getSize());
         response.setReportCount(reportList.getSize());
         response.setCommentCount(commentList.getSize());
@@ -166,8 +158,18 @@ public class MemberService implements UserDetailsService {
     @Transactional
     public MemberResponse updateMember(Long memberId, UpdateMemberRequest request) {
         Member member = memberRepository.findById(memberId).orElseThrow();
-        if(request.getNickname() != null) member.setNickname(request.getNickname());
+
+        // ★ [핵심 수정] 닉네임 변경 시 중복 검사 로직 추가
+        if(request.getNickname() != null && !request.getNickname().equals(member.getNickname())) {
+            // 본인의 현재 닉네임이 아닌데, 이미 DB에 존재한다면?
+            if (memberRepository.existsByNickname(request.getNickname())) {
+                throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+            }
+            member.setNickname(request.getNickname());
+        }
+
         if(request.getProfileImage() != null) member.setProfileImage(request.getProfileImage());
+
         memberRepository.save(member);
         return convertToResponse(member);
     }
@@ -227,30 +229,20 @@ public class MemberService implements UserDetailsService {
         boardRepository.delete(board);
     }
 
-
-
-    // ==================== [NEW] 아이디/비밀번호 찾기 ====================
-
-    // [추가] 닉네임으로 이메일 찾기
     public String findEmailByNickname(String nickname) {
         Member member = memberRepository.findByNickname(nickname)
                 .orElseThrow(() -> new MemberException("해당 닉네임을 가진 회원이 존재하지 않습니다."));
         return member.getEmail();
     }
 
-    // [수정됨] 실제 이메일 전송 (JavaMailSender)
     @Transactional
     public void sendTemporaryPassword(String email) {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberException("가입되지 않은 이메일입니다."));
 
-        // 1. 임시 비밀번호 생성 (8자리 랜덤 문자열)
         String tempPassword = UUID.randomUUID().toString().substring(0, 8);
-
-        // 2. 비밀번호 암호화 및 DB 업데이트
         member.setPassword(passwordEncoder.encode(tempPassword));
 
-        // 3. 실제 이메일 전송
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
         message.setSubject("[Weatherly] 임시 비밀번호 발급 안내");
@@ -268,7 +260,6 @@ public class MemberService implements UserDetailsService {
         }
     }
 
-    // ==================== 유틸리티 ====================
     private MemberResponse convertToResponse(Member member) {
         Agreement agreement = member.getAgreement();
         return MemberResponse.builder()
@@ -287,5 +278,4 @@ public class MemberService implements UserDetailsService {
                 .weatherAlertAgree(agreement != null ? agreement.getWeatherAlertAgree() : null)
                 .build();
     }
-
 }

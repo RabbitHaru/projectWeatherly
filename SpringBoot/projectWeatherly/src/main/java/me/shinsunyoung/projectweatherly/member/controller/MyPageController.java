@@ -40,13 +40,10 @@ public class MyPageController {
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".jpg", ".jpeg", ".png", ".gif", ".webp");
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-    /**
-     * 마이페이지 메인 조회
-     */
     @GetMapping
     @Operation(summary = "마이페이지 메인", description = "마이페이지 메인을 표시합니다.")
     public String getMyInfo(
-            @AuthenticationPrincipal UserSecurityDTO user, // [변경] UserDetails -> UserSecurityDTO
+            @AuthenticationPrincipal UserSecurityDTO user,
             @RequestParam(defaultValue = "1") Integer page,
             Model model,
             HttpServletRequest request) {
@@ -56,13 +53,11 @@ public class MyPageController {
         }
 
         try {
-            // [★요청하신 방식 적용] 컨트롤러 내부에서 닉네임 주입
             model.addAttribute("requestURI", request.getRequestURI());
             if(user != null && user.getUser().getNickname() != null) {
                 model.addAttribute("nickname", user.getUser().getNickname());
             }
 
-            // UserSecurityDTO에서 이메일(username) 가져오기
             String email = user.getUsername();
             MyPageResponse memberResponse = myPageService.getMyPageInfo(email, page);
 
@@ -71,7 +66,7 @@ public class MyPageController {
             model.addAttribute("totalPosts", memberResponse.getMyCommunityPosts().getTotalPages());
             model.addAttribute("totalReports",memberResponse.getMyReports().getTotalPages());
             model.addAttribute("totalComments",memberResponse.getMyComments().getTotalPages());
-            // 폼 바인딩용 빈 객체들 추가
+
             if (!model.containsAttribute("passwordRequest")) {
                 model.addAttribute("passwordRequest", new UpdatePasswordRequest());
             }
@@ -86,9 +81,6 @@ public class MyPageController {
         }
     }
 
-    /**
-     * 프로필 수정 처리 (이미지 포함)
-     */
     @PostMapping("/profile/edit")
     public String updateProfile(
             @AuthenticationPrincipal UserSecurityDTO user,
@@ -119,22 +111,21 @@ public class MyPageController {
                 }
             }
 
-            // 1. DB 업데이트 (기존 코드)
+            // 1. DB 업데이트 시도
             myPageService.updateMemberForMyPage(email, request);
 
-            // ============================================================
-            // [추가] 2. 로그인된 세션 정보(헤더 표시용) 즉시 업데이트
-            // ============================================================
-            // 닉네임 변경 반영
+            // 2. 세션 정보 갱신 (성공했을 때만 실행됨)
             user.getUser().setNickname(request.getNickname());
-
-            // 프로필 이미지 변경 반영 (이미지가 있을 경우에만)
             if (request.getProfileImage() != null) {
                 user.getUser().setProfileImage(request.getProfileImage());
             }
-            // ============================================================
 
             redirectAttributes.addFlashAttribute("message", "프로필이 수정되었습니다.");
+
+        } catch (IllegalArgumentException e) {
+            // ★ [추가됨] 중복 닉네임 등의 검증 오류가 발생하면 여기로 옵니다.
+            log.warn("프로필 수정 검증 실패: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage()); // "이미 사용 중인 닉네임입니다." 전달
 
         } catch (Exception e) {
             log.error("프로필 수정 오류", e);
@@ -144,9 +135,6 @@ public class MyPageController {
         return "redirect:/mypage";
     }
 
-    /**
-     * 비밀번호 변경 처리
-     */
     @PostMapping("/password/change")
     public String changePassword(
             @AuthenticationPrincipal UserSecurityDTO user,
@@ -172,9 +160,6 @@ public class MyPageController {
         return "redirect:/mypage";
     }
 
-    /**
-     * 알림 설정 변경 처리
-     */
     @PostMapping("/notifications")
     public String updateNotifications(
             @AuthenticationPrincipal UserSecurityDTO user,
@@ -192,9 +177,6 @@ public class MyPageController {
         return "redirect:/mypage";
     }
 
-    /**
-     * 게시글 삭제 (마이페이지 내)
-     */
     @PostMapping("/posts/{postId}/delete")
     public String deleteMyPost(
             @AuthenticationPrincipal UserSecurityDTO user,
