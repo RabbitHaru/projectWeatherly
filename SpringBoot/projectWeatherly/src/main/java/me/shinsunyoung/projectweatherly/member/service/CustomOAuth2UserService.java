@@ -1,3 +1,4 @@
+// CustomOAuth2UserService.java 수정
 package me.shinsunyoung.projectweatherly.member.service;
 
 import lombok.RequiredArgsConstructor;
@@ -7,16 +8,13 @@ import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 import me.shinsunyoung.projectweatherly.member.dto.UserSecurityDTO;
 import me.shinsunyoung.projectweatherly.member.repository.MemberRepository;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,88 +35,95 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        // 네이버인 경우
-        if ("naver".equals(registrationId)) {
-            return processOAuthUser(attributes, AuthProvider.naver);
+        // 구글인 경우
+        if ("google".equals(registrationId)) {
+            return processGoogleUser(attributes);
         }
-
+        // 네이버인 경우
+        else if ("naver".equals(registrationId)) {
+            return processNaverUser(attributes);
+        }
         // 카카오인 경우
         else if ("kakao".equals(registrationId)) {
-            return processOAuthUser(attributes, AuthProvider.kakao);
+            return processKakaoUser(attributes);
         }
 
         throw new OAuth2AuthenticationException("지원하지 않는 OAuth2 제공자입니다: " + registrationId);
     }
 
-    private UserSecurityDTO processOAuthUser(Map<String, Object> attributes, AuthProvider provider) {
-        String providerId;
-        String email = null;
-        String nickname = null;
-        String profileImage = null;
-        String userNameAttributeName = "id"; // 기본값
+    private UserSecurityDTO processGoogleUser(Map<String, Object> attributes) {
+        String providerId = (String) attributes.get("sub");
+        String email = (String) attributes.get("email");
+        String name = (String) attributes.get("name");
+        String nickname = (String) attributes.get("given_name");  // 이름
+        String profileImage = (String) attributes.get("picture");
 
-        try {
-            switch (provider) {
-                case naver:
-                    Map<String, Object> response = (Map<String, Object>) attributes.get("response");
-                    if (response == null) {
-                        throw new OAuth2AuthenticationException("네이버 응답 데이터가 없습니다.");
-                    }
-                    providerId = (String) response.get("id");
-                    email = (String) response.get("email");
-                    nickname = (String) response.get("nickname");
-                    profileImage = (String) response.get("profile_image");
-                    userNameAttributeName = "response";
-                    log.info("네이버 사용자 정보: id={}, email={}, nickname={}", providerId, email, nickname);
-                    break;
+        log.info("구글 사용자 정보: id={}, email={}, name={}", providerId, email, name);
 
-                case kakao:
-                    providerId = String.valueOf(attributes.get("id"));
+        Member member = processMember(providerId, email,
+                nickname != null ? nickname : name,
+                profileImage, AuthProvider.google);
 
-                    // 카카오 properties에서 닉네임과 프로필 이미지 추출
-                    Map<String, Object> properties = (Map<String, Object>) attributes.get("properties");
-                    if (properties != null) {
-                        nickname = (String) properties.get("nickname");
-                        profileImage = (String) properties.get("profile_image");
-                    }
+        return new UserSecurityDTO(member);
+    }
 
-                    // 카카오 계정 정보에서 이메일 추출
-                    Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-                    if (kakaoAccount != null) {
-                        email = (String) kakaoAccount.get("email");
-
-                        // 카카오 계정 내 프로필 정보가 별도로 있는 경우
-                        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-                        if (profile != null) {
-                            if (nickname == null) {
-                                nickname = (String) profile.get("nickname");
-                            }
-                            if (profileImage == null) {
-                                profileImage = (String) profile.get("profile_image_url");
-                            }
-                        }
-                    }
-
-                    // 이메일이 없는 경우 처리 (카카오는 이메일 동의 선택사항)
-                    if (email == null) {
-                        email = providerId + "@kakao.com";
-                    }
-
-                    log.info("카카오 사용자 정보: id={}, email={}, nickname={}", providerId, email, nickname);
-                    break;
-
-                default:
-                    throw new OAuth2AuthenticationException("지원하지 않는 OAuth2 제공자입니다.");
-            }
-        } catch (ClassCastException | NullPointerException e) {
-            log.error("OAuth2 응답 파싱 오류: {}", e.getMessage());
-            throw new OAuth2AuthenticationException("OAuth2 응답 데이터 형식이 올바르지 않습니다.");
+    private UserSecurityDTO processNaverUser(Map<String, Object> attributes) {
+        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+        if (response == null) {
+            throw new OAuth2AuthenticationException("네이버 응답 데이터가 없습니다.");
         }
 
-        // 회원 처리 로직
-        Member member = processMember(providerId, email, nickname, profileImage, provider);
+        String providerId = (String) response.get("id");
+        String email = (String) response.get("email");
+        String nickname = (String) response.get("nickname");
+        String profileImage = (String) response.get("profile_image");
 
+        log.info("네이버 사용자 정보: id={}, email={}, nickname={}", providerId, email, nickname);
 
+        Member member = processMember(providerId, email, nickname, profileImage, AuthProvider.naver);
+        return new UserSecurityDTO(member);
+    }
+
+    private UserSecurityDTO processKakaoUser(Map<String, Object> attributes) {
+        String providerId = String.valueOf(attributes.get("id"));
+
+        // 카카오 properties에서 닉네임과 프로필 이미지 추출
+        Map<String, Object> properties = (Map<String, Object>) attributes.get("properties");
+        String nickname = null;
+        String profileImage = null;
+
+        if (properties != null) {
+            nickname = (String) properties.get("nickname");
+            profileImage = (String) properties.get("profile_image");
+        }
+
+        // 카카오 계정 정보에서 이메일 추출
+        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+        String email = null;
+
+        if (kakaoAccount != null) {
+            email = (String) kakaoAccount.get("email");
+
+            // 카카오 계정 내 프로필 정보가 별도로 있는 경우
+            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+            if (profile != null) {
+                if (nickname == null) {
+                    nickname = (String) profile.get("nickname");
+                }
+                if (profileImage == null) {
+                    profileImage = (String) profile.get("profile_image_url");
+                }
+            }
+        }
+
+        // 이메일이 없는 경우 처리
+        if (email == null) {
+            email = providerId + "@kakao.com";
+        }
+
+        log.info("카카오 사용자 정보: id={}, email={}, nickname={}", providerId, email, nickname);
+
+        Member member = processMember(providerId, email, nickname, profileImage, AuthProvider.kakao);
         return new UserSecurityDTO(member);
     }
 
@@ -136,23 +141,26 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return member;
         }
 
-        // 2. 이메일로도 확인 (이미 일반 회원가입한 경우)
+        // 2. 이메일로도 확인
         if (email != null) {
             // 이메일과 동일한 인증 제공자로 찾기
             Optional<Member> emailMember = memberRepository.findByEmailAndAuthProvider(email, authProvider);
             if (emailMember.isPresent()) {
                 Member member = emailMember.get();
                 // providerId 업데이트
-                memberRepository.updateAuthProvider(member.getId(), authProvider, providerId);
+                member.setProviderId(providerId);
+                memberRepository.save(member);
                 return member;
             }
 
-            // 이메일로만 찾기 (다른 인증 제공자와 연결되지 않은 경우)
+            // 이메일로만 찾기
             Optional<Member> emailOnlyMember = memberRepository.findByEmail(email);
             if (emailOnlyMember.isPresent()) {
                 Member member = emailOnlyMember.get();
                 // 소셜 로그인 정보 연결
-                memberRepository.updateAuthProvider(member.getId(), authProvider, providerId);
+                member.setAuthProvider(authProvider);
+                member.setProviderId(providerId);
+                memberRepository.save(member);
                 return member;
             }
         }
@@ -164,7 +172,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private Member createNewOAuthMember(String providerId, String email, String nickname,
                                         String profileImage, AuthProvider authProvider) {
 
-        // 이메일이 없는 경우 (카카오는 이메일 동의 안할 수 있음)
+        // 이메일이 없는 경우
         String userEmail = email;
         if (userEmail == null || userEmail.isEmpty()) {
             userEmail = providerId + "@" + authProvider.name().toLowerCase() + ".com";

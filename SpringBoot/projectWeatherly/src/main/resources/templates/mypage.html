@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마이페이지 - Weatherly</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
@@ -38,6 +37,25 @@
         .status-pending { background-color: #fff3cd; color: #856404; }
         .status-completed { background-color: #d4edda; color: #155724; }
         .status-rejected { background-color: #f8d7da; color: #721c24; }
+
+        /* 프로필 이미지 스타일 개선 */
+        .profile-img-wrapper img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f1f3f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #previewImage {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            opacity: 0.8;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
     </style>
 </head>
 <body>
@@ -58,8 +76,12 @@
             <div class="section-card">
                 <div class="profile-view" id="profileView">
                     <div class="profile-img-wrapper" style="text-align: center; margin-bottom: 1rem;">
-                        <img th:src="${myPage.profileImage} ?: '/images/default-profile.png'"
-                             alt="프로필" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #f1f3f5;">
+                        <!-- 프로필 이미지 처리 -->
+                        <img th:src="${myPage.profileImage != null and myPage.profileImage != ''} ?
+                             (${myPage.profileImage.startsWith('/')} ? ${myPage.profileImage} : '/images/' + ${myPage.profileImage}) :
+                             '/uploads/default.png'"
+                             onerror="this.onerror=null; this.src='/uploads/default.png'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'"
+                             alt="프로필">
                     </div>
                     <h3 style="text-align: center; margin-bottom: 0.5rem;" th:text="${myPage.nickname}">닉네임</h3>
                     <p style="text-align: center; color: #868e96; margin-bottom: 1.5rem;" th:text="${myPage.email}">user@email.com</p>
@@ -73,8 +95,12 @@
                     <form th:action="@{/mypage/profile/edit}" method="post" enctype="multipart/form-data">
                         <div class="form-group text-center">
                             <label for="file" style="cursor: pointer;">
-                                <img id="previewImage" th:src="${myPage.profileImage} ?: '/images/default-profile.png'"
-                                     style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; opacity: 0.8;">
+                                <img id="previewImage"
+                                     th:src="${myPage.profileImage != null and myPage.profileImage != ''} ?
+                                     (${myPage.profileImage.startsWith('/')} ? ${myPage.profileImage} : '/images/' + ${myPage.profileImage}) :
+                                     '/uploads/default.png'"
+                                     onerror="this.onerror=null; this.src='/uploads/default.png'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'"
+                                     alt="프로필 미리보기">
                                 <div style="font-size: 0.8rem; color: #667eea; margin-top: 5px;">사진 변경 클릭</div>
                             </label>
                             <input type="file" id="file" name="file" accept="image/*" style="display: none;" onchange="previewFile(this)">
@@ -156,28 +182,51 @@
                         </ul>
                     </div>
 
-                </div> </div>     <div id="tab-password" class="tab-content">
-                <div class="section-card">
-                    <div class="section-title"><i class="fas fa-lock"></i> 비밀번호 변경</div>
-                    <form th:action="@{/mypage/password/change}" method="post" th:object="${passwordRequest}">
-                        <div class="form-group">
-                            <label class="form-label">현재 비밀번호</label>
-                            <input type="password" th:field="*{currentPassword}" class="form-input" required>
+                </div> </div>   <div id="tab-password" class="tab-content">
+            <div class="section-card">
+                <div class="section-title"><i class="fas fa-lock"></i> 비밀번호 변경</div>
+                <form th:action="@{/mypage/password/change}" method="post" th:object="${passwordRequest}">
+                    <div class="form-group">
+                        <label class="form-label">현재 비밀번호</label>
+                        <input type="password"
+                               th:field="*{currentPassword}"
+                               name="currentPassword"
+                               id="currentPassword"
+                               class="form-input"
+                               placeholder="현재 비밀번호를 입력하세요"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">새 비밀번호</label>
+                        <input type="password"
+                               th:field="*{newPassword}"
+                               name="newPassword"
+                               id="newPassword"
+                               class="form-input"
+                               placeholder="최소 8자리 (영문, 숫자, 특수문자 권장)"
+                               required>
+                        <div class="form-hint" style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                            * 현재 비밀번호와 다르게 입력해주세요
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">새 비밀번호</label>
-                            <input type="password" th:field="*{newPassword}" class="form-input" placeholder="최소 8자리로 변경해주세요." required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">새 비밀번호 확인</label>
-                            <input type="password" th:field="*{confirmPassword}" class="form-input" required>
-                        </div>
-                        <button type="submit" class="btn" style="background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
-                            비밀번호 변경
-                        </button>
-                    </form>
-                </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">새 비밀번호 확인</label>
+                        <input type="password"
+                               th:field="*{confirmPassword}"
+                               name="confirmPassword"
+                               id="confirmPassword"
+                               class="form-input"
+                               placeholder="새 비밀번호를 다시 입력하세요"
+                               required>
+                    </div>
+                    <div id="passwordValidationMsg" style="margin: 10px 0; font-size: 0.9rem; display: none;"></div>
+                    <button type="submit" class="btn"
+                            style="background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
+                        비밀번호 변경
+                    </button>
+                </form>
             </div>
+        </div>
 
             <div id="tab-notification" class="tab-content">
                 <div class="section-card">
@@ -237,10 +286,22 @@
 
         </div> </div>
 
-<div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
+    <div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
-<script th:src="@{/js/common.js}"></script>
-<script th:src="@{/js/mypage.js}"></script>
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/mypage.js}"></script>
+
+    <script>
+        // 프로필 이미지 에러 처리
+        document.addEventListener("DOMContentLoaded", function() {
+            const profileImages = document.querySelectorAll('.profile-img-wrapper img, #previewImage');
+            profileImages.forEach(img => {
+                img.addEventListener('error', function() {
+                    this.src = '/uploads/default.png';
+                    this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                });
+            });
+        });
+    </script>
 </body>
-
 </html>

@@ -331,3 +331,40 @@ body.dark-mode .page-item.active .page-link {
     color: white;
     border-color: #667eea;
 }
+#passwordValidationMsg {
+    padding: 10px;
+    border-radius: 6px;
+    margin: 10px 0;
+    font-size: 0.9rem;
+    display: none;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 비활성화된 버튼 스타일 */
+button[type="submit"]:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+/* 다크모드에서의 유효성 메시지 */
+body.dark-mode #passwordValidationMsg {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid #444;
+}
+
+body.dark-mode #passwordValidationMsg[style*="color: #28a745"] {
+    color: #4ade80 !important;
+}
+
+body.dark-mode #passwordValidationMsg[style*="color: #dc3545"] {
+    color: #f87171 !important;
+}
+
+body.dark-mode #passwordValidationMsg[style*="color: #ffc107"] {
+    color: #fbbf24 !important;
+}

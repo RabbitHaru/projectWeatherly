@@ -21,9 +21,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:./uploads/");
 
-        // favicon 핸들러
-        registry.addResourceHandler("/favicon.ico")
-                .addResourceLocations("classpath:/static/favicon.ico")
-                .setCachePeriod(3600);
+        // /default.png 직접 접근을 위한 매핑 추가
+        registry.addResourceHandler("/default.png")
+                .addResourceLocations("file:./uploads/default.png");
     }
 }

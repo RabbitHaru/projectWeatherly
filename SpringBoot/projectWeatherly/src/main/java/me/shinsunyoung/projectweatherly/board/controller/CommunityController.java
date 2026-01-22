@@ -321,9 +321,6 @@ public class CommunityController {
      * createComment, deleteComment, likeComment 제거 완료
      */
 
-    @GetMapping("/favicon.ico")
-    @ResponseBody
-    public ResponseEntity<Void> favicon() { return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); }
 
     @GetMapping("/my-posts")
     public String getMyPosts(@PageableDefault(size = 15) Pageable pageable, Model model, HttpServletRequest request, @AuthenticationPrincipal UserSecurityDTO user) {

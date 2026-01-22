@@ -3,6 +3,8 @@ package me.shinsunyoung.projectweatherly.member.repository;
 import me.shinsunyoung.projectweatherly.member.domain.enums.AuthProvider;
 import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 import me.shinsunyoung.projectweatherly.member.domain.entity.Member;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -47,7 +49,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // ==================== 회원 상태 관리 ====================
     List<Member> findByIsActiveTrue();
 
-    List<Member> findByRole(MemberRole role);  // String -> MemberRole로 수정
+    List<Member> findByRole(MemberRole role);
 
     @Modifying
     @Transactional
@@ -83,17 +85,22 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
                             @Param("providerId") String providerId);
 
     // ==================== 검색 및 통계 메서드 ====================
+
+    // [기존 리스트 반환 메서드는 유지하거나, 필요 없으면 삭제하셔도 됩니다]
     @Query("SELECT m FROM Member m WHERE " +
             "LOWER(m.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(m.nickname) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Member> searchMembers(@Param("keyword") String keyword);
+
+    // ★ [NEW] 페이징 지원 검색 (닉네임 또는 이메일에 포함)
+    Page<Member> findByNicknameContainingOrEmailContaining(String nickname, String email, Pageable pageable);
 
     @Query("SELECT m FROM Member m WHERE m.createdAt BETWEEN :startDate AND :endDate")
     List<Member> findMembersByJoinDateRange(@Param("startDate") LocalDateTime startDate,
                                             @Param("endDate") LocalDateTime endDate);
 
     @Query("SELECT COUNT(m) FROM Member m WHERE m.role = :role")
-    Long countByRole(@Param("role") MemberRole role);  // String -> MemberRole로 수정
+    Long countByRole(@Param("role") MemberRole role);
 
     @Query("SELECT COUNT(m) FROM Member m WHERE m.isActive = :isActive")
     Long countByIsActive(@Param("isActive") Boolean isActive);
@@ -107,4 +114,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     // [관리자용] 가장 최근에 가입한 회원 5명 조회
     List<Member> findTop5ByOrderByCreatedAtDesc();
+
+    // 전체 조회 (페이징)
+    Page<Member> findAll(Pageable pageable);
 }
