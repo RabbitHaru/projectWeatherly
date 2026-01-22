@@ -307,15 +307,5 @@
 <div th:replace="~{layout/footer :: footer}"></div>
 <script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/admin.js}"></script>
-<script>
-
-
-            document.addEventListener("DOMContentLoaded", function () {
-                const isDarkMode = localStorage.getItem('darkMode') === 'true';
-                if (isDarkMode) {
-                    document.body.classList.add('dark-mode');
-                }
-            });
-</script>
 </body>
 </html>

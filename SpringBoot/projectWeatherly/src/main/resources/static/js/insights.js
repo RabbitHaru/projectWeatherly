@@ -10,6 +10,7 @@ let aqiChartInstance = null;
 let envChartInstance = null;
 
 document.addEventListener('DOMContentLoaded', function () {
+
     // 1. 차트 초기화
     initTemperatureChart();
     initAirQualityChart();
