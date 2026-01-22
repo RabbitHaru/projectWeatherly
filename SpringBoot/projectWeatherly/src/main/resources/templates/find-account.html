@@ -166,7 +166,7 @@
     axios.post('/auth/api/reset-password', null, { params: { email: email } })
             .then(res => {
               resultBox.className = 'result-box success';
-              resultBox.innerHTML = `임시 비밀번호가 발송되었습니다.<br>(서버 콘솔을 확인하세요)`;
+              resultBox.innerHTML = `임시 비밀번호가 발송되었습니다.`;
             })
             .catch(err => {
               resultBox.className = 'result-box error';

@@ -146,10 +146,9 @@ public class BoardServiceImpl implements BoardService {
         Member requestMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
 
-<<<<<<< HEAD
-=======
+
         // 작성자 본인 확인 OR 관리자 권한 확인
->>>>>>> member
+
         boolean isOwner = board.getMember().getId().equals(memberId);
         boolean isAdmin = requestMember.getRole() == MemberRole.ADMIN;
 
@@ -157,10 +156,9 @@ public class BoardServiceImpl implements BoardService {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
-<<<<<<< HEAD
-=======
+
         // 공지사항 카테고리로 변경 시 관리자 권한 체크
->>>>>>> member
+
         if (Board.CATEGORY_NOTICE.equalsIgnoreCase(request.getCategory())) {
             if (!isAdmin) {
                 throw new IllegalStateException("관리자만 공지사항으로 설정할 수 있습니다.");
@@ -213,10 +211,9 @@ public class BoardServiceImpl implements BoardService {
         Member requestMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
 
-<<<<<<< HEAD
-=======
+
         // 작성자 본인 확인 OR 관리자 권한 확인 (강제 삭제 로직)
->>>>>>> member
+
         boolean isOwner = board.getMember().getId().equals(memberId);
         boolean isAdmin = requestMember.getRole() == MemberRole.ADMIN;
 
