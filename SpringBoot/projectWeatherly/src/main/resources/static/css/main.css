@@ -805,6 +805,24 @@ body.dark-mode .aqi-date {
     background-color: #8e44ad;
 }
 
+.regional-weather-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 500px; /* 높이 제한 */
+    overflow-y: auto;  /* 스크롤 생성 */
+    padding-right: 5px; /* 스크롤바 여백 */
+}
+
+/* 스크롤바 디자인 (선택) */
+.regional-weather-list::-webkit-scrollbar {
+    width: 5px;
+}
+.regional-weather-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
 .status-icon.safe { color: var(--success-color); }
 .status-icon.caution { color: #f1c40f !important; }
 .status-icon.danger { color: #e74c3c !important; }

@@ -8,16 +8,18 @@ import me.shinsunyoung.projectweatherly.common.config.ApiConfig;
 import me.shinsunyoung.projectweatherly.common.util.DateUtil;
 import me.shinsunyoung.projectweatherly.weather.dto.WeatherResponseDTO;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -28,460 +30,403 @@ public class WeatherApiService {
     private final ObjectMapper objectMapper;
     private final ApiConfig apiConfig;
 
-    // 중기예보용 고정 URL
-    private static final String MID_TERM_API_URL = "http://apis.data.go.kr/1360000/MidFcstInfoService";
-
-    // =================================================================================
-    // [1] GPS 및 통합 조회
-    // =================================================================================
-
-    public WeatherResponseDTO getCurrentWeatherByGps(double lat, double lng) {
-        Map<String, String> grid = convertGpsToGrid(lat, lng);
-        String regionName = findRegionNameFromGps(lat, lng);
-        return fetchAndBuildWeather(grid.get("nx"), grid.get("ny"), regionName, false);
-    }
+    private static final Map<String, Map<String, String>> GRID_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, String> REGION_NAME_CACHE = new ConcurrentHashMap<>();
 
     @Cacheable(value = "weatherAllData", key = "#regionCode + '_' + #liteMode", unless = "#result == null")
     public WeatherResponseDTO getAllWeatherData(String regionCode, boolean liteMode) {
-        Map<String, String> coords = getGridCoordinates(regionCode);
-        String regionName = getRegionNameCached(regionCode);
-        return fetchAndBuildWeather(coords.get("nx"), coords.get("ny"), regionName, liteMode);
-    }
-
-    private WeatherResponseDTO fetchAndBuildWeather(String nx, String ny, String regionName, boolean liteMode) {
-        String regionCode = findRegionCodeByName(regionName);
-
         try {
-            // (1) 현재 날씨
-            WeatherResponseDTO.CurrentWeather current = getCurrentWeatherFromGrid(nx, ny);
+            log.info("날씨 데이터 통합 조회: {} (liteMode: {})", regionCode, liteMode);
+
+            CompletableFuture<WeatherResponseDTO.CurrentWeather> currentFuture =
+                    CompletableFuture.supplyAsync(() -> getCurrentWeatherCached(regionCode));
+
+            CompletableFuture<List<WeatherResponseDTO.HourlyForecast>> todayHourlyFuture;
+            CompletableFuture<List<WeatherResponseDTO.HourlyForecast>> tomorrowHourlyFuture;
+            CompletableFuture<List<WeatherResponseDTO.DailyForecast>> weeklyFuture;
 
             if (liteMode) {
-                return WeatherResponseDTO.builder()
-                        .regionName(regionName)
-                        .regionCode(regionCode)
-                        .currentTime(DateUtil.getCurrentFormattedDateTime())
-                        .current(current)
-                        .isMock(false)
-                        .build();
+                todayHourlyFuture = CompletableFuture.completedFuture(null);
+                tomorrowHourlyFuture = CompletableFuture.completedFuture(null);
+                weeklyFuture = CompletableFuture.completedFuture(null);
+            } else {
+                todayHourlyFuture = CompletableFuture.supplyAsync(() -> getHourlyForecastCached(regionCode, 0));
+                tomorrowHourlyFuture = CompletableFuture.supplyAsync(() -> getHourlyForecastCached(regionCode, 1));
+                weeklyFuture = CompletableFuture.supplyAsync(() -> getWeeklyForecastCached(regionCode));
             }
 
-            // (2) 예보 데이터 조회 (오늘, 내일, 모레, 중기)
-            List<WeatherResponseDTO.HourlyForecast> today = new ArrayList<>();
-            List<WeatherResponseDTO.HourlyForecast> tomorrow = new ArrayList<>();
-            List<WeatherResponseDTO.HourlyForecast> dayAfterTomorrow = new ArrayList<>();
-            List<WeatherResponseDTO.DailyForecast> midTerm = new ArrayList<>();
-
-            try {
-                // 단기 예보 (1000 rows로 모레까지 커버)
-                CompletableFuture<List<WeatherResponseDTO.HourlyForecast>> todayFut =
-                        CompletableFuture.supplyAsync(() -> getHourlyForecastFromGrid(nx, ny, 0));
-                CompletableFuture<List<WeatherResponseDTO.HourlyForecast>> tomorrowFut =
-                        CompletableFuture.supplyAsync(() -> getHourlyForecastFromGrid(nx, ny, 1));
-                CompletableFuture<List<WeatherResponseDTO.HourlyForecast>> dayAfterFut =
-                        CompletableFuture.supplyAsync(() -> getHourlyForecastFromGrid(nx, ny, 2));
-
-                // 중기 예보 (3일 후 ~ 10일 후)
-                CompletableFuture<List<WeatherResponseDTO.DailyForecast>> midTermFut =
-                        CompletableFuture.supplyAsync(() -> getWeeklyForecastFromRegion(regionName));
-
-                CompletableFuture.allOf(todayFut, tomorrowFut, dayAfterFut, midTermFut).join();
-
-                today = todayFut.join();
-                tomorrow = tomorrowFut.join();
-                dayAfterTomorrow = dayAfterFut.join();
-                midTerm = midTermFut.join();
-
-            } catch (Exception e) {
-                log.error("예보 데이터 로딩 실패: {}", e.getMessage());
+            CompletableFuture<WeatherResponseDTO.WeatherSummary> summaryFuture;
+            if (liteMode) {
+                summaryFuture = CompletableFuture.completedFuture(null);
+            } else {
+                summaryFuture = CompletableFuture.allOf(todayHourlyFuture, tomorrowHourlyFuture, weeklyFuture)
+                        .thenApply(v -> createWeatherSummary(todayHourlyFuture.join(), tomorrowHourlyFuture.join(), weeklyFuture.join()));
             }
 
-            // (3) 데이터 병합 (조작 없이 순수 병합)
-            List<WeatherResponseDTO.DailyForecast> fullDailyList = new ArrayList<>();
+            CompletableFuture.allOf(currentFuture, todayHourlyFuture, tomorrowHourlyFuture, weeklyFuture, summaryFuture).join();
 
-            // 단기 (Day 0, 1, 2)
-            fullDailyList.add(summarizeDaily(today, 0));
-            fullDailyList.add(summarizeDaily(tomorrow, 1));
-            fullDailyList.add(summarizeDaily(dayAfterTomorrow, 2));
+            WeatherResponseDTO.CurrentWeather current = currentFuture.join();
 
-            // 중기 (Day 3 ~ 7)
-            if (midTerm != null && !midTerm.isEmpty()) {
-                fullDailyList.addAll(midTerm);
-            }
-
-            WeatherResponseDTO.WeatherSummary summary = createWeatherSummary(current, today, tomorrow, midTerm);
+            // [수정] 기상청 공식 특보 API 호출
+            String regionName = getRegionNameCached(regionCode);
+            WeatherResponseDTO.WeatherWarning warning = getOfficialWarning(regionName);
 
             return WeatherResponseDTO.builder()
                     .regionName(regionName)
                     .regionCode(regionCode)
                     .currentTime(DateUtil.getCurrentFormattedDateTime())
                     .current(current)
-                    .hourly(today)
-                    .tomorrowHourly(tomorrow)
-                    .daily(fullDailyList)
-                    .summary(summary)
+                    .hourly(todayHourlyFuture.join())
+                    .tomorrowHourly(tomorrowHourlyFuture.join())
+                    .daily(weeklyFuture.join())
+                    .summary(summaryFuture.join())
+                    .warning(warning)
                     .isMock(false)
                     .build();
 
         } catch (Exception e) {
-            log.error("치명적 오류 발생: {}", regionName, e);
-            return createFallbackWeatherData(regionName, liteMode);
+            log.error("날씨 통합 조회 실패", e);
+            return createFallbackWeatherData(regionCode, liteMode);
         }
     }
 
-    // =================================================================================
-    // [2] API 호출부
-    // =================================================================================
-
-    // 1. 현재 날씨
-    private WeatherResponseDTO.CurrentWeather getCurrentWeatherFromGrid(String nx, String ny) {
+    // ⭐ [수정] 기상청 공식 특보 API 호출 (3일 전부터 50건 조회로 누락 방지)
+    private WeatherResponseDTO.WeatherWarning getOfficialWarning(String regionName) {
         try {
-            String key = URLDecoder.decode(apiConfig.getKmaApiKey(), StandardCharsets.UTF_8);
+            String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String startDate = LocalDate.now().minusDays(2).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+            // stnId를 제거해서 모든 데이터를 긁어옵니다.
+            URI uri = UriComponentsBuilder.fromHttpUrl("https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList")
+                    .queryParam("serviceKey", apiConfig.getKmaApiKey())
+                    .queryParam("numOfRows", 100)
+                    .queryParam("pageNo", 1)
+                    .queryParam("dataType", "JSON")
+                    .queryParam("fromTmFc", startDate)
+                    .queryParam("toTmFc", today)
+                    .build().toUri();
+
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+
+            if (response.getBody() == null || !response.getBody().contains("item")) {
+                log.warn("📢 [특보확인] API 응답에 데이터가 없음 (지역: {})", regionName);
+                return createEmptyWarning();
+            }
+
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode items = root.path("response").path("body").path("items").path("item");
+
+            if (items.isArray()) {
+                // 1. 먼저 '내 지역'이 언급된 가장 최신 공보를 찾습니다.
+                for (JsonNode item : items) {
+                    String title = item.path("title").asText(); // 제목 (예: 기상특보)
+                    String content = item.path("t6").asText(); // 상세 내용
+
+                    // 로그로 기상청이 뭐라고 하는지 한 번만 찍어봅시다.
+                    log.info("📢 [기상청 원문] 제목: {}, 내용요약: {}", title, content.substring(0, Math.min(content.length(), 30)));
+
+                    WeatherResponseDTO.WeatherWarning warning = parseWarningText(content, regionName);
+                    if (warning.isActive()) {
+                        log.info("✅ [특보매칭성공] {} 지역에 {} 발효 중", regionName, warning.getTitle());
+                        return warning;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("❌ 기상특보 조회 중 에러 발생: {}", e.getMessage());
+        }
+        return createEmptyWarning();
+    }
+
+    private WeatherResponseDTO.WeatherWarning parseWarningText(String content, String myRegion) {
+        if (content == null || content.isEmpty() || myRegion == null) return createEmptyWarning();
+
+        // 매칭 확률을 높이기 위해 "서울", "경기", "전남" 등으로 자름
+        String shortRegion = myRegion.substring(0, 2);
+
+        // 기상청 특보는 보통 'o ', '\n', ':', ',' 등으로 구분됨
+        // 정규식 [o\n\r]으로 쪼개서 각 줄을 검사
+        String[] lines = content.split("[o\n\r]");
+
+        for (String line : lines) {
+            String cleanLine = line.trim();
+            // "한파주의보 : 서울, ..." 형태인지 확인
+            if (cleanLine.contains(":") && cleanLine.contains(shortRegion)) {
+
+                String warningType = cleanLine.split(":")[0].trim();
+
+                // "해제", "발효번호" 등은 제외
+                if (warningType.contains("해제") || warningType.contains("발효")) continue;
+
+                String level = (warningType.contains("경보") || warningType.contains("심각")) ? "danger" : "caution";
+
+                // 설명은 해당 줄 전체를 사용
+                return new WeatherResponseDTO.WeatherWarning(true, warningType, cleanLine, level);
+            }
+        }
+        return createEmptyWarning();
+    }
+
+    private WeatherResponseDTO.WeatherWarning createEmptyWarning() {
+        return new WeatherResponseDTO.WeatherWarning(false, "특보 없음", "현재 발효된 특보가 없습니다.", "safe");
+    }
+
+    // ===== 기존 조회 및 파싱 로직 유지 =====
+
+    @Cacheable(value = "currentWeather", key = "#regionCode", unless = "#result == null")
+    public WeatherResponseDTO.CurrentWeather getCurrentWeatherCached(String regionCode) {
+        try {
+            return getCurrentWeatherFromUltraShort(regionCode);
+        } catch (Exception e) {
+            return createDefaultCurrentWeather();
+        }
+    }
+
+    @Cacheable(value = "hourlyForecast", key = "#regionCode + '_' + #dayOffset", unless = "#result.isEmpty()")
+    public List<WeatherResponseDTO.HourlyForecast> getHourlyForecastCached(String regionCode, int dayOffset) {
+        try {
+            return dayOffset == 0 ? getTodayHourlyForecast(regionCode) : getTomorrowHourlyForecast(regionCode);
+        } catch (Exception e) {
+            return createDefaultHourlyForecast24h(dayOffset);
+        }
+    }
+
+    @Cacheable(value = "weeklyForecast", key = "#regionCode", unless = "#result.isEmpty()")
+    public List<WeatherResponseDTO.DailyForecast> getWeeklyForecastCached(String regionCode) {
+        try {
+            return getShortTermWeeklyForecast(regionCode);
+        } catch (Exception e) {
+            return createDefaultWeeklyForecastWithAmPm();
+        }
+    }
+
+    private Map<String, Object> fetchAllWeatherDataInOneCall(String regionCode) {
+        try {
+            Map<String, String> gridCoords = getGridCoordinatesCached(regionCode);
             LocalDateTime now = LocalDateTime.now();
-            if (now.getMinute() < 45) now = now.minusHours(1);
+            String baseDate = DateUtil.formatDateOnly(now);
+            String baseTime = getBaseTimeForShortTerm(now);
+
+            URI uri = UriComponentsBuilder.fromHttpUrl(apiConfig.getKmaApiUrl() + "/getVilageFcst")
+                    .queryParam("serviceKey", apiConfig.getKmaApiKey())
+                    .queryParam("pageNo", 1).queryParam("numOfRows", 1000).queryParam("dataType", "JSON")
+                    .queryParam("base_date", baseDate).queryParam("base_time", baseTime)
+                    .queryParam("nx", gridCoords.get("nx")).queryParam("ny", gridCoords.get("ny"))
+                    .build().toUri();
+
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                JsonNode root = objectMapper.readTree(response.getBody());
+                JsonNode items = root.path("response").path("body").path("items").path("item");
+                if (items.isArray() && items.size() > 0) {
+                    Map<String, Object> allData = new HashMap<>();
+                    allData.put("current", parseCurrentWeatherFromItems(items));
+                    allData.put("hourly", parseHourlyForecastFromItems(items, 0));
+                    allData.put("tomorrowHourly", parseHourlyForecastFromItems(items, 1));
+                    allData.put("weekly", parseWeeklyForecastFromItems(items));
+                    return allData;
+                }
+            }
+        } catch (Exception e) {
+            log.error("통합 API 호출 실패: {}", e.getMessage());
+        }
+        return Collections.emptyMap();
+    }
+
+    private WeatherResponseDTO.CurrentWeather getCurrentWeatherFromUltraShort(String regionCode) {
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            String baseDate = DateUtil.formatDateOnly(now);
+            String baseTime = getBaseTimeForCurrent(now);
+            Map<String, String> gridCoords = getGridCoordinatesCached(regionCode);
 
             URI uri = UriComponentsBuilder.fromHttpUrl(apiConfig.getKmaApiUrl() + "/getUltraSrtNcst")
-                    .queryParam("serviceKey", key)
+                    .queryParam("serviceKey", apiConfig.getKmaApiKey())
                     .queryParam("pageNo", 1).queryParam("numOfRows", 10).queryParam("dataType", "JSON")
-                    .queryParam("base_date", DateUtil.formatDateOnly(now))
-                    .queryParam("base_time", String.format("%02d00", now.getHour()))
-                    .queryParam("nx", nx).queryParam("ny", ny)
+                    .queryParam("base_date", baseDate).queryParam("base_time", baseTime)
+                    .queryParam("nx", gridCoords.get("nx")).queryParam("ny", gridCoords.get("ny"))
                     .build().toUri();
 
-            String responseStr = restTemplate.getForObject(uri, String.class);
-            JsonNode items = objectMapper.readTree(responseStr).path("response").path("body").path("items").path("item");
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode items = root.path("response").path("body").path("items").path("item");
 
-            Map<String, Double> val = new HashMap<>();
-            String pty = "0";
+            if (items.isArray() && items.size() > 0) {
+                Map<String, String> data = new HashMap<>();
+                for (JsonNode item : items) data.put(item.path("category").asText(), item.path("obsrValue").asText());
 
-            if (items.isArray()) {
-                for (JsonNode item : items) {
-                    String cat = item.path("category").asText();
-                    double obs = parseDoubleSafe(item.path("obsrValue").asText(), 0.0);
-                    val.put(cat, obs);
-                    if (cat.equals("PTY")) pty = item.path("obsrValue").asText();
+                double temp = parseDoubleSafe(data.get("T1H"), 20.0);
+                double humidity = parseDoubleSafe(data.get("REH"), 50.0);
+                double windSpeed = parseDoubleSafe(data.get("WSD"), 2.5);
+                String ptyCode = data.getOrDefault("PTY", "0");
+                String skyCode = data.getOrDefault("SKY", "1");
+
+                return WeatherResponseDTO.CurrentWeather.builder()
+                        .temperature(temp).feelsLike(calculateFeelsLike(temp, humidity, windSpeed))
+                        .humidity(humidity).windSpeed(windSpeed).windDirection("북서풍")
+                        .precipitation(parseDoubleSafe(data.get("RN1"), 0.0))
+                        .weatherCondition(getWeatherConditionFromCode(skyCode, ptyCode))
+                        .weatherIcon(getWeatherIconFromCode(skyCode, ptyCode, now.getHour()))
+                        .updateTime(LocalDateTime.now()).build();
+            }
+        } catch (Exception e) {
+        }
+        return createDefaultCurrentWeather();
+    }
+
+    private List<WeatherResponseDTO.HourlyForecast> getTodayHourlyForecast(String regionCode) {
+        Map<String, Object> allData = fetchAllWeatherDataInOneCall(regionCode);
+        return allData.containsKey("hourly") ? (List<WeatherResponseDTO.HourlyForecast>) allData.get("hourly") : createDefaultHourlyForecast24h(0);
+    }
+
+    private List<WeatherResponseDTO.HourlyForecast> getTomorrowHourlyForecast(String regionCode) {
+        Map<String, Object> allData = fetchAllWeatherDataInOneCall(regionCode);
+        return allData.containsKey("tomorrowHourly") ? (List<WeatherResponseDTO.HourlyForecast>) allData.get("tomorrowHourly") : createDefaultHourlyForecast24h(1);
+    }
+
+    private List<WeatherResponseDTO.DailyForecast> getShortTermWeeklyForecast(String regionCode) {
+        Map<String, Object> allData = fetchAllWeatherDataInOneCall(regionCode);
+        return allData.containsKey("weekly") ? (List<WeatherResponseDTO.DailyForecast>) allData.get("weekly") : createDefaultWeeklyForecastWithAmPm();
+    }
+
+    private WeatherResponseDTO.CurrentWeather parseCurrentWeatherFromItems(JsonNode items) {
+        LocalDateTime now = LocalDateTime.now();
+        String nowDate = DateUtil.formatDateOnly(now);
+        String nowTime = String.format("%02d00", now.getHour());
+        double temp = 20.0, humidity = 50.0, windSpeed = 2.5;
+        String sky = "1", pty = "0";
+
+        for (JsonNode item : items) {
+            if (item.path("fcstDate").asText().equals(nowDate) && item.path("fcstTime").asText().equals(nowTime)) {
+                String cat = item.path("category").asText();
+                String val = item.path("fcstValue").asText();
+                switch (cat) {
+                    case "TMP" -> temp = parseDoubleSafe(val);
+                    case "REH" -> humidity = parseDoubleSafe(val);
+                    case "WSD" -> windSpeed = parseDoubleSafe(val);
+                    case "SKY" -> sky = val;
+                    case "PTY" -> pty = val;
                 }
             }
-
-            double temp = val.getOrDefault("T1H", 0.0);
-            double wind = val.getOrDefault("WSD", 0.0);
-            double humid = val.getOrDefault("REH", 0.0);
-            double feelsLike = calculateFeelsLike(temp, humid, wind);
-
-            return WeatherResponseDTO.CurrentWeather.builder()
-                    .temperature(temp)
-                    .humidity(humid)
-                    .windSpeed(wind)
-                    .feelsLike(feelsLike)
-                    .precipitation(val.getOrDefault("RN1", 0.0))
-                    .weatherCondition(getWeatherConditionFromCode("1", pty))
-                    .weatherIcon(getWeatherIconFromCode("1", pty, LocalDateTime.now().getHour()))
-                    .build();
-        } catch (Exception e) {
-            log.error("현재 날씨 API 실패", e);
-            throw new RuntimeException("Current weather failed");
         }
+        return WeatherResponseDTO.CurrentWeather.builder().temperature(temp).feelsLike(calculateFeelsLike(temp, humidity, windSpeed)).humidity(humidity).windSpeed(windSpeed).windDirection("북서풍").precipitation(0.0).weatherCondition(getWeatherConditionFromCode(sky, pty)).weatherIcon(getWeatherIconFromCode(sky, pty, now.getHour())).updateTime(LocalDateTime.now()).build();
     }
 
-    // 2. 단기 예보 (시간별)
-    private List<WeatherResponseDTO.HourlyForecast> getHourlyForecastFromGrid(String nx, String ny, int dayOffset) {
-        List<WeatherResponseDTO.HourlyForecast> result = new ArrayList<>();
-        try {
-            String key = URLDecoder.decode(apiConfig.getKmaApiKey(), StandardCharsets.UTF_8);
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime base = getSafeBaseDateTimeForForecast(now);
+    private List<WeatherResponseDTO.HourlyForecast> parseHourlyForecastFromItems(JsonNode items, int dayOffset) {
+        LocalDate targetDate = LocalDate.now().plusDays(dayOffset);
+        String targetDateStr = targetDate.format(DateTimeFormatter.BASIC_ISO_DATE);
+        Map<Integer, WeatherDataPoint> hourData = new TreeMap<>();
 
-            // [중요] 1000 row 요청으로 모레 데이터까지 확보
-            URI uri = UriComponentsBuilder.fromHttpUrl(apiConfig.getKmaApiUrl() + "/getVilageFcst")
-                    .queryParam("serviceKey", key)
-                    .queryParam("pageNo", 1).queryParam("numOfRows", 1000).queryParam("dataType", "JSON")
-                    .queryParam("base_date", DateUtil.formatDateOnly(base))
-                    .queryParam("base_time", String.format("%02d00", base.getHour()))
-                    .queryParam("nx", nx).queryParam("ny", ny)
-                    .build().toUri();
+        for (JsonNode item : items) {
+            if (!item.path("fcstDate").asText().equals(targetDateStr)) continue;
+            int hour = Integer.parseInt(item.path("fcstTime").asText().substring(0, 2));
+            hourData.putIfAbsent(hour, new WeatherDataPoint(hour));
+            WeatherDataPoint point = hourData.get(hour);
+            String cat = item.path("category").asText();
+            String val = item.path("fcstValue").asText();
+            switch (cat) {
+                case "TMP" -> point.temperature = parseDoubleSafe(val);
+                case "SKY" -> point.sky = val;
+                case "PTY" -> point.pty = val;
+                case "POP" -> point.pop = parseDoubleSafe(val);
+                case "REH" -> point.humidity = parseDoubleSafe(val);
+                case "WSD" -> point.windSpeed = parseDoubleSafe(val);
+            }
+        }
+        return interpolateToHourly(hourData);
+    }
 
-            String responseStr = restTemplate.getForObject(uri, String.class);
-            JsonNode items = objectMapper.readTree(responseStr).path("response").path("body").path("items").path("item");
+    private List<WeatherResponseDTO.DailyForecast> parseWeeklyForecastFromItems(JsonNode items) {
+        Map<String, DailyWeatherData> dailyData = new TreeMap<>();
+        for (JsonNode item : items) {
+            String fcstDate = item.path("fcstDate").asText();
+            String fcstTime = item.path("fcstTime").asText();
+            String category = item.path("category").asText();
+            String value = item.path("fcstValue").asText();
 
-            String targetDate = DateUtil.formatDateOnly(now.plusDays(dayOffset));
-            Map<String, Map<String, String>> hourlyData = new TreeMap<>();
+            dailyData.putIfAbsent(fcstDate, new DailyWeatherData());
+            DailyWeatherData dayData = dailyData.get(fcstDate);
+            int hour = Integer.parseInt(fcstTime.substring(0, 2));
+            boolean isAm = hour < 12;
 
-            if (items.isArray()) {
-                for (JsonNode item : items) {
-                    if (!item.path("fcstDate").asText().equals(targetDate)) continue;
-                    hourlyData.computeIfAbsent(item.path("fcstTime").asText(), k -> new HashMap<>())
-                            .put(item.path("category").asText(), item.path("fcstValue").asText());
+            switch (category) {
+                case "TMP" -> {
+                    double tmp = parseDoubleSafe(value);
+                    dayData.temps.add(tmp);
+                    if (isAm) dayData.amTemp = tmp;
+                    else dayData.pmTemp = tmp;
                 }
-            }
-
-            for (Map.Entry<String, Map<String, String>> entry : hourlyData.entrySet()) {
-                String time = entry.getKey();
-                Map<String, String> v = entry.getValue();
-                result.add(WeatherResponseDTO.HourlyForecast.builder()
-                        .time(time.substring(0, 2) + ":00")
-                        .temperature(parseDoubleSafe(v.get("TMP"), 0.0))
-                        .humidity(parseDoubleSafe(v.get("REH"), 0.0))
-                        .weatherIcon(getWeatherIconFromCode(v.getOrDefault("SKY", "1"), v.getOrDefault("PTY", "0"), Integer.parseInt(time.substring(0, 2))))
-                        .build());
-            }
-        } catch (Exception e) {
-            log.warn("단기 예보 조회 실패 (offset {}): {}", dayOffset, e.getMessage());
-        }
-        return result;
-    }
-
-    // 3. 중기 예보 (3일후 ~ 7일후)
-    private List<WeatherResponseDTO.DailyForecast> getWeeklyForecastFromRegion(String regionName) {
-        List<WeatherResponseDTO.DailyForecast> result = new ArrayList<>();
-
-        String landCode = convertRegionToLandCode(regionName);
-        String tempCode = convertRegionToTempCode(regionName);
-
-        try {
-            String key = URLDecoder.decode(apiConfig.getKmaApiKey(), StandardCharsets.UTF_8);
-            LocalDateTime now = LocalDateTime.now();
-
-            String tmFc;
-            if (now.getHour() < 6) tmFc = DateUtil.formatDateOnly(now.minusDays(1)) + "1800";
-            else if (now.getHour() < 18) tmFc = DateUtil.formatDateOnly(now) + "0600";
-            else tmFc = DateUtil.formatDateOnly(now) + "1800";
-
-            URI landUri = UriComponentsBuilder.fromHttpUrl(MID_TERM_API_URL + "/getMidLandFcst")
-                    .queryParam("serviceKey", key).queryParam("dataType", "JSON")
-                    .queryParam("numOfRows", 10).queryParam("pageNo", 1)
-                    .queryParam("regId", landCode).queryParam("tmFc", tmFc)
-                    .build().toUri();
-
-            URI tempUri = UriComponentsBuilder.fromHttpUrl(MID_TERM_API_URL + "/getMidTa")
-                    .queryParam("serviceKey", key).queryParam("dataType", "JSON")
-                    .queryParam("numOfRows", 10).queryParam("pageNo", 1)
-                    .queryParam("regId", tempCode).queryParam("tmFc", tmFc)
-                    .build().toUri();
-
-            CompletableFuture<JsonNode> landFut = CompletableFuture.supplyAsync(() -> restTemplate.getForObject(landUri, JsonNode.class));
-            CompletableFuture<JsonNode> tempFut = CompletableFuture.supplyAsync(() -> restTemplate.getForObject(tempUri, JsonNode.class));
-
-            CompletableFuture.allOf(landFut, tempFut).join();
-
-            JsonNode landItem = landFut.join().path("response").path("body").path("items").path("item").get(0);
-            JsonNode tempItem = tempFut.join().path("response").path("body").path("items").path("item").get(0);
-
-            if (landItem != null && tempItem != null) {
-                // 3일 후 ~ 7일 후 데이터 파싱
-                for (int i = 3; i <= 7; i++) {
-                    LocalDateTime date = now.plusDays(i);
-                    String dateStr = DateUtil.formatDateOnly(date);
-                    String formattedDate = dateStr.substring(4, 6) + "." + dateStr.substring(6, 8);
-
-                    // [핵심] 기본 키값(taMin3)이 0이면 보조 키값(taMin3Low) 사용
-                    double min = parseDoubleSafe(tempItem.path("taMin" + i).asText(), -999.0);
-                    double max = parseDoubleSafe(tempItem.path("taMax" + i).asText(), -999.0);
-
-                    // 기본값이 0이거나 비정상(-999)일 때, 예비 데이터(Low/High) 확인
-                    if (min == -999.0 || (min == 0.0 && max == 0.0)) {
-                        // taMin3Low, taMax3High 같은 키를 사용
-                        double minLow = parseDoubleSafe(tempItem.path("taMin" + i + "Low").asText(), -999.0);
-                        double maxHigh = parseDoubleSafe(tempItem.path("taMax" + i + "High").asText(), -999.0);
-
-                        if (minLow != -999.0) min = minLow;
-                        if (maxHigh != -999.0) max = maxHigh;
-                    }
-
-                    // 그래도 없으면 0.0으로 남지만, API가 예비 데이터는 99% 줌
-
-                    result.add(WeatherResponseDTO.DailyForecast.builder()
-                            .dayOfWeek(date.getDayOfWeek().toString().substring(0, 3))
-                            .date(formattedDate)
-                            .minTemp(min)
-                            .maxTemp(max)
-                            .dayIcon(getWeatherIconFromDesc(landItem.path("wf" + i + "Pm").asText()))
-                            .nightIcon(getWeatherIconFromDesc(landItem.path("wf" + i + "Am").asText()))
-                            .build());
+                case "TMN" -> dayData.minTemp = parseDoubleSafe(value);
+                case "TMX" -> dayData.maxTemp = parseDoubleSafe(value);
+                case "SKY" -> {
+                    if (isAm) dayData.amSky = value;
+                    else dayData.pmSky = value;
                 }
+                case "PTY" -> {
+                    if (isAm) dayData.amPty = value;
+                    else dayData.pmPty = value;
+                }
+                case "POP" -> dayData.pop = Math.max(dayData.pop != null ? dayData.pop : 0, parseDoubleSafe(value));
             }
-        } catch (Exception e) {
-            log.warn("중기 예보 로드 실패: {}", e.getMessage());
         }
-        return result;
-    }
 
-    // =================================================================================
-    // [3] 유틸리티 및 헬퍼 메소드
-    // =================================================================================
-
-    private double calculateFeelsLike(double temp, double humid, double wind) {
-        if (temp <= 10.0) {
-            double vKm = wind * 3.6;
-            if (vKm < 4.8) return temp;
-            return 13.12 + 0.6215 * temp - 11.37 * Math.pow(vKm, 0.16) + 0.3965 * temp * Math.pow(vKm, 0.16);
-        } else if (temp >= 25.0) {
-            return temp + (humid - 50) * 0.1;
-        } else {
-            return temp - (wind * 0.7);
+        List<WeatherResponseDTO.DailyForecast> weekly = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = today.plusDays(i);
+            String dateKey = date.format(DateTimeFormatter.BASIC_ISO_DATE);
+            if (dailyData.containsKey(dateKey)) {
+                DailyWeatherData d = dailyData.get(dateKey);
+                if (d.minTemp == null && !d.temps.isEmpty()) d.minTemp = Collections.min(d.temps);
+                if (d.maxTemp == null && !d.temps.isEmpty()) d.maxTemp = Collections.max(d.temps);
+                weekly.add(WeatherResponseDTO.DailyForecast.builder()
+                        .date(date.format(DateTimeFormatter.ofPattern("MM/dd")))
+                        .dayOfWeek(formatDayOfWeek(date))
+                        .maxTemp(d.maxTemp != null ? d.maxTemp : 0.0).minTemp(d.minTemp != null ? d.minTemp : 0.0)
+                        .amTemp(d.amTemp != null ? d.amTemp : 0.0).pmTemp(d.pmTemp != null ? d.pmTemp : 0.0)
+                        .dayWeather(getWeatherConditionFromCode(d.pmSky, d.pmPty))
+                        .nightWeather(getWeatherConditionFromCode(d.amSky, d.amPty))
+                        .dayIcon(getWeatherIconFromCode(d.pmSky, d.pmPty, 14))
+                        .nightIcon(getWeatherIconFromCode(d.amSky, d.amPty, 8))
+                        .precipitationProbability(d.pop != null ? d.pop : 0.0).build());
+            }
         }
+        return weekly;
     }
 
-    private WeatherResponseDTO.DailyForecast summarizeDaily(List<WeatherResponseDTO.HourlyForecast> hourly, int dayOffset) {
-        LocalDateTime date = LocalDateTime.now().plusDays(dayOffset);
-        String dateStr = DateUtil.formatDateOnly(date);
-        String formattedDate = dateStr.substring(4, 6) + "." + dateStr.substring(6, 8);
-
-        if (hourly == null || hourly.isEmpty()) {
-            return WeatherResponseDTO.DailyForecast.builder()
-                    .dayOfWeek(date.getDayOfWeek().toString().substring(0, 3))
-                    .date(formattedDate)
-                    .maxTemp(0.0).minTemp(0.0).build();
-        }
-        double max = hourly.stream().mapToDouble(WeatherResponseDTO.HourlyForecast::getTemperature).max().orElse(0.0);
-        double min = hourly.stream().mapToDouble(WeatherResponseDTO.HourlyForecast::getTemperature).min().orElse(0.0);
-        String icon = hourly.stream()
-                .filter(h -> h.getTime().startsWith("12") || h.getTime().startsWith("14"))
-                .findFirst().map(WeatherResponseDTO.HourlyForecast::getWeatherIcon).orElse("fas fa-sun");
-
-        return WeatherResponseDTO.DailyForecast.builder()
-                .dayOfWeek(date.getDayOfWeek().toString().substring(0, 3))
-                .date(formattedDate)
-                .maxTemp(max).minTemp(min)
-                .dayIcon(icon).nightIcon(icon).build();
+    private Map<String, String> getGridCoordinatesCached(String regionCode) {
+        return GRID_CACHE.computeIfAbsent(regionCode, this::getGridCoordinates);
     }
 
-    private Map<String, String> convertGpsToGrid(double lat, double lng) {
-        Map<String, String> grid = new HashMap<>();
-        if (lat >= 37.1 && lat <= 37.6 && lng >= 131.5 && lng <= 132.5) {
-            grid.put("nx", "144");
-            grid.put("ny", "123");
-            return grid;
-        }
-        if (lat >= 33.0 && lat <= 34.5 && lng >= 126.0 && lng <= 127.0) {
-            grid.put("nx", "52");
-            grid.put("ny", "38");
-            return grid;
-        }
-        double RE = 6371.00877, GRID = 5.0, SLAT1 = 30.0, SLAT2 = 60.0, OLON = 126.0, OLAT = 38.0, XO = 43, YO = 136;
-        double DEGRAD = Math.PI / 180.0;
-        double re = RE / GRID;
-        double slat1 = SLAT1 * DEGRAD, slat2 = SLAT2 * DEGRAD, olon = OLON * DEGRAD, olat = OLAT * DEGRAD;
-        double sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
-        sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
-        double sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
-        sf = Math.pow(sf, sn) * Math.cos(slat1) / sn;
-        double ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
-        ro = re * sf / Math.pow(ro, sn);
-        double ra = Math.tan(Math.PI * 0.25 + (lat) * DEGRAD * 0.5);
-        ra = re * sf / Math.pow(ra, sn);
-        double theta = lng * DEGRAD - olon;
-        if (theta > Math.PI) theta -= 2.0 * Math.PI;
-        if (theta < -Math.PI) theta += 2.0 * Math.PI;
-        theta *= sn;
-        int nx = (int) Math.floor(ra * Math.sin(theta) + XO + 0.5);
-        int ny = (int) Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
-        grid.put("nx", String.valueOf(nx));
-        grid.put("ny", String.valueOf(ny));
-        return grid;
+    private String getRegionNameCached(String regionCode) {
+        return REGION_NAME_CACHE.computeIfAbsent(regionCode, this::getRegionNameFromCode);
     }
 
-    private Map<String, String> getGridCoordinates(String regionCode) {
-        Map<String, String> c = new HashMap<>();
-        if (regionCode.startsWith("4794")) {
-            c.put("nx", "144");
-            c.put("ny", "123");
-        } else if (regionCode.startsWith("50")) {
-            c.put("nx", "52");
-            c.put("ny", "38");
-        } else if (regionCode.startsWith("26")) {
-            c.put("nx", "98");
-            c.put("ny", "76");
-        } else if (regionCode.startsWith("27")) {
-            c.put("nx", "89");
-            c.put("ny", "90");
-        } else if (regionCode.startsWith("29")) {
-            c.put("nx", "58");
-            c.put("ny", "74");
-        } else if (regionCode.startsWith("30")) {
-            c.put("nx", "67");
-            c.put("ny", "100");
-        } else {
-            c.put("nx", "60");
-            c.put("ny", "127");
-        }
-        return c;
+    private String getBaseTimeForCurrent(LocalDateTime now) {
+        int h = now.getHour(), m = now.getMinute();
+        if (m < 40) h--;
+        if (h < 0) h = 23;
+        return String.format("%02d00", h);
     }
 
-    private String convertRegionToLandCode(String name) {
-        if (name == null) return "11B00000";
-        if (name.contains("강원")) {
-            if (name.contains("영동")) return "11D20000";
-            return "11D10000";
-        }
-        if (name.contains("대전") || name.contains("세종") || name.contains("충남")) return "11C20000";
-        if (name.contains("충북")) return "11C10000";
-        if (name.contains("광주") || name.contains("전남")) return "11F20000";
-        if (name.contains("전북")) return "11F10000";
-        if (name.contains("대구") || name.contains("경북")) return "11H10000";
-        if (name.contains("부산") || name.contains("울산") || name.contains("경남")) return "11H20000";
-        if (name.contains("제주")) return "11G00000";
-        return "11B00000";
+    private String getBaseTimeForShortTerm(LocalDateTime now) {
+        int h = now.getHour();
+        int[] t = {2, 5, 8, 11, 14, 17, 20, 23};
+        for (int i = t.length - 1; i >= 0; i--) if (h >= t[i]) return String.format("%02d00", t[i]);
+        return "2300";
     }
 
-    private String convertRegionToTempCode(String name) {
-        if (name == null) return "11B10101";
-        if (name.contains("인천")) return "11B20201";
-        if (name.contains("수원") || name.contains("경기")) return "11B20601";
-        if (name.contains("강릉")) return "11D20501";
-        if (name.contains("춘천") || name.contains("강원")) return "11D10301";
-        if (name.contains("대전")) return "11C20401";
-        if (name.contains("청주") || name.contains("충북")) return "11C10301";
-        if (name.contains("광주")) return "11F20501";
-        if (name.contains("전주") || name.contains("전북")) return "11F10201";
-        if (name.contains("대구")) return "11H10701";
-        if (name.contains("부산")) return "11H20201";
-        if (name.contains("울산")) return "11H20101";
-        if (name.contains("제주")) return "11G00201";
-        return "11B10101";
-    }
-
-    private String findRegionCodeByName(String name) {
-        if (name == null) return "1100000000";
-        if (name.contains("제주")) return "5000000000";
-        if (name.contains("독도")) return "4794000000";
-        if (name.contains("부산")) return "2600000000";
-        if (name.contains("대구")) return "2700000000";
-        if (name.contains("광주")) return "2900000000";
-        if (name.contains("대전")) return "3000000000";
-        return "1100000000";
-    }
-
-    private String findRegionNameFromGps(double lat, double lng) {
-        if (lat >= 37.1 && lat <= 37.6 && lng >= 131.5 && lng <= 132.5) return "독도";
-        if (lat >= 33.0 && lat <= 34.5 && lng >= 126.0 && lng <= 127.0) return "제주특별자치도";
-        return "현 위치";
-    }
-
-    private String getRegionNameCached(String r) {
-        if (r.startsWith("50")) return "제주특별자치도";
-        if (r.startsWith("4794")) return "독도";
-        if (r.startsWith("26")) return "부산광역시";
-        if (r.startsWith("27")) return "대구광역시";
-        if (r.startsWith("29")) return "광주광역시";
-        if (r.startsWith("30")) return "대전광역시";
-        return "서울특별시";
-    }
-
-    private WeatherResponseDTO createFallbackWeatherData(String r, boolean l) {
-        return WeatherResponseDTO.builder().regionName(r).isMock(true).build();
-    }
-
-    private double parseDoubleSafe(String v, double d) {
-        try {
-            return Double.parseDouble(v);
-        } catch (Exception e) {
-            return d;
-        }
+    private double calculateFeelsLike(double t, double h, double w) {
+        if (t >= 26) return t + 0.1 * h;
+        if (t <= 10) return 13.12 + 0.6215 * t - 11.37 * Math.pow(w, 0.16) + 0.3965 * t * Math.pow(w, 0.16);
+        return t;
     }
 
     private String getWeatherConditionFromCode(String s, String p) {
         if ("1".equals(p)) return "비";
         if (!"0".equals(p)) return "눈/비";
         if ("1".equals(s)) return "맑음";
+        if ("3".equals(s)) return "구름많음";
         return "흐림";
     }
 
@@ -492,26 +437,189 @@ public class WeatherApiService {
         return "fas fa-cloud";
     }
 
-    private String getWeatherIconFromDesc(String d) {
-        if (d.contains("맑음")) return "fas fa-sun";
-        if (d.contains("비")) return "fas fa-umbrella";
-        return "fas fa-cloud";
+    private String formatHourToKorean(int h) {
+        return h < 12 ? "오전 " + (h == 0 ? 12 : h) + "시" : "오후 " + (h == 12 ? 12 : h - 12) + "시";
     }
 
-    private WeatherResponseDTO.WeatherSummary createWeatherSummary(WeatherResponseDTO.CurrentWeather c, List<WeatherResponseDTO.HourlyForecast> t, List<WeatherResponseDTO.HourlyForecast> tm, List<WeatherResponseDTO.DailyForecast> m) {
-        String u = "현재 기온 " + Math.round(c.getTemperature()) + "도";
-        double tMax = t.stream().mapToDouble(WeatherResponseDTO.HourlyForecast::getTemperature).max().orElse(0.0);
-        double tmMax = tm.stream().mapToDouble(WeatherResponseDTO.HourlyForecast::getTemperature).max().orElse(0.0);
-        String s = "오늘 최고 " + Math.round(tMax) + "도, 내일 최고 " + Math.round(tmMax) + "도";
-        String mTxt = (m != null && !m.isEmpty()) ? "주간 기온 " + Math.round(m.get(0).getMinTemp()) + "~" + Math.round(m.get(0).getMaxTemp()) + "도" : "정보 없음";
-        return WeatherResponseDTO.WeatherSummary.builder().ultraShortSummary(u).shortSummary(s).midSummary(mTxt).build();
+    private String formatDayOfWeek(LocalDate d) {
+        String[] w = {"일", "월", "화", "수", "목", "금", "토"};
+        return w[d.getDayOfWeek().getValue() % 7];
     }
 
-    private LocalDateTime getSafeBaseDateTimeForForecast(LocalDateTime now) {
-        int h = now.getHour();
-        if (h < 2 || (h == 2 && now.getMinute() < 10)) return now.minusDays(1).withHour(23).withMinute(0);
-        int[] times = {2, 5, 8, 11, 14, 17, 20, 23};
-        for (int i = times.length - 1; i >= 0; i--) if (h >= times[i]) return now.withHour(times[i]).withMinute(0);
-        return now.withHour(2).withMinute(0);
+    private double parseDoubleSafe(String v) {
+        return parseDoubleSafe(v, 0.0);
+    }
+
+    private double parseDoubleSafe(String v, double d) {
+        try {
+            return v == null ? d : Double.parseDouble(v);
+        } catch (Exception e) {
+            return d;
+        }
+    }
+
+    private List<WeatherResponseDTO.HourlyForecast> interpolateToHourly(Map<Integer, WeatherDataPoint> map) {
+        List<WeatherResponseDTO.HourlyForecast> list = new ArrayList<>();
+        List<Integer> hours = new ArrayList<>(map.keySet());
+        if (hours.size() < 2) return list;
+        for (int i = 0; i < hours.size() - 1; i++) {
+            int start = hours.get(i), end = hours.get(i + 1);
+            WeatherDataPoint sp = map.get(start), ep = map.get(end);
+            for (int h = start; h < end; h++) {
+                double r = (double) (h - start) / (end - start);
+                list.add(WeatherResponseDTO.HourlyForecast.builder()
+                        .time(formatHourToKorean(h)).temperature(interpolate(sp.temperature, ep.temperature, r))
+                        .weatherCondition(getWeatherConditionFromCode(r < 0.5 ? sp.sky : ep.sky, r < 0.5 ? sp.pty : ep.pty))
+                        .weatherIcon(getWeatherIconFromCode(r < 0.5 ? sp.sky : ep.sky, r < 0.5 ? sp.pty : ep.pty, h))
+                        .precipitationProbability(interpolate(sp.pop, ep.pop, r)).humidity(interpolate(sp.humidity, ep.humidity, r))
+                        .windSpeed(interpolate(sp.windSpeed, ep.windSpeed, r)).build());
+            }
+        }
+        return list;
+    }
+
+    private double interpolate(Double s, Double e, double r) {
+        return (s == null ? 20.0 : s) + ((e == null ? 20.0 : e) - (s == null ? 20.0 : s)) * r;
+    }
+
+    private WeatherResponseDTO.WeatherSummary createWeatherSummary(List<WeatherResponseDTO.HourlyForecast> h, List<WeatherResponseDTO.HourlyForecast> t, List<WeatherResponseDTO.DailyForecast> w) {
+        return WeatherResponseDTO.WeatherSummary.builder().ultraShortSummary("오늘 날씨 정보입니다.").shortSummary("내일 예보입니다.").midSummary("주간 예보입니다.").build();
+    }
+
+    private WeatherResponseDTO createFallbackWeatherData(String regionCode, boolean liteMode) {
+        WeatherResponseDTO response = WeatherResponseDTO.builder()
+                .regionName(getRegionNameCached(regionCode)).regionCode(regionCode)
+                .currentTime(DateUtil.getCurrentFormattedDateTime()).current(createDefaultCurrentWeather())
+                .isMock(true).warning(new WeatherResponseDTO.WeatherWarning(true, "데이터 지연", "임시 데이터를 표시합니다.", "caution"))
+                .build();
+        return liteMode ? WeatherResponseDTO.createLiteVersion(response) : response;
+    }
+
+    private WeatherResponseDTO.CurrentWeather createDefaultCurrentWeather() {
+        return WeatherResponseDTO.CurrentWeather.builder().temperature(20.0).feelsLike(20.0).humidity(50.0).windSpeed(2.0).weatherCondition("맑음").weatherIcon("fas fa-sun").updateTime(LocalDateTime.now()).build();
+    }
+
+    private List<WeatherResponseDTO.HourlyForecast> createDefaultHourlyForecast24h(int d) {
+        return new ArrayList<>();
+    }
+
+    private List<WeatherResponseDTO.DailyForecast> createDefaultWeeklyForecastWithAmPm() {
+        return new ArrayList<>();
+    }
+
+    private Map<String, String> getGridCoordinates(String regionCode) {
+        Map<String, String> coords = new HashMap<>();
+        switch (regionCode) {
+            case "1100000000":
+                coords.put("nx", "60");
+                coords.put("ny", "127");
+                break; // 서울
+            case "2600000000":
+                coords.put("nx", "98");
+                coords.put("ny", "76");
+                break; // 부산
+            case "2700000000":
+                coords.put("nx", "89");
+                coords.put("ny", "90");
+                break; // 대구
+            case "2800000000":
+                coords.put("nx", "55");
+                coords.put("ny", "124");
+                break; // 인천
+            case "2900000000":
+                coords.put("nx", "58");
+                coords.put("ny", "74");
+                break; // 광주
+            case "3000000000":
+                coords.put("nx", "67");
+                coords.put("ny", "100");
+                break; // 대전
+            case "3100000000":
+                coords.put("nx", "102");
+                coords.put("ny", "84");
+                break; // 울산
+            case "3600000000":
+                coords.put("nx", "66");
+                coords.put("ny", "103");
+                break; // 세종
+            case "5000000000":
+                coords.put("nx", "52");
+                coords.put("ny", "38");
+                break; // 제주
+            case "4100000000":
+                coords.put("nx", "60");
+                coords.put("ny", "120");
+                break; // 경기
+            case "4200000000":
+                coords.put("nx", "73");
+                coords.put("ny", "134");
+                break; // 강원
+            case "4300000000":
+                coords.put("nx", "69");
+                coords.put("ny", "107");
+                break; // 충북
+            case "4400000000":
+                coords.put("nx", "68");
+                coords.put("ny", "100");
+                break; // 충남
+            case "4500000000":
+                coords.put("nx", "63");
+                coords.put("ny", "89");
+                break; // 전북
+            case "4600000000":
+                coords.put("nx", "51");
+                coords.put("ny", "67");
+                break; // 전남
+            case "4700000000":
+                coords.put("nx", "87");
+                coords.put("ny", "106");
+                break; // 경북
+            case "4800000000":
+                coords.put("nx", "91");
+                coords.put("ny", "77");
+                break; // 경남
+            default:
+                coords.put("nx", "60");
+                coords.put("ny", "127");
+        }
+        return coords;
+    }
+
+    private String getRegionNameFromCode(String r) {
+        Map<String, String> m = new HashMap<>();
+        m.put("1100000000", "서울특별시");
+        m.put("2600000000", "부산광역시");
+        m.put("2700000000", "대구광역시");
+        m.put("2800000000", "인천광역시");
+        m.put("2900000000", "광주광역시");
+        m.put("3000000000", "대전광역시");
+        m.put("3100000000", "울산광역시");
+        m.put("3600000000", "세종특별자치시"); // ⭐ 세종 추가
+        m.put("5000000000", "제주특별자치도");
+        m.put("4100000000", "경기도");
+        m.put("4200000000", "강원도");
+        m.put("4300000000", "충청북도");
+        m.put("4400000000", "충청남도");
+        m.put("4500000000", "전라북도");
+        m.put("4600000000", "전라남도");
+        m.put("4700000000", "경상북도");
+        m.put("4800000000", "경상남도");
+        return m.getOrDefault(r, "대한민국");
+    }
+
+    private static class WeatherDataPoint {
+        int hour;
+        Double temperature = 20.0, pop = 0.0, humidity = 50.0, windSpeed = 2.5;
+        String sky = "1", pty = "0";
+
+        WeatherDataPoint(int h) {
+            this.hour = h;
+        }
+    }
+
+    private static class DailyWeatherData {
+        Double maxTemp, minTemp, amTemp, pmTemp, pop;
+        String amSky = "1", pmSky = "1", amPty = "0", pmPty = "0";
+        List<Double> temps = new ArrayList<>();
     }
 }

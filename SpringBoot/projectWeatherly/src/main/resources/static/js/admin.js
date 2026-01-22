@@ -1,65 +1,135 @@
 /**
- * admin.js
+ * admin.js (v5 - Dark Mode Fix)
  * 관리자 페이지 전용 스크립트
  */
 
-// ★ 1. [변경됨] 회원 정지 (기간 입력)
-function suspendUser(memberId) {
-    // 1. 관리자에게 기간 입력받기
-    const input = prompt("정지할 기간(일수)을 입력하세요.\n(예: 3, 7, 30)\n※ '0' 입력 시 정지가 해제됩니다.");
+const swalCustom = Swal.mixin({
+    customClass: {
+        popup: 'swal-custom-popup',
+        confirmButton: 'btn-xs danger',
+        cancelButton: 'action-btn-outline'
+    },
+    buttonsStyling: true
+});
 
-    // 취소 버튼 누른 경우
-    if (input === null) return;
+function getCsrfHeader() {
+    const tokenMeta = document.querySelector('meta[name="_csrf"]');
+    const headerMeta = document.querySelector('meta[name="_csrf_header"]');
 
-    const days = parseInt(input);
-
-    // 숫자가 아닌 경우 체크
-    if (isNaN(days)) {
-        alert("올바른 숫자를 입력해주세요.");
-        return;
-    }
-
-    // 안내 메시지 설정
-    let confirmMsg = "";
-    if (days > 0) {
-        confirmMsg = `해당 회원을 ${days}일간 정지하시겠습니까?`;
-    } else {
-        confirmMsg = "해당 회원의 정지를 해제하시겠습니까?";
-    }
-
-    if (!confirm(confirmMsg)) return;
-
-    // 2. 서버로 전송 (/admin/... 경로 사용)
-    fetch(`/admin/members/${memberId}/suspend?days=${days}`, {
-        method: 'POST'
-    })
-        .then(response => {
-            if (response.ok) {
-                alert("처리가 완료되었습니다.");
-                window.location.reload(); // 새로고침
-            } else {
-                alert("처리 중 오류가 발생했습니다.");
-            }
-        })
-        .catch(error => console.error('Error:', error));
+    if (!tokenMeta || !headerMeta) return null;
+    return {
+        token: tokenMeta.getAttribute('content'),
+        header: headerMeta.getAttribute('content')
+    };
 }
 
+// ★ [수정] 돋보기 팝업 (다크모드 대응 추가)
+function viewDetails(btn) {
+    const reason = btn.getAttribute('data-reason');
+    const details = btn.getAttribute('data-details');
+    const formattedDetails = details ? details.replace(/\n/g, '<br>') : '상세 내용이 없습니다.';
 
-// 2. 신고 처리 (기존 유지)
+    // 1. 현재 다크모드인지 확인 (body 태그에 클래스가 있는지)
+    const isDark = document.body.classList.contains('dark-mode');
+
+    // 2. 모드에 따라 글자색/배경색 결정
+    const textColor = isDark ? '#dfe6e9' : '#444444'; // 다크모드면 밝은 회색, 아니면 진한 회색
+    const bgColor = isDark ? '#2d3436' : '#ffffff';   // 팝업 배경색도 같이 맞춰줌
+
+    Swal.fire({
+        title: `신고 사유: ${reason}`,
+        background: bgColor, // 배경색 적용
+        color: textColor,    // 제목 글자색 적용
+        html: `<div style="text-align: left; font-size: 0.9rem; line-height: 1.6; color: ${textColor}; max-height: 300px; overflow-y: auto;">
+                ${formattedDetails}
+               </div>`,
+        showConfirmButton: true,
+        confirmButtonText: '확인',
+        confirmButtonColor: '#6c5ce7',
+        width: '500px'
+    });
+}
+
+// 1. 회원 정지
+function suspendUser(memberId) {
+    // 다크모드 확인
+    const isDark = document.body.classList.contains('dark-mode');
+    const bgColor = isDark ? '#2d3436' : '#ffffff';
+    const textColor = isDark ? '#dfe6e9' : '#444444';
+
+    Swal.fire({
+        title: '회원 제재 관리',
+        text: "정지할 기간(일수)을 입력하세요.",
+        background: bgColor,
+        color: textColor,
+        input: 'number',
+        inputValue: 0,
+        inputPlaceholder: "0 입력 시 해제",
+        showCancelButton: true,
+        confirmButtonText: '확인',
+        cancelButtonText: '취소',
+        confirmButtonColor: '#ef4444'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const days = parseInt(result.value);
+            const csrf = getCsrfHeader();
+            const headers = {};
+            if (csrf) headers[csrf.header] = csrf.token;
+
+            fetch(`/admin/members/${memberId}/suspend?days=${days}`, {
+                method: 'POST',
+                headers: headers,
+                credentials: 'include'
+            }).then(res => {
+                if(res.ok) Swal.fire('완료', '처리되었습니다.', 'success').then(() => location.reload());
+                else Swal.fire('실패', '오류 발생', 'error');
+            });
+        }
+    });
+}
+
+// 2. 신고 처리
 function resolveReport(reportId) {
-    if (!confirm('이 신고를 처리 완료(RESOLVED) 상태로 변경하시겠습니까?')) return;
+    // 다크모드 확인
+    const isDark = document.body.classList.contains('dark-mode');
+    const bgColor = isDark ? '#2d3436' : '#ffffff';
+    const textColor = isDark ? '#dfe6e9' : '#444444';
 
-    // [수정] 경로에서 /api 제거 (Controller 매핑에 맞춤)
-    fetch(`/admin/reports/${reportId}/process?status=RESOLVED`, {
-        method: 'POST'
-    })
-        .then(response => {
-            if (response.ok) {
-                alert('신고 처리가 완료되었습니다.');
-                window.location.reload();
-            } else {
-                alert('처리 실패');
-            }
-        })
-        .catch(error => console.error('Error:', error));
+    Swal.fire({
+        title: '신고 처리 및 제재',
+        background: bgColor,
+        color: textColor,
+        input: 'select',
+        inputOptions: {
+            '0': '단순 삭제',
+            '1': '1일 정지 + 삭제',
+            '3': '3일 정지 + 삭제',
+            '7': '7일 정지 + 삭제',
+            '30': '30일 정지 + 삭제',
+            '36500': '영구 정지'
+        },
+        inputValue: '0',
+        showCancelButton: true,
+        confirmButtonText: '처리하기',
+        confirmButtonColor: '#ef4444'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const banDays = result.value;
+            const csrf = getCsrfHeader();
+            const headers = {};
+            if (csrf) headers[csrf.header] = csrf.token;
+
+            fetch(`/api/admin/reports/${reportId}/process?banDays=${banDays}`, {
+                method: 'POST',
+                headers: headers,
+                credentials: 'include'
+            }).then(async response => {
+                if (response.ok) {
+                    Swal.fire('성공', '처리되었습니다.', 'success').then(() => window.location.reload());
+                } else {
+                    Swal.fire('실패', `서버 오류 (코드: ${response.status})`, 'error');
+                }
+            });
+        }
+    });
 }

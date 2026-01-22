@@ -47,7 +47,7 @@ public class MyPageController {
     @Operation(summary = "마이페이지 메인", description = "마이페이지 메인을 표시합니다.")
     public String getMyInfo(
             @AuthenticationPrincipal UserSecurityDTO user, // [변경] UserDetails -> UserSecurityDTO
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") Integer page,
             Model model,
             HttpServletRequest request) {
 
@@ -67,7 +67,10 @@ public class MyPageController {
             MyPageResponse memberResponse = myPageService.getMyPageInfo(email, page);
 
             model.addAttribute("myPage", memberResponse);
-
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPosts", memberResponse.getMyCommunityPosts().getTotalPages());
+            model.addAttribute("totalReports",memberResponse.getMyReports().getTotalPages());
+            model.addAttribute("totalComments",memberResponse.getMyComments().getTotalPages());
             // 폼 바인딩용 빈 객체들 추가
             if (!model.containsAttribute("passwordRequest")) {
                 model.addAttribute("passwordRequest", new UpdatePasswordRequest());
@@ -116,7 +119,21 @@ public class MyPageController {
                 }
             }
 
+            // 1. DB 업데이트 (기존 코드)
             myPageService.updateMemberForMyPage(email, request);
+
+            // ============================================================
+            // [추가] 2. 로그인된 세션 정보(헤더 표시용) 즉시 업데이트
+            // ============================================================
+            // 닉네임 변경 반영
+            user.getUser().setNickname(request.getNickname());
+
+            // 프로필 이미지 변경 반영 (이미지가 있을 경우에만)
+            if (request.getProfileImage() != null) {
+                user.getUser().setProfileImage(request.getProfileImage());
+            }
+            // ============================================================
+
             redirectAttributes.addFlashAttribute("message", "프로필이 수정되었습니다.");
 
         } catch (Exception e) {

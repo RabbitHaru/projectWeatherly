@@ -2,6 +2,8 @@ package me.shinsunyoung.projectweatherly.member.dto.response;
 
 import lombok.*;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Report;
+import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
+import me.shinsunyoung.projectweatherly.board.domain.enums.BoardStatus;
 
 import java.time.format.DateTimeFormatter;
 
@@ -12,48 +14,60 @@ import java.time.format.DateTimeFormatter;
 @Builder
 public class ReportResponse {
     private Long id;
-    private String type;          // "게시글" 또는 "댓글"
+    private String type;
+    private Long targetId;
+    private String reporterName;
+    private String rawStatus;
+    private String targetContent;
+    private String reason;
+    private String status;
+    private String statusClass;
+    private String createdAt;
 
-    // ★ [핵심] 이 3개 필드가 없으면 화면이 하얗게 변합니다!
-    private Long targetId;        // 신고 대상 ID (링크용)
-    private String reporterName;  // 신고자 닉네임 (화면 표시용)
-    private String rawStatus;     // 상태 원본 (PENDING 등 - 버튼 로직용)
-
-    private String targetContent; // 내용 요약
-    private String reason;        // 신고 사유 (한글)
-    private String status;        // 상태 (한글)
-    private String statusClass;   // CSS 클래스
-    private String createdAt;     // 작성일
+    // ★ [필수] 이 필드들이 없으면 HTML 에러 발생
+    private String processedAt;
+    private boolean isDeleted;
+    private String penaltyDetail;
+    private String details;
 
     public static ReportResponse from(Report report) {
-        // 1. 내용 요약
-        String content = "삭제된 항목입니다.";
+        String content = "내용 없음";
+        Long linkId = null;
+        boolean deleted = false;
+
         if (report.getType() != null) {
             String t = report.getType().toUpperCase();
             if (("POST".equals(t) || "게시글".equals(t)) && report.getTargetBoard() != null) {
-                content = report.getTargetBoard().getTitle();
-            } else if (("COMMENT".equals(t) || "댓글".equals(t)) && report.getTargetComment() != null) {
+                Board b = report.getTargetBoard();
+                content = b.getTitle();
+                linkId = b.getId();
+                deleted = (b.getBoardStatus() == BoardStatus.DELETED);
+            }
+            else if (("COMMENT".equals(t) || "댓글".equals(t)) && report.getTargetComment() != null) {
                 content = report.getTargetComment().getContent();
+                if (report.getTargetComment().getBoard() != null) {
+                    Board b = report.getTargetComment().getBoard();
+                    linkId = b.getId();
+                    deleted = (b.getBoardStatus() == BoardStatus.DELETED);
+                }
             }
         }
+
         if (content != null && content.length() > 20) content = content.substring(0, 20) + "...";
 
-        // 2. 사유 변환 (other -> 기타 사유)
         String reasonDisplay = report.getReason();
         if (reasonDisplay != null) {
-            String r = reasonDisplay.trim(); // 공백 제거
-            if ("spam".equalsIgnoreCase(r)) reasonDisplay = "스팸/광고";
-            else if ("abuse".equalsIgnoreCase(r)) reasonDisplay = "욕설/비하";
-            else if ("illegal".equalsIgnoreCase(r)) reasonDisplay = "불법 정보";
-            else if ("other".equalsIgnoreCase(r)) reasonDisplay = "기타 사유"; // ★ 여기가 있어야 한글로 나옵니다
+            if ("spam".equalsIgnoreCase(reasonDisplay)) reasonDisplay = "스팸/광고";
+            else if ("abuse".equalsIgnoreCase(reasonDisplay)) reasonDisplay = "욕설/비하";
+            else if ("illegal".equalsIgnoreCase(reasonDisplay)) reasonDisplay = "불법 정보";
+            else if ("other".equalsIgnoreCase(reasonDisplay)) reasonDisplay = "기타 사유";
         }
 
-        // 3. 상태 변환
         String statusStr = report.getStatus() != null ? report.getStatus().toString() : "PENDING";
         String statusDisplay = "대기중";
         String cssClass = "status-pending";
 
-        if ("COMPLETED".equals(statusStr) || "RESOLVED".equals(statusStr)) {
+        if ("RESOLVED".equals(statusStr) || "ACCEPTED".equals(statusStr) || "COMPLETED".equals(statusStr)) {
             statusDisplay = "처리완료";
             cssClass = "status-completed";
         } else if ("REJECTED".equals(statusStr)) {
@@ -61,20 +75,43 @@ public class ReportResponse {
             cssClass = "status-rejected";
         }
 
-        // 4. 신고자 이름 안전하게 가져오기
+        String pAt = report.getProcessedAt() != null ?
+                report.getProcessedAt().format(DateTimeFormatter.ofPattern("MM-dd HH:mm")) : "-";
+
         String rName = (report.getReporter() != null) ? report.getReporter().getNickname() : "알 수 없음";
+
+        // 제재 내용 추출 로직
+        String penalty = "-";
+        String fullDetails = report.getDetails();
+        if (fullDetails != null && fullDetails.contains("제재: ")) {
+            try {
+                int start = fullDetails.indexOf("제재: ");
+                int end = fullDetails.indexOf(",", start);
+                if (end == -1) end = fullDetails.indexOf("\n", start);
+                if (end == -1) end = fullDetails.length();
+                penalty = fullDetails.substring(start, end).replace("제재: ", "").trim();
+            } catch (Exception e) {
+                penalty = "확인 필요";
+            }
+        } else if ("RESOLVED".equals(statusStr)) {
+            penalty = "조치됨";
+        }
 
         return ReportResponse.builder()
                 .id(report.getId())
                 .type("post".equalsIgnoreCase(report.getType()) ? "게시글" : "댓글")
-                .targetId(report.getTargetId())
+                .targetId(linkId)
                 .targetContent(content)
-                .reporterName(rName)   // ★ DTO에 담기
+                .reporterName(rName)
                 .reason(reasonDisplay)
                 .status(statusDisplay)
-                .rawStatus(statusStr)  // ★ DTO에 담기
+                .rawStatus(statusStr)
                 .statusClass(cssClass)
                 .createdAt(report.getCreatedAt().format(DateTimeFormatter.ofPattern("MM-dd")))
+                .processedAt(pAt)
+                .isDeleted(deleted)
+                .penaltyDetail(penalty) // ★ 필드 채우기
+                .details(report.getDetails() != null ? report.getDetails() : "") // ★ null 방지
                 .build();
     }
 }

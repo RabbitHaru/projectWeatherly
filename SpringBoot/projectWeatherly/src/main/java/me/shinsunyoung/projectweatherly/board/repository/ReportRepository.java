@@ -14,6 +14,16 @@ import java.util.List;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
+
+
+
+    // 대기 중인 신고 조회
+    Page<Report> findByStatusOrderByCreatedAtDesc(ReportStatus status, Pageable pageable);
+
+    // ★ [추가] 처리된 신고 내역 조회 (PENDING이 아닌 것들 = 처리된 것들)
+    @Query("SELECT r FROM Report r WHERE r.status <> :status ORDER BY r.processedAt DESC, r.createdAt DESC")
+    Page<Report> findByStatusNotOrderByProcessedAtDesc(@Param("status") ReportStatus status, Pageable pageable);
+
     // 1. 중복 신고 체크
     @Query("SELECT COUNT(r) > 0 FROM Report r WHERE r.reporter.id = :reporterId AND r.type = :type AND r.targetId = :targetId")
     boolean existsByReporterIdAndTypeAndTargetId(
@@ -23,7 +33,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     // 2. 특정 사용자가 신고한 목록
     List<Report> findByReporterIdOrderByCreatedAtDesc(Long reporterId);
-
+    Page<Report> findByReporterIdOrderByCreatedAtDesc(Long reporterId, Pageable pageable);
     // 3. 특정 게시글에 대한 신고 여부 확인
     @Query("SELECT COUNT(r) > 0 FROM Report r WHERE r.reporter.id = :reporterId AND r.type = 'post' AND r.targetId = :boardId")
     boolean existsByReporterIdAndBoardId(
