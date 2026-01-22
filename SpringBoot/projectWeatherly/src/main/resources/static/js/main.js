@@ -30,7 +30,12 @@ window.changeDashboardLocation = async function (lat, lng, name) {
     const locationTitle = document.getElementById('current-location');
     if (locationTitle) locationTitle.innerText = `${name}로 이동 중...`;
 
-    // 2. 해당 좌표로 날씨 데이터 새로고침 (이때 특보 정보도 같이 받아옴)
+    if (kakaoMap) {
+        const moveLatLon = new kakao.maps.LatLng(lat, lng);
+
+        kakaoMap.panTo(moveLatLon);
+    }
+    // 2. 해당 좌표로 날씨 데이터 새로고침
     await loadWeatherDataByGPS(lat, lng, name);
 
     window.scrollTo({top: 0, behavior: 'smooth'});
@@ -80,24 +85,26 @@ async function loadRegionalWeatherData() {
 
     // [수정] 17개 전체 행정구역 정의 (독도 포함 시 18개)
     const regions = [
-        {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780},
-        {name: '부산', code: '2600000000', lat: 35.1796, lng: 129.0756},
-        {name: '대구', code: '2700000000', lat: 35.8714, lng: 128.6014},
-        {name: '인천', code: '2800000000', lat: 37.4563, lng: 126.7052},
-        {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526},
-        {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845},
-        {name: '울산', code: '3100000000', lat: 35.5384, lng: 129.3114},
-        {name: '세종', code: '3600000000', lat: 36.4800, lng: 127.2890}, // 세종 추가
-        {name: '경기', code: '4100000000', lat: 37.4138, lng: 127.5183},
-        {name: '강원', code: '4200000000', lat: 37.8228, lng: 128.1555},
-        {name: '충북', code: '4300000000', lat: 36.6350, lng: 127.4914},
-        {name: '충남', code: '4400000000', lat: 36.6588, lng: 126.6728},
-        {name: '전북', code: '4500000000', lat: 35.7175, lng: 127.1530},
-        {name: '전남', code: '4600000000', lat: 34.8163, lng: 126.4629},
-        {name: '경북', code: '4700000000', lat: 36.5760, lng: 128.5056},
-        {name: '경남', code: '4800000000', lat: 35.2383, lng: 128.6924},
-        {name: '제주', code: '5000000000', lat: 33.4996, lng: 126.5312},
-        {name: '독도', code: '', lat: 37.2429, lng: 131.8669} // 독도는 서비스 차원에서 유지 (필요 없으면 삭제)
+        // [지도 O] 주요 거점 도시 (지도에 표시됨)
+        {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780, showOnMap: true},
+        {name: '부산', code: '2600000000', lat: 35.1796, lng: 129.0756, showOnMap: true},
+        {name: '대구', code: '2700000000', lat: 35.8714, lng: 128.6014, showOnMap: true}, // 필요시 false로 꺼도 됨
+        {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526, showOnMap: true},
+        {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845, showOnMap: true},
+        {name: '강원', code: '4200000000', lat: 37.8228, lng: 128.1555, showOnMap: true},
+        {name: '제주', code: '5000000000', lat: 33.4996, lng: 126.5312, showOnMap: true},
+
+        // [지도 X] 사이드바 목록에는 나오지만 지도에서는 숨김 (겹침 방지)
+        {name: '인천', code: '2800000000', lat: 37.4563, lng: 126.7052, showOnMap: false}, // 서울과 겹침
+        {name: '울산', code: '3100000000', lat: 35.5384, lng: 129.3114, showOnMap: false}, // 부산과 겹침
+        {name: '세종', code: '3600000000', lat: 36.4800, lng: 127.2890, showOnMap: false}, // 대전과 겹침
+        {name: '경기', code: '4100000000', lat: 37.4138, lng: 127.5183, showOnMap: false}, // 서울과 겹침
+        {name: '충북', code: '4300000000', lat: 36.6350, lng: 127.4914, showOnMap: false},
+        {name: '충남', code: '4400000000', lat: 36.6588, lng: 126.6728, showOnMap: false},
+        {name: '전북', code: '4500000000', lat: 35.7175, lng: 127.1530, showOnMap: false}, // 광주와 가까움
+        {name: '전남', code: '4600000000', lat: 34.8163, lng: 126.4629, showOnMap: false},
+        {name: '경북', code: '4700000000', lat: 36.5760, lng: 128.5056, showOnMap: false},
+        {name: '경남', code: '4800000000', lat: 35.2383, lng: 128.6924, showOnMap: false}
     ];
 
     const regionCodes = regions.filter(r => r.code).map(r => r.code).join(',');
@@ -134,11 +141,12 @@ async function loadRegionalWeatherData() {
             const clickAction = `onclick="changeDashboardLocation(${region.lat}, ${region.lng}, '${region.name}')"`;
 
             // (A) 지도 오버레이 (17개 지역 모두 지도에 표시됨)
-            if (kakaoMap) {
+            if (kakaoMap && region.showOnMap) {
                 const content = `<div class="customoverlay" ${clickAction} style="cursor: pointer;"><a href="javascript:void(0);"><span class="title">${region.name}</span><div class="weather-content"><i class="${iconClass}" style="color:${getIconColor(iconClass)}"></i><span class="temp">${temp}°</span></div></a></div>`;
                 const position = new kakao.maps.LatLng(region.lat, region.lng);
-                // 기존 오버레이 제거 후 새로 생성
+
                 if (mapOverlays[region.name]) mapOverlays[region.name].setMap(null);
+
                 const customOverlay = new kakao.maps.CustomOverlay({
                     map: kakaoMap,
                     position: position,
