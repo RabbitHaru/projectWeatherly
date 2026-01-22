@@ -80,27 +80,56 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 비밀번호 변경 폼 제출 검증
     if (passwordChangeForm) {
         passwordChangeForm.addEventListener('submit', function(e) {
-            const currentPassword = document.getElementById('currentPassword');
-            const newPassword = document.getElementById('newPassword');
-            const confirmPassword = document.getElementById('confirmPassword');
+            const currentPassword = document.querySelector('input[name="currentPassword"]');
+            const newPassword = document.querySelector('input[name="newPassword"]');
+            const confirmPassword = document.querySelector('input[name="confirmPassword"]');
 
-            // HTML required 속성이 있지만 추가 검증
-            if (newPassword.value !== confirmPassword.value) {
+            // 필드 확인
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                console.error('비밀번호 필드를 찾을 수 없습니다.');
+                return;
+            }
+
+            const currentValue = currentPassword.value.trim();
+            const newValue = newPassword.value.trim();
+            const confirmValue = confirmPassword.value.trim();
+
+            // 1. 필수 입력 체크
+            if (!currentValue || !newValue || !confirmValue) {
+                e.preventDefault();
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+
+            // 2. 현재 비밀번호와 새 비밀번호가 같은지 체크 (★ 추가됨)
+            if (currentValue === newValue) {
+                e.preventDefault();
+                alert('현재 비밀번호와 새 비밀번호가 같습니다.\n다른 비밀번호를 입력해주세요.');
+                newPassword.focus();
+                return;
+            }
+
+            // 3. 새 비밀번호와 확인 비밀번호 일치 체크
+            if (newValue !== confirmValue) {
                 e.preventDefault();
                 alert('새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
+                confirmPassword.focus();
                 return;
             }
 
-            if (newPassword.value.length < 8) {
+            // 4. 비밀번호 길이 체크
+            if (newValue.length < 8) {
                 e.preventDefault();
                 alert('비밀번호는 8자 이상이어야 합니다.');
-                return;
+                newPassword.focus();
+
             }
+
         });
     }
+
 
     // 게시물 삭제 확인 (form 제출 시)
     document.querySelectorAll('form[action*="delete"]').forEach(form => {
@@ -151,7 +180,7 @@ window.switchTab = function(tabName) {
     // 1. 모든 탭 컨텐츠 숨김
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
 
-    // 2. 모든 탭 버튼 비활성화 스타일
+    // 2. 모든 탭 버튼 비활성화 스타일a
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
     // 3. 선택된 탭 컨텐츠 표시

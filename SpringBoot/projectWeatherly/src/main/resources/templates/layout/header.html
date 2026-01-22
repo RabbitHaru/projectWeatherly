@@ -191,47 +191,115 @@
 
             let html = '';
             list.forEach(noti => {
+                // ✅ 알림 타입에 따라 다른 아이콘과 링크 처리
+                const iconClass = getNotificationIcon(noti.type);
+                const linkUrl = getNotificationLink(noti);
+
                 html += `
-                    <div class="noti-item" onclick="readAndMove(${noti.id}, ${noti.boardId})">
-                        <i class="fas fa-comment-dots" style="color:#3498db; margin-top:3px; font-size: 1.1rem;"></i>
-                        <div class="noti-content">
-                            <div class="noti-text">${noti.message}</div>
-                            <span class="noti-time">지금</span>
-                        </div>
+                <div class="noti-item" onclick="readAndMove(${noti.id}, '${linkUrl}')">
+                    <i class="${iconClass}" style="color:#3498db; margin-top:3px; font-size: 1.1rem;"></i>
+                    <div class="noti-content">
+                        <div class="noti-text">${noti.message}</div>
+                        <span class="noti-time">${formatTime(noti.createdAt)}</span>
                     </div>
-                `;
+                </div>
+            `;
             });
             box.innerHTML = html;
+        }
+
+        // ✅ 알림 타입에 따른 아이콘 결정
+        function getNotificationIcon(type) {
+            switch(type) {
+                case 'COMMENT': return 'fas fa-comment-dots';
+                case 'LIKE': return 'fas fa-heart';
+                case 'REPLY': return 'fas fa-reply';
+                case 'FOLLOW': return 'fas fa-user-plus';
+                case 'SYSTEM': return 'fas fa-bullhorn';
+                default: return 'fas fa-bell';
+            }
+        }
+
+        // ✅ 알림 타입에 따른 링크 URL 생성
+        function getNotificationLink(notification) {
+            const baseUrl = '/community/boards';
+
+            // 게시글 관련 알림인 경우 (COMMENT, LIKE, REPLY)
+            if (notification.boardId) {
+                return `${baseUrl}/${notification.boardId}`;
+            }
+
+            // 프로필 관련 알림인 경우
+            if (notification.type === 'FOLLOW') {
+                return '/mypage';
+            }
+
+            // 시스템 알림인 경우
+            if (notification.type === 'SYSTEM') {
+                return '/notifications';
+            }
+
+            // 기본값: 알림 페이지
+            return '/notifications';
+        }
+
+        // ✅ 시간 포맷팅
+        function formatTime(timestamp) {
+            if (!timestamp) return '방금 전';
+
+            const now = new Date();
+            const notiTime = new Date(timestamp);
+            const diffInSeconds = Math.floor((now - notiTime) / 1000);
+
+            if (diffInSeconds < 60) return '방금 전';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}분 전`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}시간 전`;
+
+            // 1일 이상이면 날짜 표시
+            return notiTime.toLocaleDateString('ko-KR', {
+                month: 'short',
+                day: 'numeric'
+            });
         }
 
         // 3. 토스트 팝업 표시
         function showToast(noti) {
             const toast = document.createElement("div");
             toast.className = "toast-message";
-            toast.onclick = () => readAndMove(noti.id, noti.boardId);
+            const linkUrl = getNotificationLink(noti);
+            toast.onclick = () => readAndMove(noti.id, linkUrl);
 
             toast.innerHTML = `
-                <i class="fas fa-envelope-open-text" style="font-size:1.4rem; color: #74b9ff;"></i>
-                <div>
-                    <div style="font-weight:bold; font-size:0.95rem; margin-bottom:2px;">새 알림</div>
-                    <div style="font-size:0.85rem; color:#ddd;">${noti.message}</div>
-                </div>
-            `;
+            <i class="fas fa-envelope-open-text" style="font-size:1.4rem; color: #74b9ff;"></i>
+            <div>
+                <div style="font-weight:bold; font-size:0.95rem; margin-bottom:2px;">새 알림</div>
+                <div style="font-size:0.85rem; color:#ddd;">${noti.message}</div>
+            </div>
+        `;
 
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
         }
 
         // 4. 클릭 시 읽음 처리 & 이동
-        function readAndMove(notiId, boardId) {
-            fetch(`/api/notifications/${notiId}/read`, { method: 'POST' })
-                .then(() => {
-                    // 게시글 상세 페이지로 이동
-                    window.location.href = `/boards/${boardId}`; // 주소 확인 필요
+        // ✅ URL 파라미터로 링크를 받도록 변경
+        function readAndMove(notiId, linkUrl) {
+            // 먼저 알림 읽음 처리
+            fetch(`/api/notifications/${notiId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('알림 읽음 처리 실패');
+                    // ✅ 처리 완료 후 해당 링크로 이동
+                    window.location.href = linkUrl;
                 })
                 .catch(err => {
                     console.error(err);
-                    window.location.href = `/boards/${boardId}`;
+                    // 에러가 나도 링크로 이동
+                    window.location.href = linkUrl;
                 });
         }
 
@@ -239,8 +307,12 @@
         function toggleNotificationList() {
             const box = document.getElementById('notification-list-box');
             if(box) {
-                // active 클래스를 토글하여 보였다 안보였다 처리
                 box.classList.toggle('active');
+
+                // ✅ 알림 목록 열릴 때마다 새로고침
+                if (box.classList.contains('active')) {
+                    updateNotifications();
+                }
             }
         }
 
