@@ -65,22 +65,20 @@ public class WeatherApiService {
 
             CompletableFuture.allOf(currentFuture, todayHourlyFuture, tomorrowHourlyFuture, weeklyFuture, summaryFuture).join();
 
-            WeatherResponseDTO.CurrentWeather current = currentFuture.join();
-
-            // [수정] 기상청 공식 특보 API 호출
             String regionName = getRegionNameCached(regionCode);
-            WeatherResponseDTO.WeatherWarning warning = getOfficialWarning(regionName);
+            // [수정] 다중 특보 정보를 리스트로 가져옴
+            List<WeatherResponseDTO.WeatherWarning> warnings = getOfficialWarnings(regionName);
 
             return WeatherResponseDTO.builder()
                     .regionName(regionName)
                     .regionCode(regionCode)
                     .currentTime(DateUtil.getCurrentFormattedDateTime())
-                    .current(current)
+                    .current(currentFuture.join())
                     .hourly(todayHourlyFuture.join())
                     .tomorrowHourly(tomorrowHourlyFuture.join())
                     .daily(weeklyFuture.join())
                     .summary(summaryFuture.join())
-                    .warning(warning)
+                    .warnings(warnings) // 리스트 전달
                     .isMock(false)
                     .build();
 
@@ -90,88 +88,98 @@ public class WeatherApiService {
         }
     }
 
-    // ⭐ [수정] 기상청 공식 특보 API 호출 (3일 전부터 50건 조회로 누락 방지)
-    private WeatherResponseDTO.WeatherWarning getOfficialWarning(String regionName) {
+    private List<WeatherResponseDTO.WeatherWarning> getOfficialWarnings(String regionName) {
+        List<WeatherResponseDTO.WeatherWarning> warningList = new ArrayList<>();
         try {
-            String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String startDate = LocalDate.now().minusDays(2).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-            // stnId를 제거해서 모든 데이터를 긁어옵니다.
-            URI uri = UriComponentsBuilder.fromHttpUrl("https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList")
+            URI uri = UriComponentsBuilder.fromHttpUrl("https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnMsg")
                     .queryParam("serviceKey", apiConfig.getKmaApiKey())
-                    .queryParam("numOfRows", 100)
+                    .queryParam("numOfRows", 1)
                     .queryParam("pageNo", 1)
                     .queryParam("dataType", "JSON")
-                    .queryParam("fromTmFc", startDate)
-                    .queryParam("toTmFc", today)
-                    .build().toUri();
+                    .queryParam("stnId", "108").build().toUri();
 
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
-
-            if (response.getBody() == null || !response.getBody().contains("item")) {
-                log.warn("📢 [특보확인] API 응답에 데이터가 없음 (지역: {})", regionName);
-                return createEmptyWarning();
-            }
+            if (response.getBody() == null || !response.getBody().contains("item")) return warningList;
 
             JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode items = root.path("response").path("body").path("items").path("item");
+            String t6Content = root.path("response").path("body").path("items").path("item").get(0).path("t6").asText("");
 
-            if (items.isArray()) {
-                // 1. 먼저 '내 지역'이 언급된 가장 최신 공보를 찾습니다.
-                for (JsonNode item : items) {
-                    String title = item.path("title").asText(); // 제목 (예: 기상특보)
-                    String content = item.path("t6").asText(); // 상세 내용
+            if (t6Content.isEmpty()) return warningList;
 
-                    // 로그로 기상청이 뭐라고 하는지 한 번만 찍어봅시다.
-                    log.info("📢 [기상청 원문] 제목: {}, 내용요약: {}", title, content.substring(0, Math.min(content.length(), 30)));
+            // 지역명 변환 (경상북도 -> 경북)
+            String shortRegion = getShortRegionName(regionName);
+            List<String> keywords = new ArrayList<>();
+            keywords.add(shortRegion);
 
-                    WeatherResponseDTO.WeatherWarning warning = parseWarningText(content, regionName);
-                    if (warning.isActive()) {
-                        log.info("✅ [특보매칭성공] {} 지역에 {} 발효 중", regionName, warning.getTitle());
-                        return warning;
+            // 도 단위 풀네임 및 주요 도시 추가
+            if (shortRegion.equals("경남")) keywords.addAll(List.of("경상남도", "창원", "김해", "진주"));
+            if (shortRegion.equals("경북")) keywords.addAll(List.of("경상북도", "포항", "구미", "경주", "안동"));
+            if (shortRegion.equals("전남")) keywords.addAll(List.of("전라남도", "여수", "순천", "목포"));
+            if (shortRegion.equals("전북")) keywords.addAll(List.of("전라북도", "전북자치도", "전주", "익산", "군산"));
+            if (shortRegion.equals("충남")) keywords.addAll(List.of("충청남도", "천안", "아산", "서산"));
+            if (shortRegion.equals("충북")) keywords.addAll(List.of("충청북도", "청주", "충주"));
+            if (shortRegion.equals("경기")) keywords.addAll(List.of("경기도", "수원", "성남", "고양"));
+            if (shortRegion.equals("강원")) keywords.addAll(List.of("강원도", "춘천", "원주", "강릉"));
+            if (shortRegion.equals("제주")) keywords.addAll(List.of("제주도", "제주특별자치도"));
+            if (shortRegion.equals("인천")) keywords.add("인천광역시");
+            if (shortRegion.equals("세종")) keywords.add("세종특별자치시");
+
+            String[] sections = t6Content.split("o ");
+            for (String section : sections) {
+                if (section.trim().isEmpty()) continue;
+
+                // ⭐ [핵심 수정] 줄바꿈 문자(\n, \r)를 공백으로 변경하여 정규식 매칭 오류 해결!
+                String cleanSection = section.replace("\n", " ").replace("\r", " ").trim();
+
+                boolean isMatch = false;
+                for (String kw : keywords) {
+                    // 정규식: 앞뒤에 공백, 콤마, 괄호가 있거나 문장의 끝인지 확인
+                    if (cleanSection.matches(".*[\\s,\\(]" + kw + "([\\s,\\(,\\)]|$).*") || cleanSection.contains(" " + kw + ",")) {
+                        isMatch = true;
+                        break;
                     }
+                }
+
+                if (isMatch) {
+                    String title = cleanSection.split(":")[0].trim();
+                    if (title.contains("해제")) continue;
+
+                    String level = (title.contains("경보") || title.contains("심각")) ? "danger" : "caution";
+                    warningList.add(new WeatherResponseDTO.WeatherWarning(true, title, title + " 발효 중", level));
+                    log.info("🎯 [특보확인] {} ({}) -> {}", regionName, shortRegion, title);
                 }
             }
         } catch (Exception e) {
-            log.error("❌ 기상특보 조회 중 에러 발생: {}", e.getMessage());
+            log.error("특보 파싱 에러", e);
         }
-        return createEmptyWarning();
+        return warningList.isEmpty() ? Collections.singletonList(createEmptyWarning()) : warningList;
     }
 
-    private WeatherResponseDTO.WeatherWarning parseWarningText(String content, String myRegion) {
-        if (content == null || content.isEmpty() || myRegion == null) return createEmptyWarning();
-
-        // 매칭 확률을 높이기 위해 "서울", "경기", "전남" 등으로 자름
-        String shortRegion = myRegion.substring(0, 2);
-
-        // 기상청 특보는 보통 'o ', '\n', ':', ',' 등으로 구분됨
-        // 정규식 [o\n\r]으로 쪼개서 각 줄을 검사
-        String[] lines = content.split("[o\n\r]");
-
-        for (String line : lines) {
-            String cleanLine = line.trim();
-            // "한파주의보 : 서울, ..." 형태인지 확인
-            if (cleanLine.contains(":") && cleanLine.contains(shortRegion)) {
-
-                String warningType = cleanLine.split(":")[0].trim();
-
-                // "해제", "발효번호" 등은 제외
-                if (warningType.contains("해제") || warningType.contains("발효")) continue;
-
-                String level = (warningType.contains("경보") || warningType.contains("심각")) ? "danger" : "caution";
-
-                // 설명은 해당 줄 전체를 사용
-                return new WeatherResponseDTO.WeatherWarning(true, warningType, cleanLine, level);
-            }
-        }
-        return createEmptyWarning();
+    // [추가] 지역명을 2글자 표준 약어로 변환하는 헬퍼 메서드
+    private String getShortRegionName(String regionName) {
+        if (regionName.contains("경상북도") || regionName.contains("경북")) return "경북";
+        if (regionName.contains("경상남도") || regionName.contains("경남")) return "경남";
+        if (regionName.contains("충청북도") || regionName.contains("충북")) return "충북";
+        if (regionName.contains("충청남도") || regionName.contains("충남")) return "충남";
+        if (regionName.contains("전라북도") || regionName.contains("전북")) return "전북";
+        if (regionName.contains("전라남도") || regionName.contains("전남")) return "전남";
+        if (regionName.contains("경기")) return "경기";
+        if (regionName.contains("강원")) return "강원";
+        if (regionName.contains("제주")) return "제주";
+        if (regionName.contains("세종")) return "세종";
+        if (regionName.contains("서울")) return "서울";
+        if (regionName.contains("부산")) return "부산";
+        if (regionName.contains("대구")) return "대구";
+        if (regionName.contains("인천")) return "인천";
+        if (regionName.contains("광주")) return "광주";
+        if (regionName.contains("대전")) return "대전";
+        if (regionName.contains("울산")) return "울산";
+        return regionName.substring(0, Math.min(regionName.length(), 2));
     }
 
     private WeatherResponseDTO.WeatherWarning createEmptyWarning() {
         return new WeatherResponseDTO.WeatherWarning(false, "특보 없음", "현재 발효된 특보가 없습니다.", "safe");
     }
-
-    // ===== 기존 조회 및 파싱 로직 유지 =====
 
     @Cacheable(value = "currentWeather", key = "#regionCode", unless = "#result == null")
     public WeatherResponseDTO.CurrentWeather getCurrentWeatherCached(String regionCode) {
@@ -187,7 +195,7 @@ public class WeatherApiService {
         try {
             return dayOffset == 0 ? getTodayHourlyForecast(regionCode) : getTomorrowHourlyForecast(regionCode);
         } catch (Exception e) {
-            return createDefaultHourlyForecast24h(dayOffset);
+            return new ArrayList<>();
         }
     }
 
@@ -196,7 +204,7 @@ public class WeatherApiService {
         try {
             return getShortTermWeeklyForecast(regionCode);
         } catch (Exception e) {
-            return createDefaultWeeklyForecastWithAmPm();
+            return new ArrayList<>();
         }
     }
 
@@ -490,7 +498,7 @@ public class WeatherApiService {
         WeatherResponseDTO response = WeatherResponseDTO.builder()
                 .regionName(getRegionNameCached(regionCode)).regionCode(regionCode)
                 .currentTime(DateUtil.getCurrentFormattedDateTime()).current(createDefaultCurrentWeather())
-                .isMock(true).warning(new WeatherResponseDTO.WeatherWarning(true, "데이터 지연", "임시 데이터를 표시합니다.", "caution"))
+                .isMock(true).warnings((List<WeatherResponseDTO.WeatherWarning>) new WeatherResponseDTO.WeatherWarning(true, "데이터 지연", "임시 데이터를 표시합니다.", "caution"))
                 .build();
         return liteMode ? WeatherResponseDTO.createLiteVersion(response) : response;
     }

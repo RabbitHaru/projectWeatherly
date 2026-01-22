@@ -24,8 +24,8 @@ public class WeatherResponseDTO {
     @Builder.Default
     private boolean isMock = false;
 
-    // [추가됨] 기상특보 정보
-    private WeatherWarning warning;
+    // [수정] 단일 warning에서 리스트 형식인 warnings로 변경
+    private List<WeatherWarning> warnings;
 
     private CurrentWeather current;
     private List<HourlyForecast> hourly;
@@ -41,23 +41,22 @@ public class WeatherResponseDTO {
                 .current(full.getCurrent())
                 .summary(full.getSummary())
                 .isMock(full.isMock())
-                .warning(full.getWarning()) // 특보 정보도 복사
+                .warnings(full.getWarnings()) // 리스트 복사
                 .build();
     }
 
-    // [추가됨] 특보 정보 클래스
+    // 특보 정보 클래스
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class WeatherWarning {
         private boolean active;      // 특보 발효 여부
-        private String title;        // 제목 (예: 호우주의보)
-        private String description;  // 설명 (예: 시간당 30mm 이상의 강한 비)
+        private String title;        // 제목 (예: 한파주의보)
+        private String description;  // 설명
         private String level;        // 등급 (safe, caution, danger)
     }
 
-    // ... (CurrentWeather, HourlyForecast, DailyForecast, WeatherSummary는 기존 그대로 유지)
     @Data
     @Builder
     @NoArgsConstructor

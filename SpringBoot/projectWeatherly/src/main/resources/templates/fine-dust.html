@@ -120,25 +120,31 @@
 
     <aside class="sidebar">
         <div class="sidebar-card">
-            <div class="card-header"><h3><i class="fas fa-chart-bar"></i> 지역별 대기질</h3></div>
-            <div class="card-content">
-                <div class="regional-aqi-list" id="regional-aqi-list"></div>
-            </div>
-        </div>
-        <div class="sidebar-card">
             <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> 측정소 정보</h3></div>
             <div class="card-content">
-                <div class="station-info"><p><i class="fas fa-broadcast-tower"></i> <strong>측정소:</strong> <span
-                        id="station-name">--</span></p>
+                <div class="station-info">
+                    <p><i class="fas fa-broadcast-tower"></i> <strong>측정소:</strong> <span id="station-name">--</span></p>
                     <p><i class="fas fa-clock"></i> <strong>측정시간:</strong> <span id="measurement-time">--</span></p>
                 </div>
             </div>
         </div>
+
+        <div class="sidebar-card">
+            <div class="card-header"><h3><i class="fas fa-chart-bar"></i> 지역별 대기질</h3></div>
+            <div class="card-content">
+                <div class="regional-scroll-wrapper">
+                    <div class="regional-aqi-list" id="regional-aqi-list"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="sidebar-card">
             <div class="card-header"><h3><i class="fas fa-link"></i> 관련 사이트</h3></div>
             <div class="card-content">
-                <div class="related-links"><a href="https://www.airkorea.or.kr" target="_blank" class="related-link">에어코리아</a><a
-                        href="https://www.weather.go.kr" target="_blank" class="related-link">기상청</a></div>
+                <div class="related-links">
+                    <a href="https://www.airkorea.or.kr" target="_blank" class="related-link">에어코리아</a>
+                    <a href="https://www.weather.go.kr" target="_blank" class="related-link">기상청</a>
+                </div>
             </div>
         </div>
     </aside>

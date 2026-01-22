@@ -138,8 +138,18 @@ public class AirQualityService {
     // 헬퍼 메서드들
     private AirQualityResponseDTO getLatestDataByRegion(String regionName) {
         String shortName = extractSidoName(regionName);
+        // 최신 시간순으로 데이터를 다 가져옴
         List<AirQualityEntity> list = airQualityRepository.findBySidoNameOrderByDataTimeDesc(shortName);
-        if (!list.isEmpty()) return convertToDTO(list.get(0));
+
+        if (!list.isEmpty()) {
+            // ⭐ 수치가 0이 아닌(정상적인) 데이터를 가진 측정소를 우선적으로 검색
+            return list.stream()
+                    .filter(e -> e.getKhaiValue() != null && e.getKhaiValue() > 0)
+                    .findFirst()
+                    .map(this::convertToDTO)
+                    .orElseGet(() -> convertToDTO(list.get(0))); // 없으면 어쩔 수 없이 첫 번째꺼 사용
+        }
+
         List<AirQualityResponseDTO> apiResult = airQualityApiService.getAirQualityBySido(shortName);
         if (apiResult != null && !apiResult.isEmpty()) return apiResult.get(0);
         return null;

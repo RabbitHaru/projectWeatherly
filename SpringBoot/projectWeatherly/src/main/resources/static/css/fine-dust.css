@@ -308,3 +308,42 @@ body.dark-mode .related-link:hover {
     color: white;
     border-color: var(--primary-color);
 }
+
+/* 지역별 대기질 리스트 스크롤 설정 */
+.regional-scroll-wrapper {
+    max-height: 400px; /* 메인페이지와 비슷한 적절한 높이 */
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* 스크롤바 커스텀 (메인페이지와 통일감) */
+.regional-scroll-wrapper::-webkit-scrollbar {
+    width: 6px;
+}
+
+.regional-scroll-wrapper::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.regional-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+body.dark-mode .regional-scroll-wrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* 리스트 간격 조정 */
+.regional-aqi-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* 간격을 살짝 좁혀서 더 많이 보이게 함 */
+}
+
+/* 리스트 아이템 높이 최적화 */
+.region-weather {
+    padding: 12px 15px;
+    margin-bottom: 2px;
+}

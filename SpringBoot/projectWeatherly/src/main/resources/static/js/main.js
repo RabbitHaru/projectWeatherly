@@ -1,6 +1,6 @@
 /**
  * main.js - 메인 대시보드 로직
- * (수정 사항: 가상 데이터 배지 + 선택 지역별 기상특보 업데이트)
+ * (최종 수정: 다중 기상특보 리스트 지원 & UI 업데이트)
  */
 
 let kakaoMap = null;
@@ -30,7 +30,7 @@ window.changeDashboardLocation = async function (lat, lng, name) {
     const locationTitle = document.getElementById('current-location');
     if (locationTitle) locationTitle.innerText = `${name}로 이동 중...`;
 
-    // 2. 해당 좌표로 날씨 데이터 새로고침 (이때 특보 정보도 같이 받아옴)
+    // 2. 해당 좌표로 날씨 데이터 새로고침 (이때 특보 리스트도 같이 받아옴)
     await loadWeatherDataByGPS(lat, lng, name);
 
     window.scrollTo({top: 0, behavior: 'smooth'});
@@ -78,7 +78,7 @@ function initKakaoMap() {
 async function loadRegionalWeatherData() {
     const listContainer = document.getElementById('regional-weather');
 
-    // [수정] 17개 전체 행정구역 정의 (독도 포함 시 18개)
+    // 17개 전체 행정구역 정의 (독도 포함)
     const regions = [
         {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780},
         {name: '부산', code: '2600000000', lat: 35.1796, lng: 129.0756},
@@ -87,7 +87,7 @@ async function loadRegionalWeatherData() {
         {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526},
         {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845},
         {name: '울산', code: '3100000000', lat: 35.5384, lng: 129.3114},
-        {name: '세종', code: '3600000000', lat: 36.4800, lng: 127.2890}, // 세종 추가
+        {name: '세종', code: '3600000000', lat: 36.4800, lng: 127.2890},
         {name: '경기', code: '4100000000', lat: 37.4138, lng: 127.5183},
         {name: '강원', code: '4200000000', lat: 37.8228, lng: 128.1555},
         {name: '충북', code: '4300000000', lat: 36.6350, lng: 127.4914},
@@ -97,14 +97,13 @@ async function loadRegionalWeatherData() {
         {name: '경북', code: '4700000000', lat: 36.5760, lng: 128.5056},
         {name: '경남', code: '4800000000', lat: 35.2383, lng: 128.6924},
         {name: '제주', code: '5000000000', lat: 33.4996, lng: 126.5312},
-        {name: '독도', code: '', lat: 37.2429, lng: 131.8669} // 독도는 서비스 차원에서 유지 (필요 없으면 삭제)
+        {name: '독도', code: '', lat: 37.2429, lng: 131.8669}
     ];
 
     const regionCodes = regions.filter(r => r.code).map(r => r.code).join(',');
 
     try {
         let weatherData = [];
-        // [핵심] 한 번의 호출로 모든 지역 데이터 요청 (1 Traffic)
         if (regionCodes) {
             const res = await fetch(`${API_BASE_URL}/api/weather/compare?regionCodes=${regionCodes}`);
             const result = await res.json();
@@ -133,11 +132,11 @@ async function loadRegionalWeatherData() {
 
             const clickAction = `onclick="changeDashboardLocation(${region.lat}, ${region.lng}, '${region.name}')"`;
 
-            // (A) 지도 오버레이 (17개 지역 모두 지도에 표시됨)
+            // (A) 지도 오버레이
             if (kakaoMap) {
                 const content = `<div class="customoverlay" ${clickAction} style="cursor: pointer;"><a href="javascript:void(0);"><span class="title">${region.name}</span><div class="weather-content"><i class="${iconClass}" style="color:${getIconColor(iconClass)}"></i><span class="temp">${temp}°</span></div></a></div>`;
                 const position = new kakao.maps.LatLng(region.lat, region.lng);
-                // 기존 오버레이 제거 후 새로 생성
+
                 if (mapOverlays[region.name]) mapOverlays[region.name].setMap(null);
                 const customOverlay = new kakao.maps.CustomOverlay({
                     map: kakaoMap,
@@ -288,7 +287,7 @@ function updateAqiSummaryUI(aqi) {
     updateItem('o3', 'ppm');
 }
 
-// [핵심] 날씨 UI 및 특보 업데이트
+// ⭐ [핵심] 날씨 UI 및 다중 특보 업데이트 로직
 function updateWeatherUI(weather) {
     if (!weather) return;
 
@@ -311,27 +310,52 @@ function updateWeatherUI(weather) {
         }
     }
 
-    // [추가] 기상특보 카드 업데이트 (선택한 지역의 특보로 변경됨)
-    if (weather.warning) {
-        txt('weather-alert-title', weather.warning.title);
-        txt('weather-alert-desc', weather.warning.description);
-        const iconEl = document.querySelector('.warning-status .status-icon');
-        if (iconEl) {
-            iconEl.className = 'fas status-icon';
-            if (weather.warning.level === 'danger') {
-                iconEl.classList.add('fa-exclamation-circle', 'danger');
-                iconEl.style.color = '#e74c3c';
-            } else if (weather.warning.level === 'caution') {
-                iconEl.classList.add('fa-exclamation-triangle', 'caution');
-                iconEl.style.color = '#f1c40f';
-            } else {
-                iconEl.classList.add('fa-check-circle', 'safe');
+    // 2. [수정] 다중 기상특보 카드 업데이트 (List 처리)
+    const alertTitle = document.getElementById('weather-alert-title');
+    const alertDesc = document.getElementById('weather-alert-desc');
+    const iconEl = document.querySelector('.warning-status .status-icon');
+
+    // weather.warnings가 존재하고 배열인지 확인
+    if (weather.warnings && weather.warnings.length > 0) {
+        const activeWarnings = weather.warnings.filter(w => w.active);
+
+        if (activeWarnings.length > 0) {
+            // 여러 특보를 쉼표로 연결하여 제목 설정 (예: "건조주의보, 한파주의보")
+            alertTitle.textContent = activeWarnings.map(w => w.title).join(', ');
+            alertDesc.textContent = `${weather.regionName} 지역에 기상특보가 발령 중입니다.`;
+
+            // 하나라도 위험 등급(danger)이면 빨간색, 아니면 노란색
+            const isDanger = activeWarnings.some(w => w.level === 'danger');
+            if (iconEl) {
+                iconEl.className = `fas status-icon ${isDanger ? 'fa-exclamation-circle' : 'fa-exclamation-triangle'}`;
+                if (isDanger) {
+                    iconEl.classList.add('danger');
+                    iconEl.style.color = '#e74c3c';
+                } else {
+                    iconEl.classList.add('caution');
+                    iconEl.style.color = '#f1c40f';
+                }
+            }
+        } else {
+            // 특보가 없는 경우
+            alertTitle.textContent = "특보 없음";
+            alertDesc.textContent = "현재 발효된 특보가 없습니다.";
+            if (iconEl) {
+                iconEl.className = 'fas fa-check-circle status-icon safe';
                 iconEl.style.color = '#2ecc71';
             }
         }
+    } else {
+        // warnings 필드가 아예 없는 경우 (기존 호환성)
+        alertTitle.textContent = "특보 없음";
+        alertDesc.textContent = "현재 발효된 특보가 없습니다.";
+        if (iconEl) {
+            iconEl.className = 'fas fa-check-circle status-icon safe';
+            iconEl.style.color = '#2ecc71';
+        }
     }
 
-    // 2. 현재 날씨
+    // 3. 현재 날씨
     if (weather.current) {
         html('current-temp', `${Math.round(weather.current.temperature)}<span class="temp-unit">°C</span>`);
         txt('weather-condition', weather.current.weatherCondition || '맑음');
@@ -420,4 +444,43 @@ function extractSidoName(full) {
     if (full.length === 2) return full;
     const shortName = full.substring(0, 2);
     return mapping[shortName] || mapping[full] || '서울';
+}
+
+function getFullSidoName(shortName) {
+    if (!shortName) return '대한민국';
+    if (shortName.length > 2) return shortName;
+    const map = {
+        '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시', '광주': '광주광역시', '대전': '대전광역시',
+        '울산': '울산광역시', '세종': '세종특별자치시', '경기': '경기도', '강원': '강원도', '충북': '충청북도', '충남': '충청남도',
+        '전북': '전라북도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도', '제주': '제주특별자치도'
+    };
+    return map[shortName] || shortName;
+}
+
+function updateCurrentTime() {
+    const now = new Date();
+    const timeEl = document.getElementById('current-time');
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'});
+}
+
+// AQI 등급별 클래스, 텍스트, 아이콘 헬퍼 (common.js에 없으면 여기서 사용)
+function getAqiClass(grade) {
+    if (grade === 1) return 'good';
+    if (grade === 2) return 'normal';
+    if (grade === 3) return 'bad';
+    return 'very-bad';
+}
+
+function getAqiStatusText(grade) {
+    if (grade === 1) return '좋음';
+    if (grade === 2) return '보통';
+    if (grade === 3) return '나쁨';
+    return '매우나쁨';
+}
+
+function getAqiIcon(grade) {
+    if (grade === 1) return '<i class="fas fa-smile" style="color:var(--safe-color);"></i>';
+    if (grade === 2) return '<i class="fas fa-meh" style="color:var(--normal-color);"></i>';
+    if (grade === 3) return '<i class="fas fa-frown" style="color:var(--warning-color);"></i>';
+    return '<i class="fas fa-dizzy" style="color:var(--danger-color);"></i>';
 }

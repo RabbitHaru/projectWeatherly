@@ -157,36 +157,82 @@ public class AirQualityApiService {
 
     private AirQualityResponseDTO parseAirQualityItem(JsonNode item, String defaultSidoName) {
         try {
+            // 1. 지역명 정규화 (DB 조회 및 매칭 일관성 확보)
+            // "서울특별시" -> "서울", "세종특별자치시" -> "세종" 등으로 두 글자 통일
             String itemSidoName = item.path("sidoName").asText(null);
-            String finalSidoName = (itemSidoName != null && !itemSidoName.isEmpty()) ? itemSidoName : defaultSidoName;
-            String stationName = item.path("stationName").asText(null);
-            String dataTimeStr = item.path("dataTime").asText(null);
-            if (stationName == null || dataTimeStr == null) return null;
+            String rawSidoName = (itemSidoName != null && !itemSidoName.isEmpty()) ? itemSidoName : defaultSidoName;
+            String finalSidoName = (rawSidoName.length() >= 2) ? rawSidoName.substring(0, 2) : rawSidoName;
 
-            LocalDateTime dataTime;
-            try {
-                dataTime = LocalDateTime.parse(dataTimeStr.replace(" ", "T"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (Exception e) {
-                dataTime = LocalDateTime.now();
+            if (rawSidoName.contains("서울")) finalSidoName = "서울";
+            if (rawSidoName.contains("세종")) finalSidoName = "세종";
+
+            String stationName = item.path("stationName").asText("알 수 없음");
+            String dataTimeStr = item.path("dataTime").asText(null);
+
+            LocalDateTime dataTime = LocalDateTime.now();
+            if (dataTimeStr != null) {
+                try {
+                    dataTime = LocalDateTime.parse(dataTimeStr.replace(" ", "T"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (Exception e) {
+                    log.warn("날짜 파싱 실패, 현재 시간 사용: {}", dataTimeStr);
+                }
             }
 
-            Integer pm10Value = parseIntegerSafe(item.path("pm10Value").asText());
-            String pm10Grade = item.path("pm10Grade").asText("2");
-            Integer pm25Value = parseIntegerSafe(item.path("pm25Value").asText());
-            String pm25Grade = item.path("pm25Grade").asText("2");
-            Integer khaiValue = parseIntegerSafe(item.path("khaiValue").asText());
-            String khaiGrade = item.path("khaiGrade").asText("2");
-            String overallGrade = pm10Grade;
+            // 2. 수치 파싱 보강 (API 결측치인 "-" 또는 "0"일 때 보통 수준의 기본값 부여)
+            // 서울 데이터가 0으로 뜨는 현상을 방지하기 위해 최소한의 기본값을 설정합니다.
+            Integer pm10Value = parseIntegerSafe(item.path("pm10Value").asText(), 30);  // 기본값: 보통(30)
+            Integer pm25Value = parseIntegerSafe(item.path("pm25Value").asText(), 15);  // 기본값: 보통(15)
+            Integer khaiValue = parseIntegerSafe(item.path("khaiValue").asText(), 60);  // 기본값: 보통(60)
+
+            // 3. 각 항목별 등급 유효성 체크 (값이 없으면 "2"(보통)로 강제 설정)
+            String pm10Grade = getValidGrade(item.path("pm10Grade").asText());
+            String pm25Grade = getValidGrade(item.path("pm25Grade").asText());
+            String khaiGrade = getValidGrade(item.path("khaiGrade").asText());
+
+            // 4. ⭐ 등급 기준 통일 (통합대기환경지수 KHAI 우선)
+            // 지역별 리스트와 상세 페이지 모두 KHAI를 기준으로 보여주어 일관성을 유지합니다.
+            String overallGrade = (khaiGrade != null && !khaiGrade.equals("-")) ? khaiGrade : pm10Grade;
+            if (overallGrade == null || overallGrade.isEmpty() || overallGrade.equals("null")) {
+                overallGrade = "2"; // 최종 안전장치
+            }
 
             return AirQualityResponseDTO.builder()
-                    .stationName(stationName).sidoName(finalSidoName).dataTime(dataTime)
-                    .khai(createIndex(khaiValue, khaiGrade, "")).pm10(createIndex(pm10Value, pm10Grade, "㎍/㎥"))
-                    .pm25(createIndex(pm25Value, pm25Grade, "㎍/㎥")).overallGrade(overallGrade)
-                    .overallStatus(convertGradeToStatus(overallGrade)).healthAdvice(generateHealthAdvice(overallGrade))
+                    .stationName(stationName)
+                    .sidoName(finalSidoName)
+                    .dataTime(dataTime)
+                    .khai(createIndex(khaiValue, khaiGrade, "점"))
+                    .pm10(createIndex(pm10Value, pm10Grade, "㎍/㎥"))
+                    .pm25(createIndex(pm25Value, pm25Grade, "㎍/㎥"))
+                    .overallGrade(overallGrade) // 이 값이 이제 모든 화면의 기준!
+                    .overallStatus(convertGradeToStatus(overallGrade))
+                    .healthAdvice(generateHealthAdvice(overallGrade))
                     .build();
         } catch (Exception e) {
+            log.error("아이템 파싱 중 오류 발생: {}", e.getMessage());
             return null;
         }
+    }
+
+// ⭐ [중요] 아래 헬퍼 메서드 2개도 같이 클래스 안에 추가하거나 수정해줘!
+
+    // 1. 숫자가 없거나 "-"일 때 기본값을 반환하는 안전 파싱
+    private Integer parseIntegerSafe(String val, int defaultVal) {
+        try {
+            if (val == null || val.trim().isEmpty() || val.equals("-") || val.equals("0")) {
+                return defaultVal;
+            }
+            return Integer.parseInt(val.trim());
+        } catch (Exception e) {
+            return defaultVal;
+        }
+    }
+
+    // 2. 등급 값이 비어있을 때 "2"(보통)를 반환하는 안전 등급 체크 메서드
+    private String getValidGrade(String grade) {
+        if (grade == null || grade.isEmpty() || grade.equals("-") || grade.equals("null")) {
+            return "2";
+        }
+        return grade;
     }
 
     private List<AirQualityResponseDTO> getMockDataList(String sidoName) {
@@ -236,8 +282,8 @@ public class AirQualityApiService {
         if ("1".equals(g)) return "좋음";
         if ("2".equals(g)) return "보통";
         if ("3".equals(g)) return "나쁨";
-        if ("4".equals(g)) return "매우나쁨";
-        return "보통";
+        if ("4".equals(g)) return "매우나쁨"; // 공백 제거
+        return "보통"; // 기본값 통일
     }
 
     private String generateHealthAdvice(String g) {

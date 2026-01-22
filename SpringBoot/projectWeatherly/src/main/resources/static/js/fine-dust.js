@@ -54,11 +54,16 @@ async function loadRegionalComparison() {
     const listContainer = document.getElementById('regional-aqi-list') || document.getElementById('nationwide-list');
     if (!listContainer) return;
 
-    // [수정] 제주 제거함
-    const targetRegions = ['서울', '대전', '광주', '대구', '부산'];
+    // [수정] 메인 페이지와 동일한 17개 광역 자치단체 리스트 (제주 포함)
+    const targetRegions = [
+        '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
+        '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+    ];
+
     const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
 
     try {
+        // 전국의 데이터를 한 번에 가져와서 리스트 구성
         const res = await fetch(`${baseUrl}/api/air-quality/sido/전국`);
         const result = await res.json();
         let allData = [];
@@ -66,11 +71,12 @@ async function loadRegionalComparison() {
 
         listContainer.innerHTML = '';
 
-        // [수정] 독도 API 호출 로직 삭제됨
-
         targetRegions.forEach(r => {
+            // 데이터 중에서 해당 시도 이름이 포함된 첫 번째 데이터를 찾음
             const data = allData.find(d => d.sidoName.includes(r));
-            if (data) renderSimpleItem(listContainer, data);
+            if (data) {
+                renderSimpleItem(listContainer, data);
+            }
         });
 
     } catch (e) {
@@ -81,10 +87,10 @@ async function loadRegionalComparison() {
 function renderSimpleItem(container, r) {
     const div = document.createElement('div');
     div.className = 'region-weather';
-    div.style.cursor = 'pointer';
 
+    // 서버에서 이미 통합지수로 계산해서 보낸 overallStatus를 우선 사용
     const statusText = r.overallStatus ? r.overallStatus : getAqiStatusText(r.overallGrade);
-    const colorClass = getAqiClass(r.overallGrade);
+    const colorClass = getAqiClass(r.overallGrade); // 등급 숫자에 맞는 색상 클래스 반환
     const testBadge = r.isMock ? '<span style="color:#e74c3c; font-size:0.7em; margin-left:5px;">[TEST]</span>' : '';
 
     div.innerHTML = `
@@ -97,7 +103,7 @@ function renderSimpleItem(container, r) {
     div.addEventListener('click', () => {
         document.querySelectorAll('.region-weather').forEach(el => el.classList.remove('selected'));
         div.classList.add('selected');
-        loadFineDustBySido(r.sidoName);
+        loadFineDustBySido(r.sidoName); // 클릭 시 상세 정보도 해당 지역 데이터로 변경
     });
 
     container.appendChild(div);
@@ -258,10 +264,11 @@ function extractSidoName(full) {
     const mapping = {
         '서울': '서울', '부산': '부산', '대구': '대구', '인천': '인천',
         '광주': '광주', '대전': '대전', '울산': '울산', '세종': '세종',
-        '경기': '경기', '강원': '강원', '충청': full.includes('북') ? '충북' : '충남',
-        '전라': full.includes('북') ? '전북' : '전남', '경상': full.includes('북') ? '경북' : '경남',
+        '경기': '경기', '강원': '강원', '제주': '제주', // 제주 추가
+        '충청': full.includes('북') ? '충북' : '충남',
+        '전라': full.includes('북') ? '전북' : '전남',
+        '경상': full.includes('북') ? '경북' : '경남',
         '서울특별시': '서울', '부산광역시': '부산'
-        // 제주, 독도 삭제됨
     };
     if (full.length === 2) return full;
     const shortName = full.substring(0, 2);
@@ -273,8 +280,8 @@ function getFullSidoName(short) {
         '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시',
         '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
         '경기': '경기도', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
-        '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도'
-        // 제주, 독도 삭제됨
+        '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
+        '제주': '제주특별자치도' // 제주 추가
     };
     return map[short] || short;
 }
@@ -295,7 +302,7 @@ function getAqiClass(grade) {
 }
 
 function getAqiStatusText(grade) {
-    switch (String(grade)) {
+    switch (String(grade).trim()) {
         case '1':
             return '좋음';
         case '2':
@@ -303,22 +310,22 @@ function getAqiStatusText(grade) {
         case '3':
             return '나쁨';
         case '4':
-            return '매우 나쁨';
+            return '매우나쁨'; // '매우 나쁨'에서 공백 제거하여 통일
         default:
-            return '정보 없음';
+            return '보통'; // 정보 없을 시 '보통'으로 기본값 설정
     }
 }
 
 function getAqiIcon(grade) {
-    switch (String(grade)) {
+    switch (String(grade).trim()) {
         case '1':
-            return '<i class="fas fa-smile"></i>';
+            return '<i class="fas fa-smile" style="color:#2ecc71"></i>';
         case '2':
-            return '<i class="fas fa-meh"></i>';
+            return '<i class="fas fa-meh" style="color:#f39c12"></i>';
         case '3':
-            return '<i class="fas fa-frown"></i>';
+            return '<i class="fas fa-frown" style="color:#e74c3c"></i>';
         case '4':
-            return '<i class="fas fa-dizzy"></i>';
+            return '<i class="fas fa-dizzy" style="color:#8e44ad"></i>';
         default:
             return '<i class="fas fa-meh"></i>';
     }
