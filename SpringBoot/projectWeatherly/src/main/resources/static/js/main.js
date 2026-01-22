@@ -77,21 +77,34 @@ function initKakaoMap() {
 
 async function loadRegionalWeatherData() {
     const listContainer = document.getElementById('regional-weather');
-    // CITY_COORDINATES는 common.js에 정의됨
+
+    // [수정] 17개 전체 행정구역 정의 (독도 포함 시 18개)
     const regions = [
         {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780},
-        {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845},
-        {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526},
-        {name: '대구', code: '2700000000', lat: 35.8714, lng: 128.6014},
         {name: '부산', code: '2600000000', lat: 35.1796, lng: 129.0756},
+        {name: '대구', code: '2700000000', lat: 35.8714, lng: 128.6014},
+        {name: '인천', code: '2800000000', lat: 37.4563, lng: 126.7052},
+        {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526},
+        {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845},
+        {name: '울산', code: '3100000000', lat: 35.5384, lng: 129.3114},
+        {name: '세종', code: '3600000000', lat: 36.4800, lng: 127.2890}, // 세종 추가
+        {name: '경기', code: '4100000000', lat: 37.4138, lng: 127.5183},
+        {name: '강원', code: '4200000000', lat: 37.8228, lng: 128.1555},
+        {name: '충북', code: '4300000000', lat: 36.6350, lng: 127.4914},
+        {name: '충남', code: '4400000000', lat: 36.6588, lng: 126.6728},
+        {name: '전북', code: '4500000000', lat: 35.7175, lng: 127.1530},
+        {name: '전남', code: '4600000000', lat: 34.8163, lng: 126.4629},
+        {name: '경북', code: '4700000000', lat: 36.5760, lng: 128.5056},
+        {name: '경남', code: '4800000000', lat: 35.2383, lng: 128.6924},
         {name: '제주', code: '5000000000', lat: 33.4996, lng: 126.5312},
-        {name: '독도', code: '', lat: 37.2429, lng: 131.8669}
+        {name: '독도', code: '', lat: 37.2429, lng: 131.8669} // 독도는 서비스 차원에서 유지 (필요 없으면 삭제)
     ];
 
     const regionCodes = regions.filter(r => r.code).map(r => r.code).join(',');
 
     try {
         let weatherData = [];
+        // [핵심] 한 번의 호출로 모든 지역 데이터 요청 (1 Traffic)
         if (regionCodes) {
             const res = await fetch(`${API_BASE_URL}/api/weather/compare?regionCodes=${regionCodes}`);
             const result = await res.json();
@@ -120,10 +133,11 @@ async function loadRegionalWeatherData() {
 
             const clickAction = `onclick="changeDashboardLocation(${region.lat}, ${region.lng}, '${region.name}')"`;
 
-            // (A) 지도 오버레이
+            // (A) 지도 오버레이 (17개 지역 모두 지도에 표시됨)
             if (kakaoMap) {
                 const content = `<div class="customoverlay" ${clickAction} style="cursor: pointer;"><a href="javascript:void(0);"><span class="title">${region.name}</span><div class="weather-content"><i class="${iconClass}" style="color:${getIconColor(iconClass)}"></i><span class="temp">${temp}°</span></div></a></div>`;
                 const position = new kakao.maps.LatLng(region.lat, region.lng);
+                // 기존 오버레이 제거 후 새로 생성
                 if (mapOverlays[region.name]) mapOverlays[region.name].setMap(null);
                 const customOverlay = new kakao.maps.CustomOverlay({
                     map: kakaoMap,
