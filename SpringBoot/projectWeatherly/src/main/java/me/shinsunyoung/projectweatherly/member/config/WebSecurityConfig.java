@@ -57,7 +57,7 @@ public class WebSecurityConfig {
                         // 관리자 페이지는 'ADMIN' 권한이 있는 사람만 접근 가능
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // 위의 url이외에 모든 url은 로그인이 필요하도록 설정
-                        .anyRequest().permitAll())
+                        .anyRequest().authenticated())
                 // form태그를 사용한 로그인 관련 설정
                 .formLogin(formLogin -> formLogin
                         .loginPage("/login")// 로그인 페이지 주소

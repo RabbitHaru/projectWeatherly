@@ -3,6 +3,8 @@ package me.shinsunyoung.projectweatherly.member.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.shinsunyoung.projectweatherly.board.domain.entity.Board;
+import me.shinsunyoung.projectweatherly.board.domain.entity.Comment;
+import me.shinsunyoung.projectweatherly.board.domain.entity.Report;
 import me.shinsunyoung.projectweatherly.board.dto.MyCommentResponse;
 import me.shinsunyoung.projectweatherly.board.repository.BoardRepository;
 import me.shinsunyoung.projectweatherly.board.repository.CommentRepository;
@@ -21,8 +23,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.SimpleMailMessage; // [필수] 메일 객체
+import org.springframework.mail.javamail.JavaMailSender; // [필수] 메일 전송 도구
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,8 +32,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -45,7 +49,7 @@ public class MemberService implements UserDetailsService {
     private final BoardRepository boardRepository;
     private final ReportRepository reportRepository;
     private final CommentRepository commentRepository;
-    private final JavaMailSender javaMailSender;
+    private final JavaMailSender javaMailSender; // [추가됨] 진짜 메일 발송 도구
 
     // ==================== UserDetails 반환 ====================
     @Override
@@ -223,6 +227,8 @@ public class MemberService implements UserDetailsService {
         boardRepository.delete(board);
     }
 
+
+
     // ==================== [NEW] 아이디/비밀번호 찾기 ====================
 
     // [추가] 닉네임으로 이메일 찾기
@@ -281,4 +287,5 @@ public class MemberService implements UserDetailsService {
                 .weatherAlertAgree(agreement != null ? agreement.getWeatherAlertAgree() : null)
                 .build();
     }
+
 }

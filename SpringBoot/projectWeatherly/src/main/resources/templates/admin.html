@@ -94,9 +94,28 @@
                     <tr th:each="member : ${members}">
                         <td>
                             <div class="user-info">
-                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}" class="user-avatar">
+
+                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}"
+                                     class="user-avatar">
+
+
                                 <div th:unless="${member.profileImage != null}" class="user-avatar"
                                      style="background:#a29bfe" th:text="${#strings.substring(member.nickname, 0, 1)}">U
+
+                                <img th:if="${member.profileImage != null}"
+                                     th:src="${member.profileImage}"
+                                     class="user-avatar" style="object-fit:cover;"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div th:unless="${member.profileImage != null}"
+                                     class="user-avatar"
+                                     style="background:#a29bfe; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;"
+                                     th:text="${#strings.substring(member.nickname, 0, 1)}">U
+                                </div>
+                                <div th:if="${member.profileImage != null}"
+                                     class="user-avatar"
+                                     style="background:#a29bfe; display: none; align-items: center; justify-content: center; font-weight: bold; color: white;"
+                                     th:text="${#strings.substring(member.nickname, 0, 1)}">U
+
                                 </div>
                                 <span th:text="${member.nickname}">닉네임</span>
                             </div>
@@ -289,11 +308,14 @@
 <script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/admin.js}"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        if (localStorage.getItem('darkMode') === 'true') {
-            document.body.classList.add('dark-mode');
-        }
-    });
+
+
+            document.addEventListener("DOMContentLoaded", function () {
+                const isDarkMode = localStorage.getItem('darkMode') === 'true';
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                }
+            });
 </script>
 </body>
 </html>
