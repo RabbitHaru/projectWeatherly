@@ -32,7 +32,7 @@ public class WebSecurityConfig {
     public PersistentTokenRepository persistentTokenRepository(){
         JdbcTokenRepositoryImpl repo = new JdbcTokenRepositoryImpl();
         repo.setDataSource(dataSource);
-//        persistent_logins 테이블 생성 SQL 실행 => 이미 테이블 있으면 에러를 발생시킴
+        // persistent_logins 테이블 생성 SQL 실행 => 이미 테이블 있으면 에러를 발생시킴
         repo.setCreateTableOnStartup(false);
         return repo;
     }
@@ -50,11 +50,11 @@ public class WebSecurityConfig {
         return http
                 // 인가가 필요한 페이지 설정
                 .authorizeHttpRequests(auth -> auth
-                        // permitAll로 되어있는 url은 로그인하지 않아도 통과
+                        // [수정됨] /auth/api/** 대신 /auth/** 로 변경하여 아이디 찾기 페이지도 접근 허용
                         .requestMatchers("/","/login","/signup","/user"
-                                ,"/articles","/articles/{id}","/file/**")
+                                ,"/articles","/articles/{id}","/file/**", "/auth/**")
                         .permitAll()
-                        // 2. [추가됨] 관리자 페이지는 'ADMIN' 권한이 있는 사람만 접근 가능
+                        // 관리자 페이지는 'ADMIN' 권한이 있는 사람만 접근 가능
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // 위의 url이외에 모든 url은 로그인이 필요하도록 설정
                         .anyRequest().permitAll())
@@ -101,14 +101,3 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-
-
-
-
-
-
-
-
-
-
-

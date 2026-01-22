@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weatherly - 계정 찾기</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/signup.css">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <style>
+    /* 탭 스타일 */
+    .tab-container {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--light-border);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 15px;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--light-text);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+    .tab-btn.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+
+    /* 폼 전환 */
+    .find-form {
+      display: none;
+    }
+    .find-form.active {
+      display: block;
+    }
+
+    /* 결과 박스 */
+    .result-box {
+      margin-top: 15px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      text-align: center;
+      display: none;
+      font-weight: bold;
+    }
+    .result-box.success {
+      color: var(--success-color);
+      background-color: #e8f8f5;
+      display: block;
+    }
+    .result-box.error {
+      color: var(--danger-color);
+      background-color: #fdecea;
+      display: block;
+    }
+
+    /* 다크모드 */
+    body.dark-mode .tab-container { border-bottom-color: var(--dark-border); }
+    body.dark-mode .tab-btn { color: var(--dark-text); }
+    body.dark-mode .tab-btn.active { color: var(--primary-color); }
+    body.dark-mode .result-box { background-color: var(--dark-bg); }
+  </style>
+</head>
+<body>
+<header th:replace="layout/header :: header"></header>
+
+<main class="signup-container">
+  <div class="signup-card">
+    <div class="signup-header">
+      <h1><i class="fas fa-key"></i> 계정 찾기</h1>
+      <p class="subtitle">아이디 또는 비밀번호를 잊으셨나요?</p>
+    </div>
+
+    <div class="tab-container">
+      <button class="tab-btn active" onclick="openTab('findId')">아이디 찾기</button>
+      <button class="tab-btn" onclick="openTab('findPw')">비밀번호 찾기</button>
+    </div>
+
+    <div class="signup-form">
+
+      <div id="findId" class="find-form active">
+        <div class="form-group">
+          <label>가입시 등록한 닉네임</label>
+          <input type="text" id="search_nickname" placeholder="닉네임을 입력하세요">
+        </div>
+        <button type="button" class="submit-btn" onclick="findEmail()">
+          <i class="fas fa-search"></i> 이메일 찾기
+        </button>
+        <div id="idResult" class="result-box"></div>
+      </div>
+
+      <div id="findPw" class="find-form">
+        <div class="form-group">
+          <label>가입한 이메일 주소</label>
+          <input type="email" id="search_email" placeholder="예: user@example.com">
+        </div>
+        <button type="button" class="submit-btn" onclick="sendTempPw()">
+          <i class="fas fa-envelope"></i> 임시 비밀번호 발송
+        </button>
+        <div id="pwResult" class="result-box"></div>
+      </div>
+
+      <div class="login-link" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+        <a href="/login">로그인 화면으로 돌아가기</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  // 탭 전환 함수
+  function openTab(tabName) {
+    document.querySelectorAll('.find-form').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+
+    // 결과창 초기화
+    document.getElementById('idResult').className = 'result-box';
+    document.getElementById('pwResult').className = 'result-box';
+    document.getElementById('idResult').style.display = 'none';
+    document.getElementById('pwResult').style.display = 'none';
+  }
+
+  // 아이디 찾기 요청
+  function findEmail() {
+    const nickname = document.getElementById('search_nickname').value;
+    const resultBox = document.getElementById('idResult');
+
+    if(!nickname) { alert('닉네임을 입력해주세요.'); return; }
+
+    axios.post('/auth/api/find-email', null, { params: { nickname: nickname } })
+            .then(res => {
+              resultBox.className = 'result-box success';
+              resultBox.innerHTML = `회원님의 이메일은 <br> [ ${res.data} ] 입니다.`;
+            })
+            .catch(err => {
+              resultBox.className = 'result-box error';
+              resultBox.textContent = err.response ? err.response.data : '오류가 발생했습니다.';
+            });
+  }
+
+  // 임시 비밀번호 발송 요청
+  function sendTempPw() {
+    const email = document.getElementById('search_email').value;
+    const resultBox = document.getElementById('pwResult');
+
+    if(!email) { alert('이메일을 입력해주세요.'); return; }
+
+    resultBox.className = 'result-box';
+    resultBox.style.display = 'block';
+    resultBox.style.background = '#f8f9fa';
+    resultBox.style.color = '#333';
+    resultBox.textContent = '전송 중입니다... 잠시만 기다려주세요.';
+
+    axios.post('/auth/api/reset-password', null, { params: { email: email } })
+            .then(res => {
+              resultBox.className = 'result-box success';
+              resultBox.innerHTML = `임시 비밀번호가 발송되었습니다.`;
+            })
+            .catch(err => {
+              resultBox.className = 'result-box error';
+              resultBox.textContent = err.response ? err.response.data : '오류가 발생했습니다.';
+            });
+  }
+</script>
+</body>
+</html>

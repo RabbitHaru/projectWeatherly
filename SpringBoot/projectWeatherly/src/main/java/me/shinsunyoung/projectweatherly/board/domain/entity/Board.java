@@ -20,7 +20,7 @@ import java.util.List;
 @Builder
 public class Board {
 
-    // ★ [추가] 공지사항 카테고리 상수 (Service에서 오타 방지용으로 사용)
+    // ★ [유지] 공지사항 카테고리 상수
     public static final String CATEGORY_NOTICE = "NOTICE";
 
     @Id
@@ -30,12 +30,14 @@ public class Board {
     @Column(nullable = false)
     private String title;
 
+    // ★ [핵심] 이 설정이 DB의 'TEXT' 타입과 매핑됩니다. (한글 저장 및 긴 글 저장 가능)
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "category", length = 50)
     private String category;
 
+    // 이미지 연관관계 (Cascade 설정 유지)
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<BoardImage> images = new ArrayList<>();
@@ -70,31 +72,33 @@ public class Board {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // 조회수 증가 메서드
+    // --- 비즈니스 로직 메서드 (기존 기능 유지) ---
+
+    // 조회수 증가
     public void increaseViewCount() {
         this.viewCount++;
     }
 
-    // 좋아요 수 증가 메서드
+    // 좋아요 수 증가
     public void increaseLikeCount() {
         this.likeCount++;
     }
 
-    // 좋아요 수 감소 메서드
+    // 좋아요 수 감소
     public void decreaseLikeCount() {
         if (this.likeCount > 0) {
             this.likeCount--;
         }
     }
 
-    // 게시글 수정 메서드
+    // 게시글 수정
     public void update(String title, String content, String category) {
         this.title = title;
         this.content = content;
         this.category = category;
     }
 
-    // 이미지 추가 메서드
+    // 이미지 추가 (연관관계 편의 메서드)
     public void addImage(BoardImage image) {
         if (this.images == null) {
             this.images = new ArrayList<>();

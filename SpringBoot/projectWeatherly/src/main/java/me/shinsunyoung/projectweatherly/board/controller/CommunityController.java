@@ -26,9 +26,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -37,6 +37,8 @@ import java.util.Map;
 public class CommunityController {
 
     private final BoardService boardService;
+    // CommentService는 CommentController에서 쓰므로 여기선 필요 없으면 빼도 되지만,
+    // 혹시 다른 곳에서 쓸 수도 있으니 둬도 상관없습니다. (충돌 원인 아님)
     private final FileUtil fileUtil;
 
     /**
@@ -125,6 +127,7 @@ public class CommunityController {
         return "write";
     }
 
+    // [유지] 이름표 오류 해결된 버전 (FileNameUtil::getNewFileName 사용)
     @PostMapping("/boards/write")
     public String createBoard(
             @AuthenticationPrincipal UserSecurityDTO user,
@@ -134,7 +137,16 @@ public class CommunityController {
         if (user == null || user.getUser() == null) return "redirect:/login";
 
         try {
-            List<FileNameUtil> fileNames = fileUtil.uploadFile(boardRequest.getImageFiles());
+            // 1. 파일 업로드 실행
+            List<FileNameUtil> uploadedFiles = fileUtil.uploadFile(boardRequest.getImageFiles());
+
+            // 2. 업로드된 파일명을 리스트로 변환 (getNewFileName 사용)
+            if (uploadedFiles != null && !uploadedFiles.isEmpty()) {
+                List<String> fileNames = uploadedFiles.stream()
+                        .map(FileNameUtil::getNewFileName)
+                        .collect(Collectors.toList());
+                boardRequest.setImageUrls(fileNames);
+            }
 
             BoardResponse response = boardService.createBoard(user.getUser().getId(), boardRequest);
             redirectAttributes.addFlashAttribute("message", "게시글이 작성되었습니다.");
@@ -153,7 +165,7 @@ public class CommunityController {
     public String getBoard(@PathVariable Long id, Model model,
                            @AuthenticationPrincipal UserSecurityDTO user,
                            HttpServletRequest request,
-                           HttpServletResponse response) { // [변경] response 추가
+                           HttpServletResponse response) {
         try {
             if (id == null || id <= 0) return "redirect:/community?error=invalid_id";
 
@@ -162,9 +174,7 @@ public class CommunityController {
                 model.addAttribute("memberId", user.getUser().getId());
             }
 
-            // ============================================================
-            // [수정] 쿠키를 이용한 조회수 중복 증가 방지 로직 (하루 1회)
-            // ============================================================
+            // 쿠키 조회수 중복 방지 로직
             Cookie oldCookie = null;
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
@@ -177,20 +187,19 @@ public class CommunityController {
 
             if (oldCookie != null) {
                 if (!oldCookie.getValue().contains("[" + id.toString() + "]")) {
-                    boardService.increaseViewCount(id); // 서비스 호출
+                    boardService.increaseViewCount(id);
                     oldCookie.setValue(oldCookie.getValue() + "_[" + id + "]");
                     oldCookie.setPath("/");
-                    oldCookie.setMaxAge(60 * 60 * 24); // 24시간
+                    oldCookie.setMaxAge(60 * 60 * 24);
                     response.addCookie(oldCookie);
                 }
             } else {
-                boardService.increaseViewCount(id); // 서비스 호출
+                boardService.increaseViewCount(id);
                 Cookie newCookie = new Cookie("postView", "[" + id + "]");
                 newCookie.setPath("/");
-                newCookie.setMaxAge(60 * 60 * 24); // 24시간
+                newCookie.setMaxAge(60 * 60 * 24);
                 response.addCookie(newCookie);
             }
-            // ============================================================
 
             BoardResponse board = boardService.getBoard(id);
 
@@ -198,13 +207,12 @@ public class CommunityController {
                 board.setImages(board.getImageUrls());
             }
 
-            boolean isLiked = false;
             if (user != null && user.getUser() != null) {
                 board.setIsAuthor(board.getMemberId().equals(user.getUser().getId()));
                 try {
                     board.setLiked(boardService.isLiked(id, user.getUser().getId()));
                 } catch (Exception e) {
-                    log.debug("좋아요 확인 불가 (로그인 안함 또는 메서드 없음): {}", e.getMessage());
+                    log.debug("좋아요 확인 불가: {}", e.getMessage());
                 }
             } else {
                 board.setIsAuthor(false);
@@ -271,9 +279,6 @@ public class CommunityController {
         }
     }
 
-    /**
-     * 검색 기능
-     */
     @GetMapping({"/search", "/boards/search"})
     public String searchBoards(@RequestParam String keyword, @PageableDefault(size = 15) Pageable pageable, Model model, HttpServletRequest request) {
         try {
@@ -290,9 +295,7 @@ public class CommunityController {
     @PostMapping("/boards/{boardId}/like")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> likeBoard(@PathVariable Long boardId, @AuthenticationPrincipal UserSecurityDTO user) {
-        Map<String, Object> response = new HashMap<>();
         if (user == null || user.getUser() == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "로그인 필요"));
-
         try {
             boolean liked = boardService.toggleLike(boardId, user.getUser().getId());
             int likeCount = boardService.getLikeCount(boardId);
@@ -313,6 +316,10 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
         }
     }
+
+    /* * [삭제됨] 댓글 관련 메서드 (CommentController가 이미 처리 중이므로 삭제함)
+     * createComment, deleteComment, likeComment 제거 완료
+     */
 
     @GetMapping("/favicon.ico")
     @ResponseBody
