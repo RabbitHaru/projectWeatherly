@@ -102,7 +102,7 @@ async function loadDashboardData() {
             loadWeatherData(),
             loadAirQualitySummary(),
             loadRegionalWeatherData(),
-            loadCommunityData()
+            // loadCommunityData()
         ]);
     } catch (error) {
         console.error('데이터 로드 실패:', error);
@@ -516,7 +516,8 @@ function renderWeeklyForecast(data) {
     });
 }
 
+// [수정됨] 커뮤니티 데이터는 서버(Thymeleaf)에서 렌더링하므로 JS 로직은 비워둡니다.
 async function loadCommunityData() {
-    const container = document.getElementById('community-posts');
-    if (container) container.innerHTML = `<div class="post-item"><h4 class="post-title">오늘 날씨 정말 좋네요!</h4></div><div class="post-item"><h4 class="post-title">주말 등산 가실 분?</h4></div>`;
+    // 아무것도 하지 않음 (기존 innerHTML = ... 코드 삭제)
+    console.log("Community data rendered by Server (Thymeleaf).");
 }

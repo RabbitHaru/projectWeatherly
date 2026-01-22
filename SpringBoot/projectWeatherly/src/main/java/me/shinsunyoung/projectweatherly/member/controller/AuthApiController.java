@@ -91,7 +91,7 @@ public class AuthApiController {
     public ResponseEntity<String> resetPassword(@RequestParam String email) {
         try {
             memberService.sendTemporaryPassword(email);
-            return ResponseEntity.ok("임시 비밀번호가 발송되었습니다. (콘솔 확인)");
+            return ResponseEntity.ok("임시 비밀번호가 발송되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

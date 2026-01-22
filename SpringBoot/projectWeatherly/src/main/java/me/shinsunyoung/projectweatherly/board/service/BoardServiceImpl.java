@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -373,6 +374,20 @@ public class BoardServiceImpl implements BoardService {
         return boardRepository.findAllById(boardIds).stream().map(b -> convertToResponse(b, false)).collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<BoardResponse> getWeeklyPopularBoards(int limit) {
+        // 1. 현재 시간 기준 일주일 전 계산
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusWeeks(1);
+
+        // 2. 조회수(viewCount) 내림차순 정렬 조건 생성
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "viewCount"));
+
+        // 3. DB 조회 (작성일이 일주일 전 이후이고, 상태가 ACTIVE인 글)
+        return boardRepository.findByBoardStatusAndCreatedAtAfter(BoardStatus.ACTIVE, oneWeekAgo, pageable)
+                .map(board -> convertToResponse(board, false))
+                .getContent();
+    }
     private BoardResponse convertToResponse(Board board, boolean includeComments) {
         var imageUrls = board.getImages().stream()
                 .map(BoardImage::getImageUrl)

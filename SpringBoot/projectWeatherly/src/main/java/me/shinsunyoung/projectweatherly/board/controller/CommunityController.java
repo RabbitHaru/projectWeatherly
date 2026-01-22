@@ -156,28 +156,26 @@ public class CommunityController {
     public String getBoard(@PathVariable Long id, Model model,
                            @AuthenticationPrincipal UserSecurityDTO user,
                            HttpServletRequest request,
-                           HttpServletResponse response) {
+                           HttpServletResponse response) { // response는 안쓰지만 유지
         try {
             if (id == null || id <= 0) return "redirect:/community?error=invalid_id";
 
-            // 1. 게시글 정보를 먼저 조회 (이 시점에서는 조회수 증가 X)
-            // [참고] Service에서 getBoard 호출 시 increaseViewCount를 제거했으므로 순수 데이터만 가져옴
+            // 1. 게시글 데이터 가져오기 (조회수 증가 X, 순수 데이터)
             BoardResponse board = boardService.getBoard(id);
 
-            // 2. 로그인 유저 정보 및 작성자 여부 확인
+            // 2. 로그인 유저 정보 및 작성자 여부 확인 (화면 표시용)
             boolean isAuthor = false;
             if (user != null && user.getUser() != null) {
                 model.addAttribute("nickname", user.getUser().getNickname());
                 model.addAttribute("memberId", user.getUser().getId());
 
-                // 작성자 본인인지 확인
                 isAuthor = board.getMemberId().equals(user.getUser().getId());
                 board.setIsAuthor(isAuthor);
 
                 try {
                     board.setLiked(boardService.isLiked(id, user.getUser().getId()));
                 } catch (Exception e) {
-                    log.debug("좋아요 확인 불가: {}", e.getMessage());
+                    // 좋아요 확인 실패 시 무시
                 }
             } else {
                 board.setIsAuthor(false);
@@ -188,38 +186,12 @@ public class CommunityController {
                 board.setImages(board.getImageUrls());
             }
 
-            // 4. 조회수 증가 로직 (작성자가 아닐 때만 실행)
-            if (!isAuthor) {
-                Cookie oldCookie = null;
-                Cookie[] cookies = request.getCookies();
-                if (cookies != null) {
-                    for (Cookie cookie : cookies) {
-                        if (cookie.getName().equals("postView")) {
-                            oldCookie = cookie;
-                        }
-                    }
-                }
-
-                if (oldCookie != null) {
-                    if (!oldCookie.getValue().contains("[" + id.toString() + "]")) {
-                        boardService.increaseViewCount(id); // DB 조회수 증가
-                        board.setViewCount(board.getViewCount() + 1); // 화면 표시용 조회수 +1 (새로고침 없이 반영)
-
-                        oldCookie.setValue(oldCookie.getValue() + "_[" + id + "]");
-                        oldCookie.setPath("/");
-                        oldCookie.setMaxAge(60 * 60 * 24);
-                        response.addCookie(oldCookie);
-                    }
-                } else {
-                    boardService.increaseViewCount(id); // DB 조회수 증가
-                    board.setViewCount(board.getViewCount() + 1); // 화면 표시용 조회수 +1
-
-                    Cookie newCookie = new Cookie("postView", "[" + id + "]");
-                    newCookie.setPath("/");
-                    newCookie.setMaxAge(60 * 60 * 24);
-                    response.addCookie(newCookie);
-                }
-            }
+            // ============================================================
+            // 4. [수정됨] 조회수 무조건 증가 로직 (쿠키 X, 작성자 체크 X)
+            // ============================================================
+            boardService.increaseViewCount(id); // DB 조회수 +1
+            board.setViewCount(board.getViewCount() + 1); // 화면 표시용 조회수 +1
+            // ============================================================
 
             model.addAttribute("board", board);
 

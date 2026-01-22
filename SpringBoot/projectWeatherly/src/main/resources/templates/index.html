@@ -173,35 +173,41 @@
         </section>
 
         <section class="community-preview">
-            <div class="community-header"><h3><i class="fas fa-comments"></i> 커뮤니티 인기글</h3><a href="/community"
-                                                                                              class="view-all-btn">더보기
-                <i class="fas fa-arrow-right"></i></a></div>
-            <div class="community-posts" id="community-posts"></div>
-        </section>
-    </div>
+            <div class="community-header weather-summary">
+                <h3><i class="fas fa-comments"></i> 커뮤니티 인기글</h3>
+                <a href="/community" class="view-all-btn ">더보기 <i class="fas fa-arrow-right"></i></a>
+            </div>
 
-    <aside class="sidebar">
-        <div class="sidebar-card warning-card">
-            <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> 기상특보</h3></div>
-            <div class="card-content">
-                <div class="warning-status"><i class="fas fa-check-circle status-icon safe"></i>
-                    <div class="warning-text"><strong id="weather-alert-title">발표된 기상특보 없음</strong>
-                        <p id="weather-alert-desc">안전한 날씨가 예상됩니다.</p></div>
+            <div class="community-posts " id="community-posts" style="display: flex; flex-direction: column; gap: 10px;">
+
+                <div th:if="${#lists.isEmpty(popularPosts)}" style="text-align: center; color: #888; padding: 30px;">
+                    <p>아직 등록된 인기글이 없습니다.</p>
                 </div>
+
+                <a th:each="post : ${popularPosts}"
+                   th:href="@{/community/boards/{id}(id=${post.id})}"
+                   class="post-card"
+                   style="background: white; padding: 15px; border-radius: 10px; display: block; text-decoration: none; color: inherit; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span th:if="${post.category == 'weather'}" style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">날씨</span>
+                        <span th:if="${post.category == 'dust'}" style="background: #fce4ec; color: #c2185b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">미세먼지</span>
+                        <span th:if="${post.category == 'outfit'}" style="background: #f3e5f5; color: #7b1fa2; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">옷차림</span>
+                        <span th:if="${post.category == 'general'}" style="background: #f5f5f5; color: #616161; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">자유</span>
+
+                        <span style="font-size: 0.8rem; color: #888;">
+                    <i class="fas fa-eye"></i> <span th:text="${post.viewCount}">0</span>
+                </span>
+                    </div>
+
+                    <h4 th:text="${post.title}" style="margin: 5px 0; font-size: 1rem;">제목</h4>
+
+                    <div style="font-size: 0.8rem; color: #666;">
+                        <span th:text="${post.memberNickname}">작성자</span>
+                    </div>
+                </a>
             </div>
-        </div>
-
-        <div class="sidebar-card map-card">
-            <div class="card-header"><h3><i class="fas fa-map-marked-alt"></i> 실시간 날씨 지도</h3></div>
-            <div class="card-content" style="padding: 0; position: relative;">
-                <div id="kakao-map" style="width:100%; height:500px; border-radius: 0 0 12px 12px;"></div>
-
-                <script type="text/javascript"
-                        th:src="|//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoMapKey}&autoload=false|">
-                </script>
-
-            </div>
-        </div>
+        </section>
 
         <div class="sidebar-card regional-card">
             <div class="card-header"><h3><i class="fas fa-city"></i> 지역별 날씨</h3></div>

@@ -964,3 +964,99 @@ body.dark-mode .hourly-date-marker .marker-day {
     font-size: 0.75em;
     opacity: 0.7;
 }
+/* =========================================
+   [커뮤니티 인기글 섹션 스타일링]
+   HTML의 style 속성을 제거하고 CSS로 통합
+   ========================================= */
+
+/* 1. 기본 카드 스타일 (라이트 모드) */
+.post-card {
+    display: block;
+    text-decoration: none;
+    background-color: white; /* 기본 흰색 */
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+}
+
+.post-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.empty-post-card {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    color: #888;
+}
+
+/* 내부 요소 배치 */
+.post-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.post-meta-info {
+    font-size: 0.85rem;
+    color: #888;
+}
+.post-meta-info span { margin-left: 5px; }
+
+.post-title {
+    margin: 0 0 5px 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.post-author {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* 뱃지 스타일 */
+.badge { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+.badge-weather { background: #e3f2fd; color: #1976d2; }
+.badge-dust { background: #fce4ec; color: #c2185b; }
+.badge-outfit { background: #f3e5f5; color: #7b1fa2; }
+.badge-general { background: #f8f9fa; color: #495057; }
+
+
+/* =========================================
+   [Dark Mode] 다크 모드 스타일 (덮어쓰기)
+   ========================================= */
+
+body.dark-mode .post-card,
+body.dark-mode .empty-post-card {
+    background-color: #2d3748 !important; /* 카드 배경 어둡게 */
+    border: 1px solid #4a5568 !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+}
+
+body.dark-mode .post-card:hover {
+    background-color: #364052 !important;
+}
+
+body.dark-mode .post-title {
+    color: #ffffff !important; /* 제목 흰색 */
+}
+
+body.dark-mode .post-meta-info,
+body.dark-mode .post-author {
+    color: #a0aec0 !important; /* 부가정보 회색 */
+}
+
+/* 뱃지는 다크모드에서도 잘 보이도록 약간 투명도 조절 */
+body.dark-mode .badge {
+    opacity: 0.9;
+    border: 1px solid rgba(255,255,255,0.1);
+}

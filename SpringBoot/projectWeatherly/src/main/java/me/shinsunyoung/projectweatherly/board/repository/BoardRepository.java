@@ -91,6 +91,8 @@ public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecific
     @Query("SELECT b FROM Board b WHERE b.title LIKE %:keyword% OR b.content LIKE %:keyword%")
     Page<Board> findByTitleContainingOrContentContaining(@Param("keyword") String keyword, Pageable pageable);
 
+    // ★ [추가] 일주일 간 작성된 글 중, 상태가 ACTIVE인 것을 조회 (페이징 지원)
+    Page<Board> findByBoardStatusAndCreatedAtAfter(BoardStatus status, LocalDateTime createdAt, Pageable pageable);
     // 새로 추가된 메서드들
     Page<Board> findByMember(Member member, Pageable pageable);
     Page<Board> findByMemberAndBoardStatus(Member member, BoardStatus status, Pageable pageable);
