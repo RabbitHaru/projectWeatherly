@@ -98,28 +98,20 @@
         <section class="forecast-section">
             <div class="forecast-tabs">
                 <button class="tab-btn active" data-tab="hourly"><i class="fas fa-clock"></i> 시간별</button>
-                <button class="tab-btn" data-tab="tomorrow"><i class="fas fa-sun"></i> 내일</button>
                 <button class="tab-btn" data-tab="weekly"><i class="fas fa-calendar-week"></i> 이번주</button>
                 <button class="tab-btn" data-tab="air-quality"><i class="fas fa-wind"></i> 미세먼지</button>
             </div>
+
             <div class="tab-content active" id="tab-hourly">
                 <div class="horizontal-forecast-card">
-                    <div class="card-header"><h4><i class="fas fa-clock"></i> 오늘 시간별 예보</h4><span class="card-subtitle">24시간 예측</span>
+                    <div class="card-header"><h4><i class="fas fa-clock"></i> 48시간 예보</h4><span class="card-subtitle">오늘 ~ 모레 예측</span>
                     </div>
                     <div class="horizontal-scroll-container">
                         <div class="hourly-forecast-items" id="hourly-forecast"></div>
                     </div>
                 </div>
             </div>
-            <div class="tab-content" id="tab-tomorrow">
-                <div class="horizontal-forecast-card">
-                    <div class="card-header"><h4><i class="fas fa-sun"></i> 내일 예보</h4><span class="card-subtitle">24시간 시간별</span>
-                    </div>
-                    <div class="horizontal-scroll-container">
-                        <div class="tomorrow-forecast-items" id="tomorrow-forecast"></div>
-                    </div>
-                </div>
-            </div>
+
             <div class="tab-content" id="tab-weekly">
                 <div class="horizontal-forecast-card">
                     <div class="card-header"><h4><i class="fas fa-calendar-week"></i> 이번 주 예보</h4><span

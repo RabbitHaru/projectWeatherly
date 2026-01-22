@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Weatherly Main Dashboard Stylesheet (White Text Force Fix)
+   Weatherly Main Dashboard Stylesheet (Modern Pill Design)
    ========================================================================== */
 
 /* 1. 날씨 상태 */
@@ -80,7 +80,7 @@
     margin-bottom: 2px;
 }
 
-/* 3. 대기질 요약 (Main Page) */
+/* 3. 대기질 요약 */
 .air-quality-summary {
     background: rgba(255, 255, 255, 0.15);
     border-radius: 12px;
@@ -112,7 +112,6 @@
     gap: 15px;
 }
 
-/* 카드 배경 (반투명) */
 .aqi-item {
     background: rgba(255, 255, 255, 0.15);
     padding: 15px;
@@ -130,23 +129,20 @@
     transform: translateY(-2px);
 }
 
-/* [핵심 수정] 라벨(제목) 완전 흰색으로 강제 적용 (!important) */
 .aqi-label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #ffffff !important; /* 무조건 흰색 */
+    color: #ffffff !important;
     margin-bottom: 2px;
-    opacity: 1 !important; /* 투명도 강제 제거 */
+    opacity: 1 !important;
 }
 
-/* [핵심 수정] 값 완전 흰색 강제 적용 */
 .aqi-value {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #ffffff !important; /* 무조건 흰색 */
+    color: #ffffff !important;
 }
 
-/* 상태 뱃지 */
 .aqi-status {
     padding: 4px 12px;
     border-radius: 12px;
@@ -158,7 +154,6 @@
     color: #333;
 }
 
-/* 상태별 뱃지 색상 */
 .aqi-status.aqi-good {
     background-color: var(--success-color);
     color: white;
@@ -179,8 +174,229 @@
     color: white;
 }
 
+/* ⭐ 4. 예보 탭 (New: Modern Pill Style) */
+.forecast-section {
+    margin-bottom: 30px;
+}
 
-/* 4. 예보 요약 카드 */
+.forecast-tabs {
+    display: flex;
+    gap: 8px; /* 버튼 사이 간격 살짝 */
+    margin-bottom: 4px; /* ⭐ 컨텐츠와 초밀착 */
+    width: 100%;
+}
+
+@media (max-width: 500px) {
+    .forecast-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 5px;
+    }
+}
+
+.tab-btn {
+    flex: 1; /* 균등 분할 */
+    background: rgba(255, 255, 255, 0.5); /* 비활성: 반투명 흰색 (깔끔함) */
+    border: none;
+    font-size: 1.0rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    padding: 12px 0;
+    border-radius: 12px;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    backdrop-filter: blur(5px);
+}
+
+/* 다크모드 비활성 버튼 */
+body.dark-mode .tab-btn {
+    background: rgba(255, 255, 255, 0.05); /* 어두운 반투명 */
+    color: #aaa;
+}
+
+.tab-btn i {
+    font-size: 1.0rem;
+}
+
+/* ⭐ 활성화 탭 (그라데이션 & 그림자) */
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--primary-color, #3498db), #2980b9);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); /* 빛나는 느낌 */
+    transform: translateY(-2px);
+}
+
+/* 다크모드 활성화 탭 */
+body.dark-mode .tab-btn.active {
+    background: linear-gradient(135deg, #3498db, #2c3e50);
+    color: white;
+    box-shadow: 0 0 12px rgba(52, 152, 219, 0.4); /* 네온 효과 */
+}
+
+.tab-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.8);
+    color: #333;
+}
+
+body.dark-mode .tab-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* 탭 컨텐츠 애니메이션 */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 가로 스크롤 컨테이너 & 카드 헤더 */
+.horizontal-forecast-card {
+    background: var(--light-card);
+    border-radius: 15px;
+    /* ⭐ 상단 여백을 15px로 줄여서 제목과 탭 사이 간격을 좁힘 */
+    padding: 15px 15px 20px 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode .horizontal-forecast-card {
+    background: #25253d !important;
+}
+
+.card-header {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding-left: 5px;
+}
+
+.card-header h4 {
+    font-size: 1.2rem;
+    margin: 0;
+    color: #333;
+}
+
+body.dark-mode .card-header h4 {
+    color: white;
+}
+
+.card-subtitle {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+/* 스크롤 컨테이너 */
+.horizontal-scroll-container {
+    overflow-x: auto;
+    padding-bottom: 10px;
+    padding-left: 2px;
+    padding-right: 2px;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+}
+
+/* ⭐ 미세먼지 탭 50:50 분할 (요청사항 반영) */
+.aqi-forecast-items {
+    display: flex;
+    gap: 15px;
+    padding: 5px 0;
+    width: 100%;
+}
+
+.aqi-forecast-items .aqi-forecast-card {
+    flex: 1;
+    min-width: 0;
+    width: 50%; /* 정확히 반반 */
+}
+
+/* 일반 예보 아이템 리스트 */
+.hourly-forecast-items,
+.weekly-forecast-items {
+    display: flex;
+    gap: 15px;
+    padding: 5px 2px;
+}
+
+/* ⭐ 시간별 예보 아이템 (시원시원하게) */
+.hour-item {
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 10px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    transition: 0.3s;
+    border: 1px solid transparent;
+}
+
+.hour-item:hover {
+    background: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transform: translateY(-5px);
+}
+
+body.dark-mode .hour-item {
+    background: #2a2a4a;
+}
+
+body.dark-mode .hour-item:hover {
+    background: #34495e;
+    border-color: #4a6278;
+}
+
+.hour-time {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+body.dark-mode .hour-time {
+    color: #ccc;
+}
+
+.hour-icon {
+    font-size: 2.2rem;
+    margin: 8px 0;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.1));
+}
+
+.hour-temp {
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: #333;
+    margin-top: 5px;
+}
+
+body.dark-mode .hour-temp {
+    color: white;
+}
+
+/* 5. 예보 요약 카드 */
 .forecast-summary {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -288,21 +504,21 @@ body.dark-mode .detail {
 .detail .label {
     font-size: 0.9rem;
     color: #666;
-    white-space: nowrap; /* ⭐ [추가] 라벨(제목)도 절대 줄바꿈 하지 않음 */
+    white-space: nowrap;
 }
 
 .detail .value {
     font-weight: 700;
     color: var(--primary-color);
     font-size: 0.95rem;
-    white-space: nowrap;  /* ⭐ [추가] 글자가 길어져도 절대 줄바꿈 하지 않음 */
+    white-space: nowrap;
 }
 
 body.dark-mode .detail .value {
     color: #4fc3f7;
 }
 
-/* 5. 커뮤니티 인기글 */
+/* 6. 커뮤니티 및 기타 */
 .community-preview {
     background: var(--light-card);
     border-radius: 15px;
@@ -368,27 +584,6 @@ body.dark-mode .post-item {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.post-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-size: 0.85rem;
-    color: #777;
-}
-
-.post-category {
-    background: #f0f2f5;
-    padding: 3px 10px;
-    border-radius: 15px;
-    font-weight: bold;
-    color: var(--primary-color);
-}
-
-body.dark-mode .post-category {
-    background: #333;
-    color: #4fc3f7;
-}
-
 .post-title {
     font-size: 1.1rem;
     font-weight: bold;
@@ -401,15 +596,7 @@ body.dark-mode .post-title {
     color: white;
 }
 
-.post-meta {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: #999;
-    font-size: 0.9rem;
-}
-
-/* 6. 지역별 날씨 */
+/* 7. 지역별 날씨 & 사이드바 */
 .warning-card {
     border-top: 4px solid var(--danger-color);
 }
@@ -436,6 +623,18 @@ body.dark-mode .warning-status {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.regional-weather-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.regional-weather-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
 }
 
 .region-weather {
@@ -498,7 +697,7 @@ body.dark-mode .region-name {
     color: var(--accent-color);
 }
 
-/* 7. 지도 스타일 */
+/* 8. 지도 관련 */
 .korea-map-container {
     background: radial-gradient(circle at 50% 50%, #f0f4f8 0%, #d9e2ec 100%);
     border-radius: 12px;
@@ -526,79 +725,6 @@ body.dark-mode .region-name {
     transform: translateY(-2px);
 }
 
-.region-label {
-    font-size: 14px;
-    font-weight: bold;
-    fill: #636e72;
-    text-anchor: middle;
-    pointer-events: none;
-}
-
-.map-weather-icon {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    font-size: 1.4rem;
-    color: #f39c12;
-    animation: floatMapIcon 3s ease-in-out infinite;
-}
-
-@keyframes floatMapIcon {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-4px);
-    }
-}
-
-.map-overlay-item {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 10;
-}
-
-.map-overlay-item:hover {
-    transform: translate(-50%, -60%) scale(1.1);
-    z-index: 20;
-}
-
-.map-overlay-item .map-weather-icon {
-    font-size: 1.8rem;
-    margin-bottom: 2px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-    animation: floatIcon 3s ease-in-out infinite;
-}
-
-.map-overlay-item .region-label {
-    font-size: 0.85rem;
-    font-weight: bold;
-    color: #333;
-    background: rgba(255, 255, 255, 0.8);
-    padding: 2px 6px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.map-overlay-item .region-temp {
-    color: #e74c3c;
-    margin-left: 2px;
-}
-
-@keyframes floatIcon {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-5px);
-    }
-}
-
 body.dark-mode .korea-map-container {
     background: radial-gradient(circle at 50% 50%, #2c3e50 0%, #1a252f 100%);
 }
@@ -613,7 +739,7 @@ body.dark-mode .map-region:hover .region-path {
     stroke: #3498db;
 }
 
-/* 8. 말풍선 스타일 */
+/* 9. 말풍선 & 미세먼지 카드 */
 .customoverlay {
     position: relative;
     bottom: 15px;
@@ -663,10 +789,6 @@ body.dark-mode .map-region:hover .region-path {
     background: #fff;
 }
 
-.customoverlay .weather-content i {
-    font-size: 1.0rem;
-}
-
 .customoverlay .temp {
     font-size: 1.4rem;
     color: #333;
@@ -713,7 +835,7 @@ body.dark-mode .customoverlay:after {
     border-color: #555;
 }
 
-/* 9. 미세먼지 카드 스타일 (디자인 통일) */
+/* 미세먼지 카드 (탭 내부) - 높이 꽉 채우기 & 디자인 */
 .aqi-forecast-card {
     flex: 1;
     background: #ffffff;
@@ -727,6 +849,7 @@ body.dark-mode .customoverlay:after {
     transition: 0.3s;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
     cursor: default;
+    height: 100%;
 }
 
 .aqi-forecast-card:hover {
@@ -790,41 +913,54 @@ body.dark-mode .aqi-date {
     color: #ccc !important;
 }
 
-.aqi-status-badge.aqi-good {
-    background-color: var(--success-color);
+.status-icon.safe {
+    color: var(--success-color);
 }
 
-.aqi-status-badge.aqi-moderate {
-    background-color: var(--warning-color);
-    color: #333;
+.status-icon.caution {
+    color: #f1c40f !important;
 }
 
-.aqi-status-badge.aqi-bad {
-    background-color: var(--danger-color);
+.status-icon.danger {
+    color: #e74c3c !important;
 }
 
-.aqi-status-badge.aqi-very-bad {
-    background-color: #8e44ad;
-}
-
-.regional-weather-list {
+/* ⭐ 날짜 구분선 스타일 */
+.hourly-date-marker {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    max-height: 500px; /* 높이 제한 */
-    overflow-y: auto;  /* 스크롤 생성 */
-    padding-right: 5px; /* 스크롤바 여백 */
+    justify-content: center;
+    align-items: center;
+    min-width: 60px;
+    margin: 0 8px;
+    padding: 0 10px;
+    background: rgba(128, 128, 128, 0.1);
+    border-radius: 12px;
+    font-weight: bold;
+    color: #333;
+    font-size: 0.9rem;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+    align-self: stretch;
 }
 
-/* 스크롤바 디자인 (선택) */
-.regional-weather-list::-webkit-scrollbar {
-    width: 5px;
-}
-.regional-weather-list::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 4px;
+body.dark-mode .hourly-date-marker {
+    background: rgba(255, 255, 255, 0.1);
+    color: #eee;
 }
 
-.status-icon.safe { color: var(--success-color); }
-.status-icon.caution { color: #f1c40f !important; }
-.status-icon.danger { color: #e74c3c !important; }
+.hourly-date-marker .marker-day {
+    font-size: 1.1em;
+    margin-bottom: 2px;
+    color: var(--primary-color);
+}
+
+body.dark-mode .hourly-date-marker .marker-day {
+    color: #4fc3f7;
+}
+
+.hourly-date-marker .marker-date {
+    font-size: 0.75em;
+    opacity: 0.7;
+}
