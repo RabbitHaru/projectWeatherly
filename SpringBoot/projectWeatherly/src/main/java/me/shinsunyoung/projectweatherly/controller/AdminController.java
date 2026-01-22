@@ -47,8 +47,10 @@ public class AdminController {
     // 1. 대시보드 메인
     @GetMapping({"", "/"})
     public String dashboard(Model model,
-                            // [수정] 회원 목록 5개씩 보기 (기존 10 -> 5)
+                            // 회원 목록 5개씩 (size=5)
                             @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+                            // [NEW] 검색어 파라미터 추가
+                            @RequestParam(required = false) String keyword,
                             @AuthenticationPrincipal UserSecurityDTO user,
                             HttpServletRequest request) {
 
@@ -61,8 +63,11 @@ public class AdminController {
         model.addAttribute("totalMembers", stats.getOrDefault("totalMembers", 0L));
         model.addAttribute("todayPosts", stats.getOrDefault("todayPosts", 0L));
 
-        // 2) 회원 목록 (페이징 적용 - 5개씩)
-        model.addAttribute("members", adminService.getAllMembers(pageable));
+        // 2) 회원 목록 (검색어 적용)
+        // [수정] keyword를 서비스에 전달
+        model.addAttribute("members", adminService.getAllMembers(pageable, keyword));
+        // [수정] 뷰에서 검색어 유지 및 페이징 링크에 사용하기 위해 모델에 추가
+        model.addAttribute("keyword", keyword);
 
         // 3) 최근 신고 및 처리 내역 (5개 고정)
         Pageable top5 = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -98,7 +103,7 @@ public class AdminController {
     // 4. 신고 관리 페이지
     @GetMapping("/reports")
     public String manageReports(Model model,
-                                // [수정] 신고 관리 목록 10개씩 보기 (기존 20 -> 10)
+                                // 신고 관리 목록 10개씩
                                 @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
                                 @AuthenticationPrincipal UserSecurityDTO user,
                                 HttpServletRequest request) {

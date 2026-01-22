@@ -46,9 +46,13 @@ public class AdminService {
         return stats;
     }
 
-    // 2. 전체 회원 목록 조회 (Page 객체 반환 필수)
-    public Page<Member> getAllMembers(Pageable pageable) {
-        return memberRepository.findAll(pageable);
+    // 2. [수정] 전체 회원 목록 조회 (검색 기능 추가)
+    public Page<Member> getAllMembers(Pageable pageable, String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return memberRepository.findAll(pageable);
+        }
+        // 닉네임이나 이메일에 검색어가 포함된 경우
+        return memberRepository.findByNicknameContainingOrEmailContaining(keyword, keyword, pageable);
     }
 
     // 3. 회원 정지 처리
@@ -67,7 +71,7 @@ public class AdminService {
         }
     }
 
-    // 4. [NEW] 회원 권한 변경 (USER <-> ADMIN)
+    // 4. 회원 권한 변경 (USER <-> ADMIN)
     @Transactional
     public void changeMemberRole(Long memberId, MemberRole newRole) {
         Member member = memberRepository.findById(memberId)

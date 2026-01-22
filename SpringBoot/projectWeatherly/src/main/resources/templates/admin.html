@@ -57,9 +57,21 @@
     <div class="grid-container two-columns-admin">
 
         <section class="dashboard-section">
-            <div class="section-header">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h3><i class="fas fa-users-cog"></i> 회원 관리</h3>
+
+                <form th:action="@{/admin}" method="get" class="search-form" style="display: flex; gap: 5px;">
+                    <input type="text" name="keyword"
+                           th:value="${keyword}"
+                           placeholder="닉네임/이메일 검색"
+                           class="swal2-input"
+                           style="width: 200px; height: 36px; margin: 0; font-size: 0.9rem; padding: 0 10px;">
+                    <button type="submit" class="icon-btn" style="background: var(--primary-color); color: white; border: none;">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
             </div>
+
             <div class="table-responsive">
                 <table class="admin-table">
                     <thead>
@@ -73,6 +85,12 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <tr th:if="${members.totalElements == 0}">
+                        <td colspan="6" style="text-align: center; padding: 20px; color: #999;">
+                            검색 결과가 없습니다.
+                        </td>
+                    </tr>
+
                     <tr th:each="member : ${members}">
                         <td>
                             <div class="user-info">
@@ -147,18 +165,18 @@
             <div class="pagination-area" th:if="${members != null && members.totalPages > 0}">
                 <ul class="pagination">
                     <li th:classappend="${members.first} ? 'disabled'">
-                        <a th:href="@{/admin(page=${members.number - 1})}" aria-label="Previous">
+                        <a th:href="@{/admin(page=${members.number - 1}, keyword=${keyword})}" aria-label="Previous">
                             <i class="fas fa-chevron-left"></i>
                         </a>
                     </li>
 
                     <li th:each="pageNum : ${#numbers.sequence(0, members.totalPages - 1)}"
                         th:classappend="${pageNum == members.number} ? 'active'">
-                        <a th:href="@{/admin(page=${pageNum})}" th:text="${pageNum + 1}">1</a>
+                        <a th:href="@{/admin(page=${pageNum}, keyword=${keyword})}" th:text="${pageNum + 1}">1</a>
                     </li>
 
                     <li th:classappend="${members.last} ? 'disabled'">
-                        <a th:href="@{/admin(page=${members.number + 1})}" aria-label="Next">
+                        <a th:href="@{/admin(page=${members.number + 1}, keyword=${keyword})}" aria-label="Next">
                             <i class="fas fa-chevron-right"></i>
                         </a>
                     </li>
