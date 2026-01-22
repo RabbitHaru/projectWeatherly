@@ -17,7 +17,7 @@
 .page-title {
     font-size: 2.2rem;
     color: var(--secondary-color);
-    margin-bottom: 0; /* 부제 제거로 여백 조정 */
+    margin-bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -266,7 +266,6 @@
     gap: 10px;
 }
 
-/* [수정] 카테고리 헤더 중앙 정렬 */
 .category-header {
     font-size: 0.85rem;
     color: #aaa;
@@ -274,9 +273,9 @@
     font-weight: 800;
     border-bottom: 1px solid #eee;
     padding-bottom: 5px;
-    display: flex;           /* Flexbox 사용 */
-    justify-content: center; /* 가로 중앙 정렬 */
-    align-items: center;     /* 세로 중앙 정렬 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
     gap: 5px;
 }
 
@@ -354,12 +353,13 @@
 }
 
 /* ===== 다크모드 대응 (가독성 개선) ===== */
+/* var(--dark-card)가 common.css에 없을 경우를 대비해 #2c3e50 직접 지정 */
 body.dark-mode .todays-outfit-card,
 body.dark-mode .summary-card,
 body.dark-mode .temp-card,
 body.dark-mode .condition-card,
 body.dark-mode .outfit-set-item {
-    background: var(--dark-card);
+    background: #2c3e50 !important;
     border-color: #444;
 }
 
@@ -381,11 +381,11 @@ body.dark-mode .navigation-card {
     border-color: #4a6278;
 }
 
-/* [중요] 다크모드에서 설명 문구 잘 보이게 수정 */
+/* 설명 문구 수정 */
 body.dark-mode .outfit-description {
     background: #34495e;
     border-top-color: #4a6278;
-    color: #eee; /* 밝은 회색으로 변경 */
+    color: #eee;
 }
 
 body.dark-mode .outfit-item-label {
@@ -398,5 +398,5 @@ body.dark-mode .condition-content ul {
 }
 
 body.dark-mode .outfit-set-item:hover {
-    background: #3b536b;
+    background: #3b536b !important;
 }

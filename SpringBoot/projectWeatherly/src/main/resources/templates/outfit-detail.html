@@ -13,6 +13,12 @@
     <link rel="stylesheet" th:href="@{/css/outfit-detail.css}">
 </head>
 <body>
+<script>
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+</script>
+
 <div th:replace="layout/header :: header"></div>
 
 <main class="outfit-detail-main">
@@ -258,6 +264,8 @@
 </main>
 
 <div th:replace="layout/footer :: footer"></div>
+
+<script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/outfit-detail.js}"></script>
 </body>
 </html>

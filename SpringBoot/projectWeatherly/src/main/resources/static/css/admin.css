@@ -1,0 +1,94 @@
+/* ==========================================================================
+   Weatherly Admin Page Styles
+   ========================================================================== */
+
+/* 1. 관리자 상단 통계 카드 (3개) */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.stat-card-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.stat-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.stat-icon.warning { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #fff; }
+.stat-icon.primary { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: #fff; }
+.stat-icon.success { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); color: #fff; }
+
+.stat-content h3 { font-size: 0.9rem; text-transform: uppercase; color: #64748b; margin-bottom: 5px; font-weight: 600; }
+.stat-value { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin: 0; line-height: 1; }
+.stat-value .unit { font-size: 1rem; color: #94a3b8; margin-left: 4px; font-weight: 500; }
+
+/* 2. 관리자 레이아웃 (1.3:1 비율) */
+.grid-container.two-columns-admin {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 25px;
+}
+
+@media (max-width: 1200px) {
+    .stats-grid, .grid-container.two-columns-admin { grid-template-columns: 1fr; }
+}
+
+/* 3. 테이블 스타일 */
+.table-responsive { overflow-x: auto; border-radius: 16px; }
+.admin-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.admin-table th { text-align: left; padding: 16px 20px; color: #64748b; font-weight: 600; font-size: 0.9rem; background: #f8fafc; white-space: nowrap; }
+.admin-table td { padding: 16px 20px; vertical-align: middle; border-top: 1px solid #f1f5f9; color: #334155; font-size: 0.95rem; white-space: nowrap; }
+.admin-table tbody tr:hover td { background-color: #f8fafc; }
+
+/* 유저 정보 및 뱃지 색상 상세 */
+.user-info { display: flex; align-items: center; gap: 12px; }
+.user-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: white; }
+.report-tag { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; margin-right: 8px; background: #fee2e2; color: #ef4444; }
+
+.status-badge.active { background: #dcfce7; color: #16a34a; }
+.status-badge.banned { background: #fee2e2; color: #ef4444; }
+
+/* 4. 버튼 스타일 */
+.icon-btn { width: 36px; height: 36px; border-radius: 10px; border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; background: #f1f5f9; color: #64748b; font-size: 0.9rem; }
+.icon-btn:hover { background: #3b82f6; color: white; transform: scale(1.05); }
+
+.action-btn-outline { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; color: #64748b; text-decoration: none; transition: 0.2s; white-space: nowrap; }
+.action-btn-outline:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+
+.btn-xs { padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; border: none; cursor: pointer; font-weight: 600; white-space: nowrap; transition: 0.2s; }
+.btn-xs.danger { background: #ef4444; color: white; box-shadow: 0 2px 5px rgba(239, 68, 68, 0.2); }
+.btn-xs.danger:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+
+/* 5. 다크모드 대응 */
+body.dark-mode .stat-value { color: #fff; }
+body.dark-mode .stat-content h3 { color: #a0aec0; }
+body.dark-mode .stat-value .unit { color: #718096; }
+body.dark-mode .admin-table th { background: rgba(0,0,0,0.2); color: #94a3b8; }
+body.dark-mode .admin-table td { border-top-color: rgba(255,255,255,0.05); color: #e2e8f0; }
+body.dark-mode .admin-table tbody tr:hover td { background-color: rgba(255,255,255,0.02); }
+body.dark-mode .status-badge.active { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+body.dark-mode .status-badge.banned { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+body.dark-mode .icon-btn { background: rgba(255,255,255,0.05); color: #94a3b8; }
+body.dark-mode .icon-btn:hover { background: #3b82f6; color: white; }
+body.dark-mode .action-btn-outline { border-color: #475569; color: #cbd5e1; }
+body.dark-mode .report-tag { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
