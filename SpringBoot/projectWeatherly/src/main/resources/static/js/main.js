@@ -96,7 +96,6 @@ async function loadRegionalWeatherData() {
         {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845, showOnMap: true},
         {name: '강원', code: '4200000000', lat: 37.8228, lng: 128.1555, showOnMap: true},
         {name: '제주', code: '5000000000', lat: 33.4996, lng: 126.5312, showOnMap: true},
-        {name: '독도', code: '', lat: 37.2429, lng: 131.8669, showOnMap: true}, // 독도 추가
 
         // [지도 X] 사이드바 목록에는 나오지만 지도에서는 숨김 (겹침 방지)
         {name: '인천', code: '2800000000', lat: 37.4563, lng: 126.7052, showOnMap: false}, // 서울과 겹침
