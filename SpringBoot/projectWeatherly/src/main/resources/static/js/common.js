@@ -1,6 +1,6 @@
 /**
  * common.js - Weatherly 공통 유틸리티 및 전역 상태 관리
- * (저장 로직 강화 및 이름 매핑 보완)
+ * (RegionManager를 sessionStorage로 변경하여 휘발성으로 만듦)
  */
 
 var API_BASE_URL = window.location.origin;
@@ -28,15 +28,12 @@ const ALL_REGIONS = [
 ];
 
 // 2. 지역 저장소 관리자 (Region Manager)
+// ⭐ localStorage -> sessionStorage 로 변경! (브라우저 닫으면 초기화됨)
 const RegionManager = {
     KEY: 'fixedRegion',
 
-    // 저장하기 (핵심 수정: 이름을 표준화해서 저장)
     save: function (rawName, lat, lng) {
-        // 입력받은 이름에서 '광주광역시' -> '광주' 처럼 표준 이름 추출
         const stdName = extractSidoName(rawName);
-
-        // 좌표가 없으면 ALL_REGIONS에서 찾아서 보완
         if (!lat || !lng) {
             const found = ALL_REGIONS.find(r => r.name === stdName);
             if (found) {
@@ -44,22 +41,23 @@ const RegionManager = {
                 lng = found.lng;
             }
         }
-
         const data = {name: stdName, lat, lng};
-        localStorage.setItem(this.KEY, JSON.stringify(data));
-        console.log(`💾 지역 저장됨: ${stdName} (${lat}, ${lng})`);
+
+        // ⭐ 여기가 핵심 변경점!
+        sessionStorage.setItem(this.KEY, JSON.stringify(data));
+        console.log(`💾 지역 임시 저장됨(탭 닫으면 삭제): ${stdName}`);
     },
 
-    // 불러오기
     load: function () {
-        const data = localStorage.getItem(this.KEY);
+        // ⭐ 불러올 때도 sessionStorage에서
+        const data = sessionStorage.getItem(this.KEY);
         return data ? JSON.parse(data) : null;
     },
 
-    // 초기화
     clear: function () {
-        localStorage.removeItem(this.KEY);
-        console.log('🗑️ 저장된 지역 초기화됨');
+        // ⭐ 지울 때도 sessionStorage에서
+        sessionStorage.removeItem(this.KEY);
+        console.log('🗑️ 임시 저장된 지역 초기화됨');
     }
 };
 
@@ -87,6 +85,7 @@ function initCommonFeatures() {
 }
 
 // --- 공통 기능 함수들 ---
+
 function setupDarkMode() {
     let toggleBtn = document.getElementById('darkmode-toggle');
     const body = document.body;
@@ -192,35 +191,40 @@ function bindGpsButton(btnId, onSuccessCallback) {
 }
 
 // 헬퍼 함수들
+function getFullSidoName(name) {
+    if (!name) return '대한민국';
+    const cleanName = name.trim();
+    const map = {
+        '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시',
+        '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
+        '경기': '경기도',
+        '강원': '강원특별자치도', '강원도': '강원특별자치도',
+        '충북': '충청북도', '충남': '충청남도',
+        '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
+        '제주': '제주특별자치도'
+    };
+    if (map[cleanName]) return map[cleanName];
+    if (cleanName.length > 2) return cleanName;
+    return cleanName;
+}
+
 function extractSidoName(full) {
     if (!full) return '서울';
+    const cleanFull = full.trim();
     const mapping = {
         '서울': '서울', '부산': '부산', '대구': '대구', '인천': '인천',
         '광주': '광주', '대전': '대전', '울산': '울산', '세종': '세종',
         '경기': '경기', '강원': '강원', '제주': '제주',
-        '충청': full.includes('북') ? '충북' : '충남',
-        '전라': full.includes('북') ? '전북' : '전남',
-        '경상': full.includes('북') ? '경북' : '경남',
+        '충청': cleanFull.includes('북') ? '충북' : '충남',
+        '전라': cleanFull.includes('북') ? '전북' : '전남',
+        '경상': cleanFull.includes('북') ? '경북' : '경남',
         '서울특별시': '서울', '부산광역시': '부산', '대전광역시': '대전',
         '대구광역시': '대구', '인천광역시': '인천', '광주광역시': '광주', '울산광역시': '울산',
-        '세종특별자치시': '세종', '제주특별자치도': '제주'
+        '세종특별자치시': '세종', '제주특별자치도': '제주', '강원특별자치도': '강원', '강원도': '강원'
     };
-    if (full.length === 2) return full;
-    const shortName = full.substring(0, 2);
-    return mapping[shortName] || mapping[full] || '서울';
-}
-
-function getFullSidoName(short) {
-    if (!short) return '대한민국';
-    if (short.length > 2) return short;
-    const map = {
-        '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시',
-        '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
-        '경기': '경기도', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
-        '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
-        '제주': '제주특별자치도'
-    };
-    return map[short] || short;
+    if (cleanFull.length === 2) return cleanFull;
+    const shortName = cleanFull.substring(0, 2);
+    return mapping[shortName] || mapping[cleanFull] || '서울';
 }
 
 function getAqiClass(grade) {
