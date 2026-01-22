@@ -1,6 +1,6 @@
 /**
  * main.js - 메인 대시보드 로직
- * (수정 사항: 가상 데이터 배지 + 선택 지역별 기상특보 업데이트)
+ * (최종 수정: AQI 등급 판별 로직의 타입 불일치 버그 수정)
  */
 
 let kakaoMap = null;
@@ -30,11 +30,6 @@ window.changeDashboardLocation = async function (lat, lng, name) {
     const locationTitle = document.getElementById('current-location');
     if (locationTitle) locationTitle.innerText = `${name}로 이동 중...`;
 
-    if (kakaoMap) {
-        const moveLatLon = new kakao.maps.LatLng(lat, lng);
-
-        kakaoMap.panTo(moveLatLon);
-    }
     // 2. 해당 좌표로 날씨 데이터 새로고침
     await loadWeatherDataByGPS(lat, lng, name);
 
@@ -83,35 +78,31 @@ function initKakaoMap() {
 async function loadRegionalWeatherData() {
     const listContainer = document.getElementById('regional-weather');
 
-    // [수정] 17개 전체 행정구역 정의 (독도 포함 시 18개)
     const regions = [
-        // [지도 O] 주요 거점 도시 (지도에 표시됨)
-        {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780, showOnMap: true},
-        {name: '부산', code: '2600000000', lat: 35.1796, lng: 129.0756, showOnMap: true},
-        {name: '대구', code: '2700000000', lat: 35.8714, lng: 128.6014, showOnMap: true}, // 필요시 false로 꺼도 됨
-        {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526, showOnMap: true},
-        {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845, showOnMap: true},
-        {name: '강원', code: '4200000000', lat: 37.8228, lng: 128.1555, showOnMap: true},
-        {name: '제주', code: '5000000000', lat: 33.4996, lng: 126.5312, showOnMap: true},
-
-        // [지도 X] 사이드바 목록에는 나오지만 지도에서는 숨김 (겹침 방지)
-        {name: '인천', code: '2800000000', lat: 37.4563, lng: 126.7052, showOnMap: false}, // 서울과 겹침
-        {name: '울산', code: '3100000000', lat: 35.5384, lng: 129.3114, showOnMap: false}, // 부산과 겹침
-        {name: '세종', code: '3600000000', lat: 36.4800, lng: 127.2890, showOnMap: false}, // 대전과 겹침
-        {name: '경기', code: '4100000000', lat: 37.4138, lng: 127.5183, showOnMap: false}, // 서울과 겹침
-        {name: '충북', code: '4300000000', lat: 36.6350, lng: 127.4914, showOnMap: false},
-        {name: '충남', code: '4400000000', lat: 36.6588, lng: 126.6728, showOnMap: false},
-        {name: '전북', code: '4500000000', lat: 35.7175, lng: 127.1530, showOnMap: false}, // 광주와 가까움
-        {name: '전남', code: '4600000000', lat: 34.8163, lng: 126.4629, showOnMap: false},
-        {name: '경북', code: '4700000000', lat: 36.5760, lng: 128.5056, showOnMap: false},
-        {name: '경남', code: '4800000000', lat: 35.2383, lng: 128.6924, showOnMap: false}
+        {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780},
+        {name: '부산', code: '2600000000', lat: 35.1796, lng: 129.0756},
+        {name: '대구', code: '2700000000', lat: 35.8714, lng: 128.6014},
+        {name: '인천', code: '2800000000', lat: 37.4563, lng: 126.7052},
+        {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526},
+        {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845},
+        {name: '울산', code: '3100000000', lat: 35.5384, lng: 129.3114},
+        {name: '세종', code: '3600000000', lat: 36.4800, lng: 127.2890},
+        {name: '경기', code: '4100000000', lat: 37.4138, lng: 127.5183},
+        {name: '강원', code: '4200000000', lat: 37.8228, lng: 128.1555},
+        {name: '충북', code: '4300000000', lat: 36.6350, lng: 127.4914},
+        {name: '충남', code: '4400000000', lat: 36.6588, lng: 126.6728},
+        {name: '전북', code: '4500000000', lat: 35.7175, lng: 127.1530},
+        {name: '전남', code: '4600000000', lat: 34.8163, lng: 126.4629},
+        {name: '경북', code: '4700000000', lat: 36.5760, lng: 128.5056},
+        {name: '경남', code: '4800000000', lat: 35.2383, lng: 128.6924},
+        {name: '제주', code: '5000000000', lat: 33.4996, lng: 126.5312},
+        {name: '독도', code: '', lat: 37.2429, lng: 131.8669}
     ];
 
     const regionCodes = regions.filter(r => r.code).map(r => r.code).join(',');
 
     try {
         let weatherData = [];
-        // [핵심] 한 번의 호출로 모든 지역 데이터 요청 (1 Traffic)
         if (regionCodes) {
             const res = await fetch(`${API_BASE_URL}/api/weather/compare?regionCodes=${regionCodes}`);
             const result = await res.json();
@@ -140,11 +131,10 @@ async function loadRegionalWeatherData() {
 
             const clickAction = `onclick="changeDashboardLocation(${region.lat}, ${region.lng}, '${region.name}')"`;
 
-            // (A) 지도 오버레이 (17개 지역 모두 지도에 표시됨)
-            if (kakaoMap && region.showOnMap) {
+            if (kakaoMap) {
                 const content = `<div class="customoverlay" ${clickAction} style="cursor: pointer;"><a href="javascript:void(0);"><span class="title">${region.name}</span><div class="weather-content"><i class="${iconClass}" style="color:${getIconColor(iconClass)}"></i><span class="temp">${temp}°</span></div></a></div>`;
                 const position = new kakao.maps.LatLng(region.lat, region.lng);
-                // 기존 오버레이 제거 후 새로 생성
+
                 if (mapOverlays[region.name]) mapOverlays[region.name].setMap(null);
                 const customOverlay = new kakao.maps.CustomOverlay({
                     map: kakaoMap,
@@ -155,7 +145,6 @@ async function loadRegionalWeatherData() {
                 mapOverlays[region.name] = customOverlay;
             }
 
-            // (B) 사이드바 리스트
             if (listContainer && region.code) {
                 listContainer.innerHTML += `<div class="region-weather" ${clickAction} style="cursor: pointer;"><div class="region-info"><span class="region-name">${region.name}</span><span class="region-weather-desc">${cond}</span></div><div class="region-temp">${temp}°</div></div>`;
             }
@@ -205,6 +194,7 @@ async function loadWeatherDataByGPS(lat, lng, forcedRegionName = null) {
             if (forcedRegionName) data.data.regionName = forcedRegionName;
             updateWeatherUI(data.data);
             loadAirQualitySummaryByGPS(lat, lng);
+
             const sido = data.data.regionName ? extractSidoName(data.data.regionName) : '서울';
             loadAirQualityForecast(sido);
         }
@@ -219,7 +209,6 @@ async function loadAirQualitySummary() {
         const data = await res.json();
         if (data.success && data.data) {
             updateAqiSummaryUI(data.data);
-            if (data.data.sidoName) loadAirQualityForecast(data.data.sidoName);
         }
     } catch (e) {
         console.error("대기질 조회 실패:", e);
@@ -239,6 +228,7 @@ async function loadAirQualitySummaryByGPS(lat, lng) {
 async function loadAirQualityForecast(sido) {
     if (!sido || sido.includes('?')) sido = '서울';
     sido = extractSidoName(sido);
+
     try {
         const res = await fetch(`${API_BASE_URL}/api/air-quality/forecast/${encodeURIComponent(sido)}`);
         const data = await res.json();
@@ -248,9 +238,11 @@ async function loadAirQualityForecast(sido) {
     }
 }
 
+// [수정] 메인 페이지 대기질 예보 업데이트 (날짜 정렬 및 매칭)
 function updateMainPageAqiForecast(list) {
     const container = document.getElementById('aqi-forecast-details');
     if (!container) return;
+
     container.innerHTML = '';
     container.style.display = 'flex';
     container.style.width = '100%';
@@ -261,14 +253,46 @@ function updateMainPageAqiForecast(list) {
         container.innerHTML = '<div class="no-data" style="padding:20px; width:100%; text-align:center; color:var(--light-text);">예보 정보 없음</div>';
         return;
     }
-    const labels = ['오늘 예보', '내일 예보'];
-    list.forEach((item, index) => {
-        if (index > 1) return;
-        const gradeClass = getAqiClass(item.overallGrade);
-        const statusText = getAqiStatusText(item.overallGrade);
-        const iconHtml = getAqiIcon(item.overallGrade);
-        const label = labels[index] || '예보';
-        container.innerHTML += `<div class="aqi-forecast-card"><div class="aqi-card-header"><span class="aqi-label">${label}</span><span class="aqi-date">${item.date}</span></div><div class="aqi-card-body"><div class="aqi-icon">${iconHtml}</div><div class="aqi-status-badge ${gradeClass}">${statusText}</div></div></div>`;
+
+    // 1. 날짜 오름차순 정렬 (과거->미래)
+    list.sort((a, b) => a.date.localeCompare(b.date));
+
+    // 2. 오늘 날짜 구하기 (한국 시간 기준)
+    const today = new Date();
+    const krNow = new Date(today.getTime() + (9 * 60 * 60 * 1000));
+    const todayStr = krNow.toISOString().split('T')[0];
+
+    const tomorrow = new Date(krNow);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    // 3. 오늘과 내일 데이터 매칭
+    const todayData = list.find(item => item.date === todayStr) || list[0];
+    const tomorrowData = list.find(item => item.date === tomorrowStr) || list[1];
+
+    const targetItems = [];
+    if (todayData) targetItems.push({label: '오늘 예보', data: todayData});
+    if (tomorrowData) targetItems.push({label: '내일 예보', data: tomorrowData});
+
+    // 4. 카드 렌더링
+    targetItems.forEach(item => {
+        const data = item.data;
+        const gradeClass = getAqiClass(data.overallGrade);
+        const statusText = getAqiStatusText(data.overallGrade);
+        const iconHtml = getAqiIcon(data.overallGrade);
+
+        container.innerHTML += `
+            <div class="aqi-forecast-card">
+                <div class="aqi-card-header">
+                    <span class="aqi-label">${item.label}</span>
+                    <span class="aqi-date">${data.date}</span>
+                </div>
+                <div class="aqi-card-body">
+                    <div class="aqi-icon">${iconHtml}</div>
+                    <div class="aqi-status-badge ${gradeClass}">${statusText}</div>
+                </div>
+            </div>
+        `;
     });
 }
 
@@ -295,7 +319,6 @@ function updateAqiSummaryUI(aqi) {
     updateItem('o3', 'ppm');
 }
 
-// [핵심] 날씨 UI 및 특보 업데이트
 function updateWeatherUI(weather) {
     if (!weather) return;
 
@@ -308,7 +331,6 @@ function updateWeatherUI(weather) {
         if (el) el.innerHTML = val;
     };
 
-    // 1. 지역명 & TEST MODE 배지
     if (weather.regionName) {
         const locationEl = document.getElementById('current-location');
         if (locationEl) {
@@ -318,21 +340,17 @@ function updateWeatherUI(weather) {
         }
     }
 
-    // 2. [수정] 다중 기상특보 카드 업데이트 (List 처리)
     const alertTitle = document.getElementById('weather-alert-title');
     const alertDesc = document.getElementById('weather-alert-desc');
     const iconEl = document.querySelector('.warning-status .status-icon');
 
-    // weather.warnings가 존재하고 배열인지 확인
     if (weather.warnings && weather.warnings.length > 0) {
         const activeWarnings = weather.warnings.filter(w => w.active);
 
         if (activeWarnings.length > 0) {
-            // 여러 특보를 쉼표로 연결하여 제목 설정 (예: "건조주의보, 한파주의보")
             alertTitle.textContent = activeWarnings.map(w => w.title).join(', ');
             alertDesc.textContent = `${weather.regionName} 지역에 기상특보가 발령 중입니다.`;
 
-            // 하나라도 위험 등급(danger)이면 빨간색, 아니면 노란색
             const isDanger = activeWarnings.some(w => w.level === 'danger');
             if (iconEl) {
                 iconEl.className = `fas status-icon ${isDanger ? 'fa-exclamation-circle' : 'fa-exclamation-triangle'}`;
@@ -345,7 +363,6 @@ function updateWeatherUI(weather) {
                 }
             }
         } else {
-            // 특보가 없는 경우
             alertTitle.textContent = "특보 없음";
             alertDesc.textContent = "현재 발효된 특보가 없습니다.";
             if (iconEl) {
@@ -354,7 +371,6 @@ function updateWeatherUI(weather) {
             }
         }
     } else {
-        // warnings 필드가 아예 없는 경우 (기존 호환성)
         alertTitle.textContent = "특보 없음";
         alertDesc.textContent = "현재 발효된 특보가 없습니다.";
         if (iconEl) {
@@ -363,7 +379,6 @@ function updateWeatherUI(weather) {
         }
     }
 
-    // 2. 현재 날씨
     if (weather.current) {
         html('current-temp', `${Math.round(weather.current.temperature)}<span class="temp-unit">°C</span>`);
         txt('weather-condition', weather.current.weatherCondition || '맑음');
@@ -465,30 +480,42 @@ function getFullSidoName(shortName) {
     return map[shortName] || shortName;
 }
 
-function updateCurrentTime() {
-    const now = new Date();
-    const timeEl = document.getElementById('current-time');
-    if (timeEl) timeEl.textContent = now.toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'});
-}
-
-// AQI 등급별 클래스, 텍스트, 아이콘 헬퍼 (common.js에 없으면 여기서 사용)
+// ⭐ [핵심 수정] AQI 헬퍼 함수들 - 문자열/숫자 타입 호환성 확보
 function getAqiClass(grade) {
-    if (grade === 1) return 'good';
-    if (grade === 2) return 'normal';
-    if (grade === 3) return 'bad';
-    return 'very-bad';
+    switch (String(grade).trim()) { // 문자열 변환 후 공백 제거
+        case '1':
+            return 'good';
+        case '2':
+            return 'normal';
+        case '3':
+            return 'bad';
+        default:
+            return 'very-bad';
+    }
 }
 
 function getAqiStatusText(grade) {
-    if (grade === 1) return '좋음';
-    if (grade === 2) return '보통';
-    if (grade === 3) return '나쁨';
-    return '매우나쁨';
+    switch (String(grade).trim()) {
+        case '1':
+            return '좋음';
+        case '2':
+            return '보통';
+        case '3':
+            return '나쁨';
+        default:
+            return '매우나쁨';
+    }
 }
 
 function getAqiIcon(grade) {
-    if (grade === 1) return '<i class="fas fa-smile" style="color:var(--safe-color);"></i>';
-    if (grade === 2) return '<i class="fas fa-meh" style="color:var(--normal-color);"></i>';
-    if (grade === 3) return '<i class="fas fa-frown" style="color:var(--warning-color);"></i>';
-    return '<i class="fas fa-dizzy" style="color:var(--danger-color);"></i>';
+    switch (String(grade).trim()) {
+        case '1':
+            return '<i class="fas fa-smile" style="color:#2ecc71"></i>';
+        case '2':
+            return '<i class="fas fa-meh" style="color:#f39c12"></i>';
+        case '3':
+            return '<i class="fas fa-frown" style="color:#e74c3c"></i>';
+        default:
+            return '<i class="fas fa-dizzy" style="color:#e74c3c"></i>';
+    }
 }
