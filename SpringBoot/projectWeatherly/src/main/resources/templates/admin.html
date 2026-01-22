@@ -9,8 +9,11 @@
     <meta name="_csrf_header" th:content="${_csrf?.headerName}" th:if="${_csrf}"/>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
@@ -32,26 +35,29 @@
             <div class="stat-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
             <div class="stat-content">
                 <h3>신고 접수 (대기)</h3>
-                <p class="stat-value"><span th:text="${pendingReports != null ? pendingReports : 0}">0</span><span class="unit">건</span></p>
+                <p class="stat-value"><span th:text="${pendingReports != null ? pendingReports : 0}">0</span><span
+                        class="unit">건</span></p>
             </div>
         </div>
         <div class="dashboard-section stat-card-wrapper">
             <div class="stat-icon primary"><i class="fas fa-users"></i></div>
             <div class="stat-content">
                 <h3>총 회원수</h3>
-                <p class="stat-value"><span th:text="${totalMembers != null ? totalMembers : 0}">0</span><span class="unit">명</span></p>
+                <p class="stat-value"><span th:text="${totalMembers != null ? totalMembers : 0}">0</span><span
+                        class="unit">명</span></p>
             </div>
         </div>
         <div class="dashboard-section stat-card-wrapper">
             <div class="stat-icon success"><i class="fas fa-comments"></i></div>
             <div class="stat-content">
                 <h3>오늘 게시글</h3>
-                <p class="stat-value"><span th:text="${todayPosts != null ? todayPosts : 0}">0</span><span class="unit">개</span></p>
+                <p class="stat-value"><span th:text="${todayPosts != null ? todayPosts : 0}">0</span><span class="unit">개</span>
+                </p>
             </div>
         </div>
     </div>
 
-    <div class="stats-grid two-columns-admin">
+    <div class="grid-container two-columns-admin">
         <section class="dashboard-section">
             <div class="section-header">
                 <h3><i class="fas fa-users-cog"></i> 회원 관리</h3>
@@ -71,8 +77,11 @@
                     <tr th:each="member : ${recentMembers}">
                         <td>
                             <div class="user-info">
-                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}" class="user-avatar">
-                                <div th:unless="${member.profileImage != null}" class="user-avatar" style="background:#a29bfe" th:text="${#strings.substring(member.nickname, 0, 1)}">U</div>
+                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}"
+                                     class="user-avatar">
+                                <div th:unless="${member.profileImage != null}" class="user-avatar"
+                                     style="background:#a29bfe" th:text="${#strings.substring(member.nickname, 0, 1)}">U
+                                </div>
                                 <span th:text="${member.nickname}">닉네임</span>
                             </div>
                         </td>
@@ -135,14 +144,20 @@
                                target="_blank" class="action-btn-outline" style="font-size:0.75rem;">
                                 <i class="fas fa-external-link-alt"></i> 확인
                             </a>
-                            <span th:unless="${report.targetId != null}" style="color:#aaa; font-size:0.8rem;">(삭제됨)</span>
+                            <span th:unless="${report.targetId != null}"
+                                  style="color:#aaa; font-size:0.8rem;">(삭제됨)</span>
                         </td>
                         <td>
-                            <span class="status-badge" th:classappend="${report.rawStatus == 'PENDING'} ? 'banned' : 'active'" th:text="${report.status}">상태</span>
+                            <span class="status-badge"
+                                  th:classappend="${report.rawStatus == 'PENDING'} ? 'banned' : 'active'"
+                                  th:text="${report.status}">상태</span>
                         </td>
                         <td>
-                            <button th:if="${report.rawStatus == 'PENDING'}" class="btn-xs danger" th:onclick="|resolveReport(${report.id})|">처리완료</button>
-                            <span th:unless="${report.rawStatus == 'PENDING'}" style="color:#aaa; font-size:0.8rem;">완료됨</span>
+                            <button th:if="${report.rawStatus == 'PENDING'}" class="btn-xs danger"
+                                    th:onclick="|resolveReport(${report.id})|">처리완료
+                            </button>
+                            <span th:unless="${report.rawStatus == 'PENDING'}"
+                                  style="color:#aaa; font-size:0.8rem;">완료됨</span>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(recentReports)}">
@@ -174,7 +189,9 @@
                 <tr th:each="hist : ${history}">
                     <td><span class="report-tag" th:text="${hist.type}">TYPE</span></td>
                     <td th:text="${hist.targetContent}">내용 요약</td>
-                    <td style="font-weight: bold; color: #e11d48;" th:text="${hist.penaltyDetail != null ? hist.penaltyDetail : '-'}">-</td>
+                    <td style="font-weight: bold; color: #e11d48;"
+                        th:text="${hist.penaltyDetail != null ? hist.penaltyDetail : '-'}">-
+                    </td>
                     <td>
                         <span class="status-badge active" style="background-color: #d1fae5; color: #047857;">처리완료</span>
                         <button class="icon-btn"
@@ -214,7 +231,7 @@
 <script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/admin.js}"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         if (localStorage.getItem('darkMode') === 'true') {
             document.body.classList.add('dark-mode');
         }

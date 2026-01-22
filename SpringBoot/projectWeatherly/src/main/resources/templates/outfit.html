@@ -9,14 +9,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/outfit.css}">
 </head>
 <body>
+<script>
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+</script>
+
 <div th:replace="layout/header :: header"></div>
 
 <main class="outfit-main">
@@ -269,7 +273,7 @@
 
 <div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
-<script th:src="@{/js/outfit.js}"></script>
 <script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/outfit.js}"></script>
 </body>
 </html>
