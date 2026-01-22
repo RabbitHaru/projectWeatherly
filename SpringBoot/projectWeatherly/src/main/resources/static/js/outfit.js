@@ -1,34 +1,54 @@
-// 옷차림 추천(메인) 페이지 전용 스크립트
+// outfit.js - 옷차림 추천(메인) 페이지 (지역 고정 기능 추가)
 
 document.addEventListener('DOMContentLoaded', function () {
+    // ⭐ 1. 저장된 위치가 있는지 확인 (URL 파라미터가 없을 때만!)
+    checkSavedLocation();
+
     setupCardInteractions();
     setupGpsButton();
 });
 
-// 1. 주간 예보 카드 호버 효과
+function checkSavedLocation() {
+    // URL에 이미 lat, lon이 있다면(즉, 특정 지역을 보러 온 거라면) 리다이렉트 안 함
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('lat') && urlParams.has('lon')) {
+        return;
+    }
+
+    // URL 파라미터가 없을 때만 저장된 위치를 확인
+    // (common.js가 로드되어 있어야 RegionManager 사용 가능)
+    if (typeof RegionManager !== 'undefined') {
+        const saved = RegionManager.load();
+        if (saved && saved.lat && saved.lng) {
+            console.log(`📍 옷차림 페이지: 저장된 위치(${saved.name})로 이동합니다.`);
+            // 저장된 위치로 페이지 새로고침 (파라미터 추가)
+            window.location.replace(`/outfit?lat=${saved.lat}&lon=${saved.lng}`);
+        }
+    }
+}
+
+// 2. 주간 예보 카드 호버 효과
 function setupCardInteractions() {
     const dayCards = document.querySelectorAll('.day-card');
 
     dayCards.forEach(card => {
         card.addEventListener('mouseenter', () => {
             card.style.transform = 'translateY(-5px)';
-            // 그림자 효과를 CSS에서 처리하지 않았다면 여기서 추가 가능
-            // card.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
         });
 
         card.addEventListener('mouseleave', () => {
             card.style.transform = 'translateY(0)';
-            // card.style.boxShadow = '';
         });
     });
 }
 
-// 2. GPS 버튼 연동 (common.js의 bindGpsButton 활용)
+// 3. GPS 버튼 연동 (common.js의 bindGpsButton 활용)
 function setupGpsButton() {
     // bindGpsButton 함수가 common.js에 정의되어 있는지 확인
     if (typeof bindGpsButton === 'function') {
         bindGpsButton('gps-sync-btn', function (lat, lon) {
-            // 위치 조회 성공 시 실행될 콜백: 해당 좌표로 페이지 새로고침
+            // GPS 위치를 찾으면 저장된 위치(광주 등)를 지우고 현재 위치로 이동
+            if (typeof RegionManager !== 'undefined') RegionManager.clear();
             window.location.href = `/outfit?lat=${lat}&lon=${lon}`;
         });
     } else {

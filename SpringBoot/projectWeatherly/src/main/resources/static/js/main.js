@@ -1,8 +1,6 @@
 /**
- * main.js - 메인 대시보드 로직 (통합 최종본)
- * - AQI 등급 타입 불일치 버그 수정 적용
- * - 가상 데이터 배지 및 선택 지역별 기상특보 업데이트 적용
- * - 지도 이동 및 전체 행정구역 오버레이 로직 적용
+ * main.js - 메인 대시보드 로직 (common.js 연동됨)
+ * - RegionManager를 통한 위치 고정 및 불러오기 적용
  */
 
 let kakaoMap = null;
@@ -12,13 +10,12 @@ document.addEventListener('DOMContentLoaded', function () {
     updateCurrentTime();
     setInterval(() => updateCurrentTime(), 60000);
 
-    if (document.getElementById('current-temp')) {
-        loadDashboardData();
-        setInterval(loadDashboardData, 300000);
-    }
+    // ⭐ [초기화] 저장된 위치가 있는지 확인 후 로드
+    initializeLocation();
 
     if (typeof bindGpsButton === 'function') {
         bindGpsButton('gps-sync-btn', async (lat, lng) => {
+            // GPS 버튼 클릭 시 저장은 bindGpsButton 내부에서 초기화됨
             await loadWeatherDataByGPS(lat, lng);
         });
     }
@@ -26,9 +23,32 @@ document.addEventListener('DOMContentLoaded', function () {
     checkKakaoMapLoop();
 });
 
+// ⭐ [초기화 함수] 저장된 위치 vs 기본 위치 판단
+async function initializeLocation() {
+    if (!document.getElementById('current-temp')) return;
+
+    const saved = RegionManager.load();
+    if (saved) {
+        console.log(`📍 저장된 위치 로드: ${saved.name}`);
+        // 저장된 좌표로 날씨 로드
+        await loadWeatherDataByGPS(saved.lat, saved.lng, saved.name);
+
+        loadAirQualitySummaryByGPS(saved.lat, saved.lng);
+        loadRegionalWeatherData();
+        loadCommunityData();
+    } else {
+        // 없으면 기본(IP) 로딩
+        loadDashboardData();
+    }
+}
+
 // [기능] 지역 변경 (클릭 시 실행)
 window.changeDashboardLocation = async function (lat, lng, name) {
     console.log(`지역 변경: ${name} (${lat}, ${lng})`);
+
+    // ⭐ [저장] common.js의 매니저 사용하여 위치 저장
+    RegionManager.save(name, lat, lng);
+
     const locationTitle = document.getElementById('current-location');
     if (locationTitle) locationTitle.innerText = `${name}로 이동 중...`;
 
@@ -72,8 +92,16 @@ function initKakaoMap() {
     const container = document.getElementById('kakao-map');
     if (!container) return;
 
+    // 저장된 위치가 있으면 거기를 중심으로, 없으면 대전 중심
+    let centerLat = 36.3, centerLng = 127.8;
+    const saved = RegionManager.load();
+    if (saved && saved.lat && saved.lng) {
+        centerLat = saved.lat;
+        centerLng = saved.lng;
+    }
+
     const options = {
-        center: new kakao.maps.LatLng(36.3, 127.8),
+        center: new kakao.maps.LatLng(centerLat, centerLng),
         level: 13,
         draggable: true,
         scrollwheel: true
@@ -86,27 +114,12 @@ function initKakaoMap() {
 async function loadRegionalWeatherData() {
     const listContainer = document.getElementById('regional-weather');
 
-    const regions = [
-        {name: '서울', code: '1100000000', lat: 37.5665, lng: 126.9780, showOnMap: true},
-        {name: '부산', code: '2600000000', lat: 35.1796, lng: 129.0756, showOnMap: true},
-        {name: '대구', code: '2700000000', lat: 35.8714, lng: 128.6014, showOnMap: true},
-        {name: '광주', code: '2900000000', lat: 35.1595, lng: 126.8526, showOnMap: true},
-        {name: '대전', code: '3000000000', lat: 36.3504, lng: 127.3845, showOnMap: true},
-        {name: '강원', code: '4200000000', lat: 37.8228, lng: 128.1555, showOnMap: true},
-        {name: '제주', code: '5000000000', lat: 33.4996, lng: 126.5312, showOnMap: true},
-        {name: '독도', code: '', lat: 37.2429, lng: 131.8669, showOnMap: true},
-
-        {name: '인천', code: '2800000000', lat: 37.4563, lng: 126.7052, showOnMap: false},
-        {name: '울산', code: '3100000000', lat: 35.5384, lng: 129.3114, showOnMap: false},
-        {name: '세종', code: '3600000000', lat: 36.4800, lng: 127.2890, showOnMap: false},
-        {name: '경기', code: '4100000000', lat: 37.4138, lng: 127.5183, showOnMap: false},
-        {name: '충북', code: '4300000000', lat: 36.6350, lng: 127.4914, showOnMap: false},
-        {name: '충남', code: '4400000000', lat: 36.6588, lng: 126.6728, showOnMap: false},
-        {name: '전북', code: '4500000000', lat: 35.7175, lng: 127.1530, showOnMap: false},
-        {name: '전남', code: '4600000000', lat: 34.8163, lng: 126.4629, showOnMap: false},
-        {name: '경북', code: '4700000000', lat: 36.5760, lng: 128.5056, showOnMap: false},
-        {name: '경남', code: '4800000000', lat: 35.2383, lng: 128.6924, showOnMap: false}
-    ];
+    // common.js의 ALL_REGIONS 활용!
+    const regions = ALL_REGIONS.map(r => ({
+        ...r,
+        // 주요 도시만 지도에 표시하고 나머지는 리스트에만 (기존 로직 유지)
+        showOnMap: ['서울', '부산', '대구', '광주', '대전', '강원', '제주', '독도'].includes(r.name)
+    }));
 
     const regionCodes = regions.filter(r => r.code).map(r => r.code).join(',');
 
@@ -487,67 +500,4 @@ function renderWeeklyForecast(data) {
 async function loadCommunityData() {
     const container = document.getElementById('community-posts');
     if (container) container.innerHTML = `<div class="post-item"><h4 class="post-title">오늘 날씨 정말 좋네요!</h4></div><div class="post-item"><h4 class="post-title">주말 등산 가실 분?</h4></div>`;
-}
-
-function extractSidoName(full) {
-    if (!full) return '서울';
-    const mapping = {
-        '서울': '서울', '부산': '부산', '대구': '대구', '인천': '인천', '광주': '광주', '대전': '대전', '울산': '울산', '세종': '세종',
-        '경기': '경기', '강원': '강원', '제주': '제주', '충청': full.includes('북') ? '충북' : '충남',
-        '전라': full.includes('북') ? '전북' : '전남', '경상': full.includes('북') ? '경북' : '경남',
-        '서울특별시': '서울', '부산광역시': '부산'
-    };
-    if (full.length === 2) return full;
-    const shortName = full.substring(0, 2);
-    return mapping[shortName] || mapping[full] || '서울';
-}
-
-function getFullSidoName(shortName) {
-    if (!shortName) return '대한민국';
-    if (shortName.length > 2) return shortName;
-    const map = {
-        '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시', '광주': '광주광역시', '대전': '대전광역시',
-        '울산': '울산광역시', '세종': '세종특별자치시', '경기': '경기도', '강원': '강원도', '충북': '충청북도', '충남': '충청남도',
-        '전북': '전라북도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도', '제주': '제주특별자치도'
-    };
-    return map[shortName] || shortName;
-}
-
-function getAqiClass(grade) {
-    switch (String(grade).trim()) {
-        case '1':
-            return 'good';
-        case '2':
-            return 'normal';
-        case '3':
-            return 'bad';
-        default:
-            return 'very-bad';
-    }
-}
-
-function getAqiStatusText(grade) {
-    switch (String(grade).trim()) {
-        case '1':
-            return '좋음';
-        case '2':
-            return '보통';
-        case '3':
-            return '나쁨';
-        default:
-            return '매우나쁨';
-    }
-}
-
-function getAqiIcon(grade) {
-    switch (String(grade).trim()) {
-        case '1':
-            return '<i class="fas fa-smile" style="color:#2ecc71"></i>';
-        case '2':
-            return '<i class="fas fa-meh" style="color:#f39c12"></i>';
-        case '3':
-            return '<i class="fas fa-frown" style="color:#e74c3c"></i>';
-        default:
-            return '<i class="fas fa-dizzy" style="color:#e74c3c"></i>';
-    }
 }

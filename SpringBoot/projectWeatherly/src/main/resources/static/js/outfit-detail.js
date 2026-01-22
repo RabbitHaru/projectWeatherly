@@ -1,23 +1,39 @@
-// 옷차림 상세 페이지 전용 스크립트
+// outfit-detail.js - 옷차림 상세 페이지 (지역 고정 기능 추가)
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. 다크모드 초기화 (HTML에서 이동됨)
+    // ⭐ 1. 저장된 위치 확인 (URL 파라미터 없을 시)
+    checkSavedLocation();
+
+    // 2. 다크모드 초기화 (HTML에서 이동됨)
     if (localStorage.getItem('darkMode') === 'true') {
         document.body.classList.add('dark-mode');
     }
 
-    // 2. 기능 초기화
+    // 3. 기능 초기화
     setupTempCardHover();
     setupConditionCardClick();
 
-    // 3. GPS 버튼 이벤트 바인딩
+    // 4. GPS 버튼 이벤트 바인딩
     if (typeof bindGpsButton === 'function') {
         bindGpsButton('gps-sync-btn', function(lat, lng) {
             // 위치 정보를 가지고 현재 페이지 리로드
+            if (typeof RegionManager !== 'undefined') RegionManager.clear();
             window.location.href = `/outfit/detail?lat=${lat}&lon=${lng}`;
         });
     }
 });
+
+function checkSavedLocation() {
+    const urlParams = new URLSearchParams(window.location.search);
+    // URL에 좌표가 없고, 저장된 위치가 있다면 이동
+    if (!urlParams.has('lat') && typeof RegionManager !== 'undefined') {
+        const saved = RegionManager.load();
+        if (saved && saved.lat && saved.lng) {
+            console.log(`📍 상세 페이지: 저장된 위치(${saved.name})로 이동`);
+            window.location.replace(`/outfit/detail?lat=${saved.lat}&lon=${saved.lng}`);
+        }
+    }
+}
 
 // 1. 온도 카드 호버 효과 (현재 구간 제외)
 function setupTempCardHover() {
