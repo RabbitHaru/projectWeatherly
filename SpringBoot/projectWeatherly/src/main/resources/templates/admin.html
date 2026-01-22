@@ -76,16 +76,14 @@
                     <tr th:each="member : ${members}">
                         <td>
                             <div class="user-info">
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                                 <img th:if="${member.profileImage != null}" th:src="${member.profileImage}"
                                      class="user-avatar">
-=======
-                                <img th:if="${member.profileImage != null}" th:src="${member.profileImage}" class="user-avatar">
->>>>>>> b90320ed1978fcd76a2bce57b1774e65ad000367
+
+
                                 <div th:unless="${member.profileImage != null}" class="user-avatar"
                                      style="background:#a29bfe" th:text="${#strings.substring(member.nickname, 0, 1)}">U
-=======
+
                                 <img th:if="${member.profileImage != null}"
                                      th:src="${member.profileImage}"
                                      class="user-avatar" style="object-fit:cover;"
@@ -99,7 +97,7 @@
                                      class="user-avatar"
                                      style="background:#a29bfe; display: none; align-items: center; justify-content: center; font-weight: bold; color: white;"
                                      th:text="${#strings.substring(member.nickname, 0, 1)}">U
->>>>>>> member
+
                                 </div>
                                 <span th:text="${member.nickname}">닉네임</span>
                             </div>
@@ -292,17 +290,14 @@
 <script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/admin.js}"></script>
 <script>
-<<<<<<< HEAD
-    document.addEventListener("DOMContentLoaded", function () {
-        if (localStorage.getItem('darkMode') === 'true') {
-=======
-    document.addEventListener("DOMContentLoaded", function() {
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (isDarkMode) {
->>>>>>> member
-            document.body.classList.add('dark-mode');
-        }
-    });
+
+
+            document.addEventListener("DOMContentLoaded", function () {
+                const isDarkMode = localStorage.getItem('darkMode') === 'true';
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                }
+            });
 </script>
 </body>
 </html>
