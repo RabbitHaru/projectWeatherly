@@ -1,0 +1,62 @@
+/* [기존 디자인 유지] 배치를 위한 최소한의 스타일 */
+
+.form-section {
+    border-bottom: none;
+    margin-bottom: 20px;
+    padding-bottom: 0;
+}
+
+/* 2. 자동로그인 & 정보찾기 영역 */
+.login-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 5px;
+    font-size: 0.95rem;
+    color: var(--light-text); /* 기본 모드 색상 */
+}
+
+.login-actions label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.login-actions a {
+    text-decoration: none;
+    color: var(--light-text); /* 기본 모드 색상 */
+    font-size: 0.9rem;
+}
+
+/* 3. 소셜 로그인 섹션 스타일 */
+.social-signup {
+    border-bottom: none;
+    border-top: 1px solid var(--light-border);
+    padding-top: 30px;
+    margin-top: 10px;
+}
+
+/* 4. '또는' 구분선 위치 조정 */
+.divider {
+    margin-top: -42px;
+    background: var(--light-card);
+    display: inline-block;
+    padding: 0 15px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ============================================================ */
+/* [추가됨] 다크모드 설정: SNS 텍스트 색상(#bdc3c7)과 통일 */
+/* ============================================================ */
+body.dark-mode .login-actions,
+body.dark-mode .login-actions label,
+body.dark-mode .login-actions a {
+    color: #bdc3c7;
+}
+
+body.dark-mode .divider {
+    background: var(--dark-card);
+}

@@ -1,11 +1,28 @@
-// 회원가입 페이지 기능
 document.addEventListener('DOMContentLoaded', function() {
-    // 이메일 중복 확인
+
+    // [상태 관리] 중복 확인 완료 여부를 저장하는 변수
+    let isEmailChecked = false;
+    let isNicknameChecked = false;
+
+    // ==========================================
+    // 1. 이메일 중복 확인 기능 (Real Server Check)
+    // ==========================================
     const emailCheckBtn = document.getElementById('emailCheckBtn');
     const emailMessage = document.getElementById('emailMessage');
+    const emailInput = document.getElementById('user_email');
+
+    // 사용자가 입력값을 변경하면 중복 확인 상태 초기화
+    emailInput.addEventListener('input', function() {
+        isEmailChecked = false;
+        emailCheckBtn.disabled = false;
+        emailCheckBtn.style.background = ''; // 원래 색으로 복구
+        emailCheckBtn.textContent = '중복확인';
+        emailMessage.textContent = '';
+        emailMessage.className = 'validation-message';
+    });
 
     emailCheckBtn.addEventListener('click', function() {
-        const email = document.getElementById('user_email').value;
+        const email = emailInput.value;
 
         if (!email) {
             emailMessage.textContent = '이메일을 입력해주세요.';
@@ -13,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 이메일 형식 검증
+        // 이메일 정규식 검사
         const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailPattern.test(email)) {
             emailMessage.textContent = '올바른 이메일 형식이 아닙니다.';
@@ -21,33 +38,59 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 여기서는 실제 중복 확인 API 호출 대신 시뮬레이션
+        // 서버 통신 시작 메시지
         emailMessage.textContent = '이메일 중복 확인 중...';
         emailMessage.className = 'validation-message info';
 
-        setTimeout(() => {
-            // 시뮬레이션: 랜덤으로 성공/실패
-            const isAvailable = Math.random() > 0.5;
+        // Axios를 이용한 비동기 요청
+        axios.get('/auth/api/check-email', {
+            params: { email: email }
+        })
+            .then(function(response) {
+                const isDuplicate = response.data; // true: 중복, false: 사용 가능
 
-            if (isAvailable) {
-                emailMessage.textContent = '사용 가능한 이메일입니다.';
-                emailMessage.className = 'validation-message success';
-                emailCheckBtn.disabled = true;
-                emailCheckBtn.textContent = '확인완료';
-                emailCheckBtn.style.background = '#ccc';
-            } else {
-                emailMessage.textContent = '이미 사용 중인 이메일입니다.';
+                if (isDuplicate) {
+                    emailMessage.textContent = '이미 사용 중인 이메일입니다.';
+                    emailMessage.className = 'validation-message error';
+                    isEmailChecked = false;
+                } else {
+                    emailMessage.textContent = '사용 가능한 이메일입니다.';
+                    emailMessage.className = 'validation-message success';
+
+                    // 확인 완료 처리
+                    isEmailChecked = true;
+                    emailCheckBtn.disabled = true;
+                    emailCheckBtn.textContent = '확인완료';
+                    emailCheckBtn.style.background = '#ccc';
+                }
+            })
+            .catch(function(error) {
+                console.error('Email check error:', error);
+                emailMessage.textContent = '서버 연결 실패. 다시 시도해주세요.';
                 emailMessage.className = 'validation-message error';
-            }
-        }, 1000);
+                isEmailChecked = false;
+            });
     });
 
-    // 닉네임 중복 확인
+    // ==========================================
+    // 2. 닉네임 중복 확인 기능 (Real Server Check)
+    // ==========================================
     const nameCheckBtn = document.getElementById('nameCheckBtn');
     const nameMessage = document.getElementById('nameMessage');
+    const nameInput = document.getElementById('user_name');
+
+    // 사용자가 입력값을 변경하면 중복 확인 상태 초기화
+    nameInput.addEventListener('input', function() {
+        isNicknameChecked = false;
+        nameCheckBtn.disabled = false;
+        nameCheckBtn.style.background = '';
+        nameCheckBtn.textContent = '중복확인';
+        nameMessage.textContent = '';
+        nameMessage.className = 'validation-message';
+    });
 
     nameCheckBtn.addEventListener('click', function() {
-        const nickname = document.getElementById('user_name').value;
+        const nickname = nameInput.value;
 
         if (!nickname) {
             nameMessage.textContent = '닉네임을 입력해주세요.';
@@ -61,7 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 닉네임 형식 검증 (한글, 영문, 숫자만)
         const nicknamePattern = /^[가-힣a-zA-Z0-9]+$/;
         if (!nicknamePattern.test(nickname)) {
             nameMessage.textContent = '닉네임은 한글, 영문, 숫자만 사용 가능합니다.';
@@ -72,24 +114,39 @@ document.addEventListener('DOMContentLoaded', function() {
         nameMessage.textContent = '닉네임 중복 확인 중...';
         nameMessage.className = 'validation-message info';
 
-        setTimeout(() => {
-            // 시뮬레이션
-            const isAvailable = Math.random() > 0.5;
+        // Axios 요청
+        axios.get('/auth/api/check-nickname', {
+            params: { nickname: nickname }
+        })
+            .then(function(response) {
+                const isDuplicate = response.data; // true: 중복
 
-            if (isAvailable) {
-                nameMessage.textContent = '사용 가능한 닉네임입니다.';
-                nameMessage.className = 'validation-message success';
-                nameCheckBtn.disabled = true;
-                nameCheckBtn.textContent = '확인완료';
-                nameCheckBtn.style.background = '#ccc';
-            } else {
-                nameMessage.textContent = '이미 사용 중인 닉네임입니다.';
+                if (isDuplicate) {
+                    nameMessage.textContent = '이미 사용 중인 닉네임입니다.';
+                    nameMessage.className = 'validation-message error';
+                    isNicknameChecked = false;
+                } else {
+                    nameMessage.textContent = '사용 가능한 닉네임입니다.';
+                    nameMessage.className = 'validation-message success';
+
+                    // 확인 완료 처리
+                    isNicknameChecked = true;
+                    nameCheckBtn.disabled = true;
+                    nameCheckBtn.textContent = '확인완료';
+                    nameCheckBtn.style.background = '#ccc';
+                }
+            })
+            .catch(function(error) {
+                console.error('Nickname check error:', error);
+                nameMessage.textContent = '서버 연결 실패. 다시 시도해주세요.';
                 nameMessage.className = 'validation-message error';
-            }
-        }, 1000);
+                isNicknameChecked = false;
+            });
     });
 
-    // 비밀번호 유효성 검사
+    // ==========================================
+    // 3. 비밀번호 유효성 검사 (기존 유지)
+    // ==========================================
     const passwordInput = document.getElementById('user_password');
     const passwordMessage = document.getElementById('passwordMessage');
 
@@ -102,7 +159,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 비밀번호 강도 검증
         let strength = 0;
         let message = '';
 
@@ -126,7 +182,9 @@ document.addEventListener('DOMContentLoaded', function() {
         passwordMessage.textContent = message;
     });
 
-    // 비밀번호 확인
+    // ==========================================
+    // 4. 비밀번호 확인 (기존 유지)
+    // ==========================================
     const passwordConfirmInput = document.getElementById('password_confirm');
     const passwordConfirmMessage = document.getElementById('passwordConfirmMessage');
 
@@ -149,7 +207,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 프로필 이미지 업로드
+    // ==========================================
+    // 5. 프로필 이미지 업로드 (기존 유지)
+    // ==========================================
     const profileImageInput = document.getElementById('profile_image');
     const profilePreview = document.getElementById('profilePreview');
     const removeImageBtn = document.getElementById('removeImageBtn');
@@ -158,14 +218,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const file = e.target.files[0];
 
         if (file) {
-            // 파일 크기 제한 (5MB)
             if (file.size > 5 * 1024 * 1024) {
                 alert('파일 크기는 5MB 이하여야 합니다.');
                 profileImageInput.value = '';
                 return;
             }
 
-            // 이미지 파일인지 확인
             if (!file.type.match('image.*')) {
                 alert('이미지 파일만 업로드 가능합니다.');
                 profileImageInput.value = '';
@@ -173,11 +231,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const reader = new FileReader();
-
             reader.onload = function(event) {
                 profilePreview.src = event.target.result;
             };
-
             reader.readAsDataURL(file);
         }
     });
@@ -187,7 +243,9 @@ document.addEventListener('DOMContentLoaded', function() {
         profileImageInput.value = '';
     });
 
-    // 약관 보기 버튼
+    // ==========================================
+    // 6. 약관 보기 (기존 유지)
+    // ==========================================
     const viewAgreementBtns = document.querySelectorAll('.view-agreement-btn');
 
     viewAgreementBtns.forEach(btn => {
@@ -205,39 +263,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 전체 동의안함 체크박스
-    // const boardNotificationCheckbox = document.getElementById('board_notification_agree');
-    // const weatherAlertAgreeCheckbox = document.getElementById('weather_alert_agree');
-    //
-    // boardNotificationCheckbox.addEventListener('change', function() {
-    //     if (this.checked) {
-    //         boardNotificationCheckbox.checked = false;
-    //     }
-    // });
-    //
-    // // 선택 동의 체크박스가 변경될 때
-    // weatherAlertAgreeCheckbox.addEventListener('change', function() {
-    //     if (this.checked) {
-    //         weatherAlertAgreeCheckbox.checked = false;
-    //     }
-    // });
-
-    // 폼 제출
+    // ==========================================
+    // 7. 폼 제출 (유효성 검사 강화 + 약관 필수 체크)
+    // ==========================================
     const signupForm = document.getElementById('signupForm');
 
     signupForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+        e.preventDefault(); // 일단 제출 막기
 
-        // 필수 동의 확인
-        const agreeTerms = document.getElementById('terms_of_service_agree').checked;
-        const agreePrivacy = document.getElementById('privacy_policy_agree').checked;
+        // [A. 필수 약관 동의 확인 (메시지 기능 추가)]
+        const agreeTerms = document.getElementById('terms_of_service_agree');
+        const agreePrivacy = document.getElementById('privacy_policy_agree');
 
-        if (!agreeTerms || !agreePrivacy) {
-            alert('필수 약관에 동의해주세요.');
+        // 둘 중 하나라도 체크가 안 되어 있다면
+        if (!agreeTerms.checked || !agreePrivacy.checked) {
+            // [요청하신 부분] 메시지 띄우기
+            alert('이용약관과 개인정보 수집 및 이용에 동의해주세요.');
+
+            // 체크 안 된 곳으로 포커스 이동 (사용자 편의)
+            if (!agreeTerms.checked) {
+                agreeTerms.focus();
+            } else {
+                agreePrivacy.focus();
+            }
+            return; // 여기서 함수를 끝내서 서버로 전송되지 않게 함!
+        }
+
+        // [B. 중복 확인 수행 여부 확인]
+        if (!isEmailChecked) {
+            alert('이메일 중복 확인을 해주세요.');
+            document.getElementById('user_email').focus();
             return;
         }
 
-        // 비밀번호 확인
+        if (!isNicknameChecked) {
+            alert('닉네임 중복 확인을 해주세요.');
+            document.getElementById('user_name').focus();
+            return;
+        }
+
+        // [C. 비밀번호 일치 확인]
         const password = passwordInput.value;
         const confirmPassword = passwordConfirmInput.value;
 
@@ -247,116 +312,41 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 이메일 중복 확인 여부 확인 (실제 구현에서는 서버에서 확인)
-        // 닉네임 중복 확인 여부 확인
+        // [D. 제출 전처리]
+        const roleInput = document.createElement('input');
+        roleInput.type = 'hidden';
+        roleInput.name = 'user_role';
+        roleInput.value = 'USER';
+        signupForm.appendChild(roleInput);
 
-        // 폼 데이터 수집
-        const formData = new FormData(signupForm);
-
-        // 프로필 이미지 파일 추가
-        const profileFile = profileImageInput.files[0];
-        if (profileFile) {
-            formData.append('profile_image_file', profileFile);
-        }
-
-        // 추가 필드 추가
-        formData.append('user_role', 'USER');
-        formData.append('auth_provider', 'local');
-        formData.append('is_active', 'true');
-
-        // 회원가입 처리 시뮬레이션
-        const submitBtn = document.querySelector('.submit-btn');
-        const originalText = submitBtn.innerHTML;
-
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 처리 중...';
-        submitBtn.disabled = true;
-
-        // 실제 구현에서는 fetch API를 사용하여 서버로 데이터 전송
-        // setTimeout(() => {
-        //     // 성공 시뮬레이션
-        //     alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
-        //     window.location.href = '/login';
-        // }, 2000);
-
-        // 실제 구현 시 아래 코드를 사용
-
-        // axios.post('/auth/signup', formData, {
-        //     headers: {
-        //         'Content-Type': 'multipart/form-data'
-        //     }
-        // })
-        //     .then(response => {
-        //         const data = response.data;
-        //         if (data.success) {
-        //             alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
-        //             window.location.href = '/login';
-        //         } else {
-        //             alert(data.message || '회원가입에 실패했습니다.');
-        //             submitBtn.innerHTML = originalText;
-        //             submitBtn.disabled = false;
-        //         }
-        //     })
-        //     .catch(error => {
-        //         console.error('Error:', error);
-        //
-        //         // 에러 응답 구조에 따라 다르게 처리
-        //         if (error.response) {
-        //             // 서버가 2xx 외의 상태 코드로 응답한 경우
-        //             console.error('Response status:', error.response.status);
-        //             console.error('Response data:', error.response.data);
-        //
-        //             // 서버에서 제공한 에러 메시지 사용
-        //             const errorMessage = error.response.data?.message ||
-        //                 error.response.data?.error ||
-        //                 '서버 오류가 발생했습니다.';
-        //             alert(errorMessage);
-        //         } else if (error.request) {
-        //             // 요청이 전송되었지만 응답이 없는 경우
-        //             console.error('No response received:', error.request);
-        //             alert('서버에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.');
-        //         } else {
-        //             // 요청 설정 중에 에러가 발생한 경우
-        //             console.error('Request setup error:', error.message);
-        //             alert('요청을 처리하는 중 오류가 발생했습니다.');
-        //         }
-        //
-        //         submitBtn.innerHTML = originalText;
-        //         submitBtn.disabled = false;
-        //     });
+        // [E. 최종 제출]
         e.target.action = "/signup";
         e.target.submit();
     });
 
-    // // 입력 필드 자동 저장 (선택사항)
+    // ==========================================
+    // 8. 입력 필드 자동 저장/복원 (기존 유지)
+    // ==========================================
     const inputsToSave = ['user_email', 'user_name'];
 
     inputsToSave.forEach(id => {
         const input = document.getElementById(id);
-
-        // 페이지 로드 시 저장된 값 복원
         const savedValue = localStorage.getItem(`signup_${id}`);
         if (savedValue) {
             input.value = savedValue;
         }
-
-        // 입력 시 값 저장
         input.addEventListener('input', function() {
             localStorage.setItem(`signup_${id}`, this.value);
         });
     });
 
-    // 페이지 떠날 때 저장된 데이터 정리 (선택사항)
     window.addEventListener('beforeunload', function() {
         if (window.location.pathname.includes('signup')) {
-            // 회원가입 페이지를 떠날 때만 데이터 유지
             return;
         }
-
-        // 다른 페이지로 이동 시 저장된 데이터 삭제
         inputsToSave.forEach(id => {
             localStorage.removeItem(`signup_${id}`);
         });
     });
 
 });
-
