@@ -287,13 +287,15 @@ body.dark-mode .detail {
 
 .detail .label {
     font-size: 0.9rem;
-    color: #777;
+    color: #666;
+    white-space: nowrap; /* ⭐ [추가] 라벨(제목)도 절대 줄바꿈 하지 않음 */
 }
 
 .detail .value {
     font-weight: 700;
     color: var(--primary-color);
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    white-space: nowrap;  /* ⭐ [추가] 글자가 길어져도 절대 줄바꿈 하지 않음 */
 }
 
 body.dark-mode .detail .value {
