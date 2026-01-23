@@ -59,8 +59,12 @@ public class CommentService {
 
         // 5. 알림 전송 (게시글 제목 포함)
         try {
-            // 본인이 쓴 글에 본인이 댓글 달 때는 알림 스킵
-            if (!board.getMember().getId().equals(member.getId())) {
+            // Member 엔티티에서 알림 설정 값을 가져옵니다.
+            // (필드명이 isBoardNotificationAgree 또는 getBoardNotificationAgree 라고 가정)
+            boolean isNotificationAgreed = Boolean.TRUE.equals(board.getMember().getAgreement().getBoardNotificationAgree());
+
+            // 조건 수정: (본인이 아님) AND (상대방이 알림 수신 동의함)
+            if (!board.getMember().getId().equals(member.getId()) && isNotificationAgreed) {
 
                 // ★ 알림 메시지에 게시글 제목 포함
                 String message = "'" + board.getTitle() + "' 게시글에 새 댓글이 달렸습니다.";
@@ -75,7 +79,6 @@ public class CommentService {
         } catch (Exception e) {
             log.error("알림 전송 실패: ", e);
         }
-
         // 6. 응답 반환
         return CommentResponse.builder()
                 .id(savedComment.getId())
