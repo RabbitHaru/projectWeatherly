@@ -1,22 +1,15 @@
 /**
  * main.js - 메인 대시보드 로직 (Full Version)
- * - 시간별 예보 48시간 통합 (오늘+내일)
- * - 날짜 구분선 표시 (오늘/내일/모레)
- * - 기상특보 로직 포함
- * - 탭 정렬 및 위치 저장(sessionStorage) 적용
  */
 
 let kakaoMap = null;
 let mapOverlays = {};
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 0. 날짜 구분선 스타일 동적 추가 (CSS 파일 수정 없이도 작동하게 안전장치)
     addHourlyMarkerStyle();
-
     updateCurrentTime();
     setInterval(() => updateCurrentTime(), 60000);
 
-    // 저장된 위치 확인 및 로드
     initializeLocation();
 
     if (typeof bindGpsButton === 'function') {
@@ -28,38 +21,23 @@ document.addEventListener('DOMContentLoaded', function () {
     checkKakaoMapLoop();
 });
 
-// 구분선 스타일 추가
 function addHourlyMarkerStyle() {
     const style = document.createElement('style');
     style.innerHTML = `
         .hourly-date-marker {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-width: 60px;
-            margin: 0 8px;
-            padding: 0 10px;
-            background: rgba(128, 128, 128, 0.1);
-            border-radius: 12px;
-            font-weight: bold;
-            color: #333;
-            font-size: 0.9rem;
-            text-align: center;
-            border: 1px solid rgba(0,0,0,0.05);
-            flex-shrink: 0;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-width: 60px; margin: 0 8px; padding: 0 10px;
+            background: rgba(128, 128, 128, 0.1); border-radius: 12px;
+            font-weight: bold; color: #333; font-size: 0.9rem; text-align: center;
+            border: 1px solid rgba(0,0,0,0.05); flex-shrink: 0;
         }
-        body.dark-mode .hourly-date-marker {
-            background: rgba(255, 255, 255, 0.1);
-            color: #eee;
-        }
+        body.dark-mode .hourly-date-marker { background: rgba(255, 255, 255, 0.1); color: #eee; }
         .hourly-date-marker .marker-day { font-size: 1.1em; margin-bottom: 2px; color: var(--primary-color, #3498db); }
         .hourly-date-marker .marker-date { font-size: 0.75em; opacity: 0.7; }
     `;
     document.head.appendChild(style);
 }
 
-// 초기화
 async function initializeLocation() {
     if (!document.getElementById('current-temp')) return;
     const saved = RegionManager.load();
@@ -68,7 +46,6 @@ async function initializeLocation() {
         await loadWeatherDataByGPS(saved.lat, saved.lng, saved.name);
         loadAirQualitySummaryByGPS(saved.lat, saved.lng);
         loadRegionalWeatherData();
-        loadCommunityData();
     } else {
         loadDashboardData();
     }
@@ -101,8 +78,7 @@ async function loadDashboardData() {
         await Promise.all([
             loadWeatherData(),
             loadAirQualitySummary(),
-            loadRegionalWeatherData(),
-            // loadCommunityData()
+            loadRegionalWeatherData()
         ]);
     } catch (error) {
         console.error('데이터 로드 실패:', error);
@@ -166,10 +142,7 @@ async function loadRegionalWeatherData() {
                 const position = new kakao.maps.LatLng(region.lat, region.lng);
                 if (mapOverlays[region.name]) mapOverlays[region.name].setMap(null);
                 const customOverlay = new kakao.maps.CustomOverlay({
-                    map: kakaoMap,
-                    position: position,
-                    content: content,
-                    yAnchor: 1
+                    map: kakaoMap, position: position, content: content, yAnchor: 1
                 });
                 mapOverlays[region.name] = customOverlay;
             }
@@ -219,11 +192,26 @@ async function loadWeatherDataByGPS(lat, lng, forcedRegionName = null) {
             headers: {'Content-Type': 'application/json'}
         });
         const data = await res.json();
+
         if (data.success) {
-            if (forcedRegionName) data.data.regionName = forcedRegionName;
+            // ⭐ [핵심 수정] 서버에서 받은 '진짜 지역명'을 최우선으로 사용!
+            // forcedRegionName이나 '내 위치'는 데이터가 없을 때만 쓰는 비상용임.
+            const realName = data.data.regionName || forcedRegionName || '내 위치';
+
+            // 1. 세션 스토리지에 "부산광역시" 같은 실제 이름으로 저장
+            RegionManager.save(realName, lat, lng);
+
+            console.log(`📍 위치 확정: ${realName} (${lat}, ${lng})`);
+
+            // 2. 화면 데이터 갱신
+            // 여기서 data.data.regionName이 UI에 '부산광역시'를 찍어줌
             updateWeatherUI(data.data);
+
+            // 3. 대기질 정보도 해당 좌표로 로드
             loadAirQualitySummaryByGPS(lat, lng);
-            const sido = data.data.regionName ? extractSidoName(data.data.regionName) : '서울';
+
+            // 4. 예보 로드
+            const sido = realName ? extractSidoName(realName) : '서울';
             loadAirQualityForecast(sido);
         }
     } catch (e) {
@@ -341,7 +329,7 @@ function updateWeatherUI(weather) {
         }
     }
 
-    // ⭐ [기상특보 로직 복구]
+    // 기상특보 로직
     const alertTitle = document.getElementById('weather-alert-title');
     const alertDesc = document.getElementById('weather-alert-desc');
     const iconEl = document.querySelector('.warning-status .status-icon');
@@ -351,7 +339,6 @@ function updateWeatherUI(weather) {
         if (activeWarnings.length > 0) {
             if (alertTitle) alertTitle.textContent = activeWarnings.map(w => w.title).join(', ');
             if (alertDesc) alertDesc.textContent = `${weather.regionName} 지역에 기상특보가 발령 중입니다.`;
-
             const isDanger = activeWarnings.some(w => w.level === 'danger');
             if (iconEl) {
                 iconEl.className = `fas status-icon ${isDanger ? 'fa-exclamation-circle' : 'fa-exclamation-triangle'}`;
@@ -363,9 +350,7 @@ function updateWeatherUI(weather) {
                     iconEl.style.color = '#f1c40f';
                 }
             }
-        } else {
-            setNoWarningUI(alertTitle, alertDesc, iconEl);
-        }
+        } else setNoWarningUI(alertTitle, alertDesc, iconEl);
     } else if (weather.warning) {
         if (alertTitle) alertTitle.textContent = weather.warning.title;
         if (alertDesc) alertDesc.textContent = weather.warning.description;
@@ -382,9 +367,7 @@ function updateWeatherUI(weather) {
                 iconEl.style.color = '#2ecc71';
             }
         }
-    } else {
-        setNoWarningUI(alertTitle, alertDesc, iconEl);
-    }
+    } else setNoWarningUI(alertTitle, alertDesc, iconEl);
 
     if (weather.current) {
         html('current-temp', `${Math.round(weather.current.temperature)}<span class="temp-unit">°C</span>`);
@@ -395,29 +378,21 @@ function updateWeatherUI(weather) {
         txt('precipitation', `${weather.current.precipitation || '0'} mm`);
     }
 
-    // ⭐ [핵심] 오늘과 내일 데이터를 합치면서 '구분 태그' 강제 주입
     let combinedHourly = [];
-
-    // 오늘 데이터 처리
     if (weather.hourly && Array.isArray(weather.hourly)) {
         weather.hourly.forEach(item => {
-            item.targetDate = '오늘'; // 강제 태그
+            item.targetDate = '오늘';
             combinedHourly.push(item);
         });
     }
-
-    // 내일 데이터 처리
     if (weather.tomorrowHourly && Array.isArray(weather.tomorrowHourly)) {
         weather.tomorrowHourly.forEach(item => {
-            item.targetDate = '내일'; // 강제 태그
+            item.targetDate = '내일';
             combinedHourly.push(item);
         });
     }
-
-    // 렌더링 (최대 48개)
     renderHourlyForecast(combinedHourly.slice(0, 48));
 
-    // 내일 탭 섹션 숨김
     const tomorrowContainer = document.getElementById('tomorrow-forecast');
     if (tomorrowContainer) {
         const card = tomorrowContainer.closest('.horizontal-forecast-card') || tomorrowContainer.closest('.tab-content');
@@ -471,37 +446,21 @@ function updateForecastSummaries(weather) {
     }
 }
 
-// ⭐ [수정됨] 날짜 구분선 렌더링 함수 (targetDate 사용)
 function renderHourlyForecast(data) {
     const container = document.getElementById('hourly-forecast');
     if (!container) return;
     container.innerHTML = '';
-
     if (!data || data.length === 0) {
         container.innerHTML = '<div class="no-data">예보 정보가 없습니다.</div>';
         return;
     }
-
-    let lastTargetDate = null; // 마지막으로 찍은 태그 (오늘/내일)
-
+    let lastTargetDate = null;
     data.forEach((item, index) => {
-        // item.targetDate ('오늘' 또는 '내일')가 바뀌는 시점에 구분선 추가
         if (item.targetDate && item.targetDate !== lastTargetDate) {
-            container.innerHTML += `
-                <div class="hourly-date-marker">
-                    <div class="marker-day">${item.targetDate}</div>
-                </div>
-            `;
+            container.innerHTML += `<div class="hourly-date-marker"><div class="marker-day">${item.targetDate}</div></div>`;
             lastTargetDate = item.targetDate;
         }
-
-        container.innerHTML += `
-            <div class="hour-item">
-                <div class="hour-time">${item.time}</div>
-                <div class="hour-icon"><i class="${item.weatherIcon || 'fas fa-sun'}"></i></div>
-                <div class="hour-temp">${Math.round(item.temperature)}°</div>
-            </div>
-        `;
+        container.innerHTML += `<div class="hour-item"><div class="hour-time">${item.time}</div><div class="hour-icon"><i class="${item.weatherIcon || 'fas fa-sun'}"></i></div><div class="hour-temp">${Math.round(item.temperature)}°</div></div>`;
     });
 }
 
@@ -516,8 +475,6 @@ function renderWeeklyForecast(data) {
     });
 }
 
-// [수정됨] 커뮤니티 데이터는 서버(Thymeleaf)에서 렌더링하므로 JS 로직은 비워둡니다.
 async function loadCommunityData() {
-    // 아무것도 하지 않음 (기존 innerHTML = ... 코드 삭제)
     console.log("Community data rendered by Server (Thymeleaf).");
 }

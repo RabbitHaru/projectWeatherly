@@ -1,6 +1,6 @@
 /**
  * common.js - Weatherly 공통 유틸리티 및 전역 상태 관리
- * (RegionManager를 sessionStorage로 변경하여 휘발성으로 만듦)
+ * (RegionManager: 위치 데이터 중앙 관리)
  */
 
 var API_BASE_URL = window.location.origin;
@@ -27,13 +27,13 @@ const ALL_REGIONS = [
     {name: '독도', lat: 37.2429, lng: 131.8669, code: ''}
 ];
 
-// 2. 지역 저장소 관리자 (Region Manager)
-// ⭐ localStorage -> sessionStorage 로 변경! (브라우저 닫으면 초기화됨)
+// 2. 지역 저장소 관리자
 const RegionManager = {
     KEY: 'fixedRegion',
-
     save: function (rawName, lat, lng) {
-        const stdName = extractSidoName(rawName);
+        // '내 위치'가 서울로 변하지 않도록 처리
+        const stdName = (rawName === '내 위치') ? '내 위치' : extractSidoName(rawName);
+
         if (!lat || !lng) {
             const found = ALL_REGIONS.find(r => r.name === stdName);
             if (found) {
@@ -41,50 +41,86 @@ const RegionManager = {
                 lng = found.lng;
             }
         }
+
         const data = {name: stdName, lat, lng};
-
-        // ⭐ 여기가 핵심 변경점!
         sessionStorage.setItem(this.KEY, JSON.stringify(data));
-        console.log(`💾 지역 임시 저장됨(탭 닫으면 삭제): ${stdName}`);
+        console.log(`💾 [전역 저장] ${stdName} (${lat}, ${lng})`);
     },
-
     load: function () {
-        // ⭐ 불러올 때도 sessionStorage에서
         const data = sessionStorage.getItem(this.KEY);
         return data ? JSON.parse(data) : null;
     },
-
     clear: function () {
-        // ⭐ 지울 때도 sessionStorage에서
         sessionStorage.removeItem(this.KEY);
-        console.log('🗑️ 임시 저장된 지역 초기화됨');
     }
 };
 
+// ⭐ 페이지 로드 시 실행 (이 부분이 문제 해결의 열쇠!)
 document.addEventListener('DOMContentLoaded', function () {
     initCommonFeatures();
+    setupDarkMode();
+    updateCurrentTime();
 });
 
 function initCommonFeatures() {
-    try {
-        setupDarkMode();
-    } catch (e) {
-    }
-    try {
-        setupTabSwitching();
-    } catch (e) {
-    }
-    try {
-        updateCurrentTime();
-    } catch (e) {
-    }
-    try {
-        setupScrollHints();
-    } catch (e) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const lat = urlParams.get('lat') || urlParams.get('latitude');
+    const lon = urlParams.get('lon') || urlParams.get('longitude');
+
+    if (lat && lon) {
+        const saved = RegionManager.load();
+
+        // 🚨 [핵심 수정] 이미 저장된 위치와 좌표가 같다면, 굳이 '내 위치'로 덮어쓰지 않음!
+        // (예: 부산으로 저장돼있는데 URL에 좌표가 있다고 해서 '내 위치'로 바꾸지 않음)
+        if (saved && isSameLocation(saved.lat, saved.lng, lat, lon)) {
+            if (saved.name !== '내 위치') {
+                console.log(`📍 기존 위치명 유지: ${saved.name}`);
+                return;
+            }
+        }
+
+        // 저장된 게 없거나 좌표가 바뀌었으면 일단 저장
+        RegionManager.save('내 위치', lat, lon);
+
+        // 🚀 만약 이름이 '내 위치'라면, 서버에 물어봐서 진짜 이름으로 고쳐놓기 (Self-Healing)
+        fetchRealRegionName(lat, lon);
     }
 }
 
-// --- 공통 기능 함수들 ---
+// 좌표가 같은지 확인하는 헬퍼 함수
+function isSameLocation(lat1, lon1, lat2, lon2) {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return false;
+    return Math.abs(lat1 - lat2) < 0.0001 && Math.abs(lon1 - lon2) < 0.0001;
+}
+
+// '내 위치' -> '부산광역시'로 자동 변환하는 함수
+async function fetchRealRegionName(lat, lon) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/weather/gps?latitude=${lat}&longitude=${lon}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        const data = await res.json();
+        if (data.success && data.data.regionName) {
+            console.log(`✨ 위치명 자동 업데이트: 내 위치 -> ${data.data.regionName}`);
+
+            // 세션 스토리지 업데이트
+            RegionManager.save(data.data.regionName, lat, lon);
+
+            // 화면에 '내 위치'라고 떠있는 글자가 있으면 바로 바꿔줌!
+            const locEls = document.querySelectorAll('#current-location, .location-name, #display-region-name, #fine-dust-location');
+            locEls.forEach(el => {
+                if (el.textContent.includes('내 위치') || el.textContent.includes('위치 확인 중')) {
+                    el.textContent = getFullSidoName(data.data.regionName);
+                }
+            });
+        }
+    } catch (e) {
+        console.error("위치명 변환 실패", e);
+    }
+}
+
+// --- 기타 유틸리티 함수들 (기존 유지) ---
 
 function setupDarkMode() {
     let toggleBtn = document.getElementById('darkmode-toggle');
@@ -128,38 +164,11 @@ function updateCurrentTime(targetIds = ['current-time', 'fine-dust-current-time'
     });
 }
 
-function setupScrollHints() {
-    const containers = document.querySelectorAll('.horizontal-scroll-container');
-    containers.forEach(c => {
-        const check = () => {
-            if (c.scrollWidth > c.clientWidth) c.classList.add('has-scroll');
-            else c.classList.remove('has-scroll');
-        };
-        check();
-        window.addEventListener('resize', check);
-    });
-}
-
-function setupTabSwitching() {
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', function () {
-            const tabId = this.getAttribute('data-tab');
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            const targetTab = document.getElementById(`tab-${tabId}`);
-            if (targetTab) targetTab.classList.add('active');
-        });
-    });
-}
-
 function bindGpsButton(btnId, onSuccessCallback) {
     const btn = document.getElementById(btnId);
     if (!btn) return;
     btn.addEventListener('click', async () => {
-        RegionManager.clear();
+        RegionManager.clear(); // 새 위치 찾을 땐 초기화
         const originalHTML = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 확인 중...';
         btn.disabled = true;
@@ -190,7 +199,25 @@ function bindGpsButton(btnId, onSuccessCallback) {
     });
 }
 
-// 헬퍼 함수들
+function extractSidoName(full) {
+    if (!full) return '서울';
+    const cleanFull = full.trim();
+    if (cleanFull === '내 위치') return '내 위치'; // 예외 처리 필수
+    const mapping = {
+        '서울': '서울', '부산': '부산', '대구': '대구', '인천': '인천',
+        '광주': '광주', '대전': '대전', '울산': '울산', '세종': '세종',
+        '경기': '경기', '강원': '강원', '제주': '제주',
+        '충청': cleanFull.includes('북') ? '충북' : '충남',
+        '전라': cleanFull.includes('북') ? '전북' : '전남',
+        '경상': cleanFull.includes('북') ? '경북' : '경남',
+        '서울특별시': '서울', '부산광역시': '부산', '대전광역시': '대전',
+        '대구광역시': '대구', '인천광역시': '인천', '광주광역시': '광주', '울산광역시': '울산',
+        '세종특별자치시': '세종', '제주특별자치도': '제주', '강원특별자치도': '강원', '강원도': '강원'
+    };
+    if (cleanFull.length === 2) return cleanFull;
+    return mapping[cleanFull.substring(0, 2)] || mapping[cleanFull] || '서울';
+}
+
 function getFullSidoName(name) {
     if (!name) return '대한민국';
     const cleanName = name.trim();
@@ -208,25 +235,7 @@ function getFullSidoName(name) {
     return cleanName;
 }
 
-function extractSidoName(full) {
-    if (!full) return '서울';
-    const cleanFull = full.trim();
-    const mapping = {
-        '서울': '서울', '부산': '부산', '대구': '대구', '인천': '인천',
-        '광주': '광주', '대전': '대전', '울산': '울산', '세종': '세종',
-        '경기': '경기', '강원': '강원', '제주': '제주',
-        '충청': cleanFull.includes('북') ? '충북' : '충남',
-        '전라': cleanFull.includes('북') ? '전북' : '전남',
-        '경상': cleanFull.includes('북') ? '경북' : '경남',
-        '서울특별시': '서울', '부산광역시': '부산', '대전광역시': '대전',
-        '대구광역시': '대구', '인천광역시': '인천', '광주광역시': '광주', '울산광역시': '울산',
-        '세종특별자치시': '세종', '제주특별자치도': '제주', '강원특별자치도': '강원', '강원도': '강원'
-    };
-    if (cleanFull.length === 2) return cleanFull;
-    const shortName = cleanFull.substring(0, 2);
-    return mapping[shortName] || mapping[cleanFull] || '서울';
-}
-
+// AQI 관련 함수들 (기존 유지)
 function getAqiClass(grade) {
     switch (String(grade).trim()) {
         case '1':

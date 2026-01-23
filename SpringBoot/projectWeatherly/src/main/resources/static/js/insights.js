@@ -1,8 +1,6 @@
 /**
  * insights.js
- * 기상 인사이트 대시보드 로직
- * - common.js의 RegionManager와 bindGpsButton을 활용하여 위치 동기화
- * - 차트 시각화 및 다크모드 대응
+ * 기상 인사이트 대시보드 로직 (Full Version)
  */
 
 let tempChartInstance = null;
@@ -10,39 +8,30 @@ let aqiChartInstance = null;
 let envChartInstance = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-    // ⭐ 1. 위치 데이터 동기화
+    // 1. 위치 데이터 동기화 (URL 파라미터 체크 및 리다이렉트)
     syncLocationWithCommonJs();
 
-    // ⭐ 2. 지역명 보정 (강원도 -> 강원특별자치도)
+    // 2. 지역명 보정 (강원도 -> 강원특별자치도)
     fixLocationTextInInsights();
 
-    // 3. 차트 초기화 및 기타 기능
+    // 3. 차트 초기화 및 기능 설정
     initTemperatureChart();
     initAirQualityChart();
     initEnvChart();
     setupDarkModeObserver();
 
-    // 3. 다크모드 감지
-    setupDarkModeObserver();
-
-    // ⭐ 4. GPS 버튼 연결 (common.js의 bindGpsButton 활용)
+    // 4. GPS 버튼 연결
     if (typeof bindGpsButton === 'function') {
         bindGpsButton('gps-sync-btn', function (lat, lon) {
-            // GPS 위치를 찾으면 -> 저장된 고정 위치는 지우고(GPS 모드), 해당 좌표로 이동
-            if (typeof RegionManager !== 'undefined') RegionManager.clear();
-
-            // 페이지 새로고침 (좌표 파라미터 추가)
+            // ⭐ URL만 변경하면 common.js가 자동으로 세션에 저장함
             window.location.href = `/insights?lat=${lat}&lon=${lon}`;
         });
-    } else {
-        console.warn("common.js가 로드되지 않았습니다.");
     }
 });
 
-// ⭐ 화면 텍스트 강제 보정 함수 (Insights 전용)
+// ⭐ 화면 텍스트 강제 보정 함수
 function fixLocationTextInInsights() {
-    const locEl = document.getElementById('display-region-name'); // 통계 페이지의 지역명 ID
-
+    const locEl = document.getElementById('display-region-name');
     if (locEl && typeof getFullSidoName === 'function' && typeof extractSidoName === 'function') {
         const originalText = locEl.textContent.trim();
         const shortName = extractSidoName(originalText);
@@ -55,28 +44,21 @@ function fixLocationTextInInsights() {
     }
 }
 
-// ⭐ [핵심] common.js와 위치 데이터 연동 함수
+// ⭐ common.js와 위치 데이터 연동 함수
 function syncLocationWithCommonJs() {
-    // 1. URL에 좌표가 있는지 확인
     const urlParams = new URLSearchParams(window.location.search);
     const lat = urlParams.get('lat');
     const lon = urlParams.get('lon');
 
-    // RegionManager가 로드되었는지 확인
     if (typeof RegionManager === 'undefined') return;
 
     if (lat && lon) {
-        // [케이스 A] URL에 좌표가 있음 (지도에서 왔거나 GPS로 옴)
-        // -> 이 위치를 '현재 위치'로 저장해서 다른 페이지(메인 등)와 공유
+        // URL에 좌표가 있으면 화면 갱신을 위해(이름 업데이트용) 저장
         const regionNameEl = document.getElementById('display-region-name');
         const regionName = regionNameEl ? regionNameEl.innerText.trim() : '사용자 위치';
-
-        // 현재 로드된 위치를 저장소에 업데이트
         RegionManager.save(regionName, lat, lon);
-
     } else {
-        // [케이스 B] URL에 좌표가 없음 (메뉴 눌러서 그냥 들어옴)
-        // -> 저장된 위치(메인에서 보던 곳)가 있다면 거기로 강제 이동
+        // 좌표가 없으면 저장된 위치로 이동
         const saved = RegionManager.load();
         if (saved) {
             console.log(`📍 저장된 위치(${saved.name})로 동기화`);
@@ -95,7 +77,6 @@ function getChartColors() {
     };
 }
 
-// [공통] 요일 라벨 생성
 function generateDayLabels() {
     const days = ['일', '월', '화', '수', '목', '금', '토'];
     const labels = [];
@@ -277,7 +258,6 @@ function initEnvChart() {
     });
 }
 
-// 다크모드 감지 옵저버
 function setupDarkModeObserver() {
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
