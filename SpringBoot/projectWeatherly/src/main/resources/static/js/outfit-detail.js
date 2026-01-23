@@ -1,27 +1,54 @@
 // outfit-detail.js - 옷차림 상세 페이지 (지역 고정 기능 추가)
 
+// outfit-detail.js - 옷차림 상세 페이지 (지역 보정 및 고정 기능)
+
 document.addEventListener('DOMContentLoaded', function () {
-    // ⭐ 1. 저장된 위치 확인 (URL 파라미터 없을 시)
+    // 1. 저장된 위치 확인 및 이동 처리
     checkSavedLocation();
 
-    // 2. 다크모드 초기화 (HTML에서 이동됨)
+    // ⭐ 2. 지역명 보정 실행 (강원도 -> 강원특별자치도)
+    // 여러 가능성 있는 요소를 모두 체크하도록 개선
+    fixLocationTextInDetail();
+
+    // 3. 다크모드 초기화
     if (localStorage.getItem('darkMode') === 'true') {
         document.body.classList.add('dark-mode');
     }
 
-    // 3. 기능 초기화
+    // 4. 기능 초기화 (카드 효과 등)
     setupTempCardHover();
     setupConditionCardClick();
 
-    // 4. GPS 버튼 이벤트 바인딩
+    // 5. GPS 버튼 이벤트 바인딩
     if (typeof bindGpsButton === 'function') {
         bindGpsButton('gps-sync-btn', function(lat, lng) {
-            // 위치 정보를 가지고 현재 페이지 리로드
             if (typeof RegionManager !== 'undefined') RegionManager.clear();
             window.location.href = `/outfit/detail?lat=${lat}&lon=${lng}`;
         });
     }
 });
+
+// ⭐ 지역명 강제 보정 함수 (상세 페이지용)
+function fixLocationTextInDetail() {
+    // 1. 여러 검색 조건으로 지역명 요소 찾기
+    const locEl = document.querySelector('.location-name') ||
+        document.getElementById('current-location') ||
+        document.querySelector('.location-title span'); // 구조에 따라 추가
+
+    if (locEl && typeof getFullSidoName === 'function' && typeof extractSidoName === 'function') {
+        const originalText = locEl.textContent.trim();
+
+        // "강원" 또는 "강원도" 추출
+        const shortName = extractSidoName(originalText);
+        // 정식 명칭으로 변환 ("강원특별자치도")
+        const fullName = getFullSidoName(shortName);
+
+        if (originalText !== fullName) {
+            console.log(`🔧 Detail 지역명 보정 완료: ${originalText} -> ${fullName}`);
+            locEl.textContent = fullName;
+        }
+    }
+}
 
 function checkSavedLocation() {
     const urlParams = new URLSearchParams(window.location.search);
