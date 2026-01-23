@@ -10,14 +10,17 @@ let aqiChartInstance = null;
 let envChartInstance = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-
-    // ⭐ 1. 위치 데이터 동기화 (common.js의 RegionManager 활용)
+    // ⭐ 1. 위치 데이터 동기화
     syncLocationWithCommonJs();
 
-    // 2. 차트 초기화
+    // ⭐ 2. 지역명 보정 (강원도 -> 강원특별자치도)
+    fixLocationTextInInsights();
+
+    // 3. 차트 초기화 및 기타 기능
     initTemperatureChart();
     initAirQualityChart();
     initEnvChart();
+    setupDarkModeObserver();
 
     // 3. 다크모드 감지
     setupDarkModeObserver();
@@ -35,6 +38,22 @@ document.addEventListener('DOMContentLoaded', function () {
         console.warn("common.js가 로드되지 않았습니다.");
     }
 });
+
+// ⭐ 화면 텍스트 강제 보정 함수 (Insights 전용)
+function fixLocationTextInInsights() {
+    const locEl = document.getElementById('display-region-name'); // 통계 페이지의 지역명 ID
+
+    if (locEl && typeof getFullSidoName === 'function' && typeof extractSidoName === 'function') {
+        const originalText = locEl.textContent.trim();
+        const shortName = extractSidoName(originalText);
+        const fullName = getFullSidoName(shortName);
+
+        if (originalText !== fullName) {
+            console.log(`🔧 Insights 지역명 보정: ${originalText} -> ${fullName}`);
+            locEl.textContent = fullName;
+        }
+    }
+}
 
 // ⭐ [핵심] common.js와 위치 데이터 연동 함수
 function syncLocationWithCommonJs() {
