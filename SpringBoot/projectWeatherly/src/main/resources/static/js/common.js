@@ -56,10 +56,11 @@ const RegionManager = {
 };
 
 // ⭐ 페이지 로드 시 실행 (이 부분이 문제 해결의 열쇠!)
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     initCommonFeatures();
     setupDarkMode();
     updateCurrentTime();
+    setupTabSwitching();
 });
 
 function initCommonFeatures() {
@@ -279,4 +280,32 @@ function getAqiIcon(grade) {
         default:
             return '<i class="fas fa-meh"></i>';
     }
+}
+
+function setupTabSwitching() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // 버튼이 없으면 함수 종료 (에러 방지)
+    if (tabBtns.length === 0) return;
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+            // 1. 클릭된 버튼의 타겟 ID 가져오기
+            const tabId = this.getAttribute('data-tab');
+
+            // 2. 모든 버튼과 콘텐츠의 active 클래스 제거 (초기화)
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+
+            // 3. 클릭된 버튼 활성화
+            this.classList.add('active');
+
+            // 4. 연결된 콘텐츠 활성화
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+        });
+    });
 }
