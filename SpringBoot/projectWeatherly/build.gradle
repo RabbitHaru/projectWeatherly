@@ -81,6 +81,8 @@ dependencies {
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.0'
 }
 
 tasks.named('test') {
@@ -101,3 +103,5 @@ tasks.withType(JavaCompiler){
 clean{
     delete file(queryDir)
 }
+
+

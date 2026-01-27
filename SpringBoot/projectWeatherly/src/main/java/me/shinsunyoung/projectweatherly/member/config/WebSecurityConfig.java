@@ -52,7 +52,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // [수정됨] /auth/api/** 대신 /auth/** 로 변경하여 아이디 찾기 페이지도 접근 허용
                         .requestMatchers("/","/login","/signup","/user"
-                                ,"/articles","/articles/{id}","/file/**", "/auth/**")
+                                ,"/articles","/articles/{id}","/file/**", "/auth/**", "/S3/**")
                         .permitAll()
                         // 관리자 페이지는 'ADMIN' 권한이 있는 사람만 접근 가능
                         .requestMatchers("/admin/**").hasRole("ADMIN")
