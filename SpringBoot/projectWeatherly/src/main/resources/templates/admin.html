@@ -92,7 +92,6 @@
                     </tr>
 
                     <tr th:each="member : ${members}">
-                        <td>
                         <td style="vertical-align: middle;">
                             <div class="user-info" style="display: flex; align-items: center; gap: 10px;">
                                 <img th:src="${member.profileImage != null and member.profileImage != '' and member.profileImage != 'default.png'} ?
