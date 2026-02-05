@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (strength <= 2) {
             message = '비밀번호가 너무 약합니다. 영문 대소문자, 숫자, 특수문자를 포함시키는 걸 권장합니다.';
-            passwordMessage.className = 'validation-message error';
+            passwordMessage.className = 'validation-message warning';
         } else if (strength <= 4) {
             message = '비밀번호 보안 수준: 보통';
             passwordMessage.className = 'validation-message info';

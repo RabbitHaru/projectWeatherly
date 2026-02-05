@@ -78,10 +78,35 @@ public class BoardServiceImpl implements BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        // [수정] 여기서 조회수 증가(board.increaseViewCount())를 하지 않습니다.
-        // 조회수 증가는 Controller에서 조건 확인 후 increaseViewCount()를 명시적으로 호출합니다.
-
+        // 조회수 증가는 Controller에서 처리하므로 여기서는 변환만 수행
         return convertToResponse(board, true);
+    }
+
+    // ✅ [추가] 공지사항 조회 메서드
+    @Override
+    @Transactional(readOnly = true)
+    public List<BoardResponse> getNotices() {
+        // 'notice' 카테고리, ACTIVE 상태인 게시글 상위 3개 조회
+        return boardRepository.findTop3ByCategoryAndBoardStatusOrderByCreatedAtDesc("notice", BoardStatus.ACTIVE)
+                .stream()
+                .map(board -> convertToResponse(board, false))
+                .collect(Collectors.toList());
+    }
+
+    // ✅ [추가] 주간 인기글 조회 메서드
+    @Override
+    @Transactional(readOnly = true)
+    public List<BoardResponse> getWeeklyPopularBoards(int limit) {
+        // 1. 일주일 전 날짜 계산
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusWeeks(1);
+
+        // 2. 조회수 기준 내림차순 정렬
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "viewCount"));
+
+        // 3. 조회 및 변환
+        return boardRepository.findByBoardStatusAndCreatedAtAfter(BoardStatus.ACTIVE, oneWeekAgo, pageable)
+                .map(board -> convertToResponse(board, false))
+                .getContent();
     }
 
     @Override
@@ -89,7 +114,8 @@ public class BoardServiceImpl implements BoardService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
-        if (Board.CATEGORY_NOTICE.equalsIgnoreCase(request.getCategory())) {
+        // ✅ [추가] 공지사항 작성 권한 체크 (관리자만 가능)
+        if ("notice".equalsIgnoreCase(request.getCategory())) {
             if (member.getRole() != MemberRole.ADMIN) {
                 throw new IllegalStateException("공지사항은 관리자만 작성할 수 있습니다.");
             }
@@ -143,7 +169,8 @@ public class BoardServiceImpl implements BoardService {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
-        if (Board.CATEGORY_NOTICE.equalsIgnoreCase(request.getCategory())) {
+        // ✅ [추가] 공지사항으로 변경 시 관리자 권한 체크
+        if ("notice".equalsIgnoreCase(request.getCategory())) {
             if (!isAdmin) {
                 throw new IllegalStateException("관리자만 공지사항으로 설정할 수 있습니다.");
             }
@@ -165,7 +192,7 @@ public class BoardServiceImpl implements BoardService {
                         BoardImage boardImage = BoardImage.builder()
                                 .imageUrl(imageUrl)
                                 .board(board)
-                                .isThumbnail(board.getImages().isEmpty())
+                                .isThumbnail(board.getImages().isEmpty()) // 기존 이미지가 없으면 썸네일로
                                 .build();
                         board.addImage(boardImage);
                     } catch (IOException e) {
@@ -374,20 +401,6 @@ public class BoardServiceImpl implements BoardService {
         return boardRepository.findAllById(boardIds).stream().map(b -> convertToResponse(b, false)).collect(Collectors.toList());
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<BoardResponse> getWeeklyPopularBoards(int limit) {
-        // 1. 현재 시간 기준 일주일 전 계산
-        LocalDateTime oneWeekAgo = LocalDateTime.now().minusWeeks(1);
-
-        // 2. 조회수(viewCount) 내림차순 정렬 조건 생성
-        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "viewCount"));
-
-        // 3. DB 조회 (작성일이 일주일 전 이후이고, 상태가 ACTIVE인 글)
-        return boardRepository.findByBoardStatusAndCreatedAtAfter(BoardStatus.ACTIVE, oneWeekAgo, pageable)
-                .map(board -> convertToResponse(board, false))
-                .getContent();
-    }
     private BoardResponse convertToResponse(Board board, boolean includeComments) {
         var imageUrls = board.getImages().stream()
                 .map(BoardImage::getImageUrl)

@@ -21,10 +21,32 @@
 
 
 <div class="container">
+
     <div class="community-header-section  weather-summary">
         <h1 class="community-title">커뮤니티 게시판</h1>
         <p class="community-subtitle">다양한 주제로 자유롭게 소통하세요!</p>
-
+        <div class="category-filter-section">
+            <a th:href="@{/community}" class="category-tag all"
+               th:classappend="${category == null} ? 'selected'">
+                <i class="fas fa-th-large"></i> 전체
+            </a>
+            <a th:href="@{/community/category/weather}" class="category-tag weather"
+               th:classappend="${category == 'weather'} ? 'selected'">
+                <i class="fas fa-cloud-sun"></i> 날씨
+            </a>
+            <a th:href="@{/community/category/dust}" class="category-tag dust"
+               th:classappend="${category == 'dust'} ? 'selected'">
+                <i class="fas fa-wind"></i> 미세먼지
+            </a>
+            <a th:href="@{/community/category/outfit}" class="category-tag outfit"
+               th:classappend="${category == 'outfit'} ? 'selected'">
+                <i class="fas fa-tshirt"></i> 옷차림
+            </a>
+            <a th:href="@{/community/category/general}" class="category-tag general"
+               th:classappend="${category == 'general'} ? 'selected'">
+                <i class="fas fa-comments"></i> 자유주제
+            </a>
+        </div>
         <div class="community-actions">
             <a th:href="@{/community/boards/write}" class="write-btn" sec:authorize="isAuthenticated()">
                 <i class="fas fa-pen"></i>
@@ -44,43 +66,64 @@
     <div class="community-board">
         <div class="board-header">
             <div>글번호</div>
-            <div>제목</div>
+            <div>닉네임</div> <div>제목</div>
             <div>올린 날짜</div>
             <div>좋아요</div>
             <div>조회수</div>
         </div>
 
         <div class="post-list">
-            <div th:if="${#lists.isEmpty(boards.content)}" class="empty-board">
+
+            <div th:each="notice : ${notices}" class="post-item notice-item">
+                <div class="post-number">
+                    <span class="notice-badge">공지</span>
+                </div>
+                <div class="post-author">
+                    <span th:text="${notice.memberNickname}" style="font-weight: bold;">관리자</span>
+                </div>
+                <div class="post-title">
+                    <a th:href="@{/community/boards/{id}(id=${notice.id})}" style="font-weight: bold; color: #333;">
+                        <i class="fas fa-bullhorn" style="color: #e74c3c; margin-right: 5px;"></i>
+                        <span th:text="${notice.title}"></span>
+                    </a>
+                </div>
+                <div class="post-date" th:text="${#temporals.format(notice.createdAt, 'yyyy.MM.dd')}"></div>
+                <div class="post-likes">
+                    <i class="fas fa-heart"></i> <span th:text="${notice.likeCount}"></span>
+                </div>
+                <div class="post-views">
+                    <i class="fas fa-eye"></i> <span th:text="${notice.viewCount}"></span>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(boards.content) and #lists.isEmpty(notices)}" class="empty-board">
                 <i class="fas fa-inbox"></i>
                 <h4>등록된 게시글이 없습니다.</h4>
                 <p>첫 번째 게시글을 작성해보세요!</p>
-
             </div>
-
             <div th:each="board : ${boards.content}" class="post-item">
                 <div class="post-number" th:text="${board.id}"></div>
+
+                <div class="post-author">
+                    <span th:text="${board.memberNickname}"></span>
+                </div>
+
                 <div class="post-title">
-                    <div class="post-author">
-                        <i class="fas fa-user-circle"></i>
-                        <span th:text="${board.memberNickname}"></span>
-                    </div>
-                    <a th:href="@{/community/boards/{id}(id=${board.id})}"
-                       th:text="${board.title}"></a>
+                    <a th:href="@{/community/boards/{id}(id=${board.id})}" th:text="${board.title}"></a>
                 </div>
-                <div class="post-date"
-                     th:text="${#temporals.format(board.createdAt, 'yyyy.MM.dd')}"></div>
+
+                <div class="post-date" th:text="${#temporals.format(board.createdAt, 'yyyy.MM.dd')}"></div>
+
                 <div class="post-likes">
-                    <i class="fas fa-heart"></i>
-                    <span th:text="${board.likeCount}"></span>
+                    <i class="fas fa-heart"></i> <span th:text="${board.likeCount}"></span>
                 </div>
+
                 <div class="post-views">
-                    <i class="fas fa-eye"></i>
-                    <span th:text="${board.viewCount}"></span>
+                    <i class="fas fa-eye"></i> <span th:text="${board.viewCount}"></span>
                 </div>
             </div>
-        </div>
-    </div>
+            <div th:if="${boards.totalPages > 1}" class="pagination-container">
+
 
     <div th:if="${boards.totalPages > 1}" class="pagination-container">
         <ul class="pagination">

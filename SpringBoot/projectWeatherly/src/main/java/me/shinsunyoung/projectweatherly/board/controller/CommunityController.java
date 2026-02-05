@@ -9,6 +9,7 @@ import me.shinsunyoung.projectweatherly.board.dto.BoardRequest;
 import me.shinsunyoung.projectweatherly.board.dto.BoardResponse;
 import me.shinsunyoung.projectweatherly.board.dto.BoardUpdateRequest;
 import me.shinsunyoung.projectweatherly.board.service.BoardService;
+import me.shinsunyoung.projectweatherly.member.domain.enums.MemberRole;
 import me.shinsunyoung.projectweatherly.member.dto.UserSecurityDTO;
 import me.shinsunyoung.projectweatherly.util.FileNameUtil;
 import me.shinsunyoung.projectweatherly.util.FileUtil;
@@ -78,6 +79,9 @@ public class CommunityController {
             } catch (Exception e) {
                 log.warn("인기 게시글 조회 실패: {}", e.getMessage());
             }
+            // [추가] 공지사항 리스트 가져오기
+            List<BoardResponse> notices = boardService.getNotices();
+            model.addAttribute("notices", notices);
 
             model.addAttribute("boards", boardPage);
             model.addAttribute("popularBoards", popularBoards);
@@ -116,6 +120,10 @@ public class CommunityController {
         model.addAttribute("category", category);
         model.addAttribute("nickname", user.getUser().getNickname());
         model.addAttribute("memberId", user.getUser().getId());
+
+        boolean isAdmin = user.getUser().getRole() == MemberRole.ADMIN;
+        model.addAttribute("isAdmin", isAdmin);
+
         model.addAttribute("boardRequest", new BoardRequest());
 
         return "write";
