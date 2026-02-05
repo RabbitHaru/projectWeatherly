@@ -19,16 +19,20 @@
 
 <div th:replace="layout/header :: header"></div>
 
-
 <div class="container">
 
-    <div class="community-header-section  weather-summary">
+    <div class="community-header-section weather-summary">
         <h1 class="community-title">커뮤니티 게시판</h1>
         <p class="community-subtitle">다양한 주제로 자유롭게 소통하세요!</p>
+
         <div class="category-filter-section">
             <a th:href="@{/community}" class="category-tag all"
                th:classappend="${category == null} ? 'selected'">
                 <i class="fas fa-th-large"></i> 전체
+            </a>
+            <a th:href="@{/community/category/notice}" class="category-tag notice"
+               th:classappend="${category == 'notice'} ? 'selected'">
+                <i class="fas fa-bullhorn"></i> 공지
             </a>
             <a th:href="@{/community/category/weather}" class="category-tag weather"
                th:classappend="${category == 'weather'} ? 'selected'">
@@ -47,6 +51,7 @@
                 <i class="fas fa-comments"></i> 자유주제
             </a>
         </div>
+
         <div class="community-actions">
             <a th:href="@{/community/boards/write}" class="write-btn" sec:authorize="isAuthenticated()">
                 <i class="fas fa-pen"></i>
@@ -101,75 +106,68 @@
                 <h4>등록된 게시글이 없습니다.</h4>
                 <p>첫 번째 게시글을 작성해보세요!</p>
             </div>
+
             <div th:each="board : ${boards.content}" class="post-item">
                 <div class="post-number" th:text="${board.id}"></div>
-
                 <div class="post-author">
                     <span th:text="${board.memberNickname}"></span>
                 </div>
-
                 <div class="post-title">
                     <a th:href="@{/community/boards/{id}(id=${board.id})}" th:text="${board.title}"></a>
                 </div>
-
                 <div class="post-date" th:text="${#temporals.format(board.createdAt, 'yyyy.MM.dd')}"></div>
-
                 <div class="post-likes">
                     <i class="fas fa-heart"></i> <span th:text="${board.likeCount}"></span>
                 </div>
-
                 <div class="post-views">
                     <i class="fas fa-eye"></i> <span th:text="${board.viewCount}"></span>
                 </div>
             </div>
-            <div th:if="${boards.totalPages > 1}" class="pagination-container">
+        </div>
 
+        <div th:if="${boards.totalPages > 1}" class="pagination-container">
+            <ul class="pagination">
+                <li class="page-item page-prev" th:classappend="${boards.first} ? 'disabled' : ''">
+                    <a class="page-link" th:href="@{/community/boards(page=${boards.number - 1})}">
+                        이전
+                    </a>
+                </li>
 
-    <div th:if="${boards.totalPages > 1}" class="pagination-container">
-        <ul class="pagination">
-            <li class="page-item page-prev" th:classappend="${boards.first} ? 'disabled' : ''">
-                <a class="page-link" th:href="@{'/community/boards'(page=${boards.number - 1})}">
-                    <i class="fas fa-chevron-left"></i> 이전
-                </a>
-            </li>
+                <div class="page-numbers">
+                    <th:block th:with="
+                        start=${(boards.number / 5) * 5 + 1},
+                        last=${boards.totalPages},
+                        end=${(start + 4 < last) ? (start + 4) : last}">
 
-            <div class="page-numbers">
-                <th:block th:with="currentPage=${boards.number + 1},
-                  startPage=${T(java.lang.Math).max(1, currentPage - 4)},
-                  endPage=${T(java.lang.Math).min(boards.totalPages, startPage + 9)}">
-                    <li th:each="i : ${#numbers.sequence(startPage, endPage)}"
-                        class="page-item page-number"
-                        th:classappend="${i == currentPage} ? 'active' : ''">
-                        <a class="page-link" th:href="@{'/community/boards'(page=${i - 1})}"
-                           th:text="${i}"></a>
-                    </li>
-                </th:block>
-            </div>
+                        <li th:each="i : ${#numbers.sequence(start, end)}"
+                            class="page-item page-number"
+                            th:classappend="${i == boards.number + 1} ? 'active' : ''">
+                            <a class="page-link" th:href="@{/community/boards(page=${i - 1})}"
+                               th:text="${i}"></a>
+                        </li>
+                    </th:block>
+                </div>
 
-            <li class="page-item page-next" th:classappend="${boards.last} ? 'disabled' : ''">
-                <a class="page-link" th:href="@{'/community/boards'(page=${boards.number + 1})}">
-                    다음 <i class="fas fa-chevron-right"></i>
-                </a>
-            </li>
-        </ul>
+                <li class="page-item page-next" th:classappend="${boards.last} ? 'disabled' : ''">
+                    <a class="page-link" th:href="@{/community/boards(page=${boards.number + 1})}">
+                        다음
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 
 <div class="container" style="max-width: 800px;">
     <div class="memory-card">
         <h3><i class="fas fa-info-circle"></i> 커뮤니티 안내</h3>
-
         <div class="memory-item">
             <div class="memory-item-header">
                 <div class="pc-badge">1</div>
                 <div class="memory-item-title">게시글 작성</div>
             </div>
-            <div class="memory-item-content">
-                로그인 후 자유롭게 게시글을 작성할 수 있습니다.
-                제목과 내용을 명확하게 작성해주세요.
-            </div>
+            <div class="memory-item-content">로그인 후 자유롭게 게시글을 작성할 수 있습니다.</div>
         </div>
-
         <div class="memory-item">
             <div class="memory-item-header">
                 <div class="pc-badge">2</div>
@@ -179,22 +177,18 @@
                 <ul>
                     <li>본인이 작성한 글만 수정 및 삭제가 가능합니다</li>
                     <li>수정은 게시글 상세 페이지에서 가능합니다</li>
-                    <li>부적절한 게시글은 관리자에 의해 삭제될 수 있습니다</li>
                 </ul>
             </div>
         </div>
-
         <div class="memory-item">
             <div class="memory-item-header">
                 <div class="pc-badge">3</div>
                 <div class="memory-item-title">커뮤니티 규칙</div>
             </div>
-
             <div class="memory-item-content">
                 <ul>
                     <li>타인을 존중하는 말투를 사용해주세요</li>
                     <li>광고성 게시물은 금지합니다</li>
-                    <li>불법 정보 공유는 제재 대상입니다</li>
                 </ul>
             </div>
         </div>

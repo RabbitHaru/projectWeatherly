@@ -102,4 +102,18 @@ public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecific
     long countByCreatedAtAfter(LocalDateTime date);
     // [추가] 공지사항 상위 3개 조회 (카테고리가 'notice'이고 상태가 ACTIVE인 것)
     List<Board> findTop3ByCategoryAndBoardStatusOrderByCreatedAtDesc(String category, BoardStatus status);
+    // -------------------------------------------------------------------------
+    // ★ [추가] 공지사항 제외 및 전체보기 로직을 위한 메서드
+    // -------------------------------------------------------------------------
+
+    // 1. 특정 카테고리가 '아닌' 게시글 조회 (예: 'notice' 제외하고 조회)
+    Page<Board> findByCategoryNotAndBoardStatus(String category, BoardStatus status, Pageable pageable);
+
+    // 2. 검색 시에도 특정 카테고리 제외하고 검색 (제목+내용)
+    @Query("SELECT b FROM Board b WHERE (b.title LIKE %:keyword% OR b.content LIKE %:keyword%) AND b.category <> :excludeCategory AND b.boardStatus = :status")
+    Page<Board> findByTitleOrContentContainingAndCategoryNot(
+            @Param("keyword") String keyword,
+            @Param("excludeCategory") String excludeCategory,
+            @Param("status") BoardStatus status,
+            Pageable pageable);
 }

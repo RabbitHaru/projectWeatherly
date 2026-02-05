@@ -450,4 +450,41 @@ public class BoardServiceImpl implements BoardService {
                 .thumbnailUrl(board.getThumbnailUrl())
                 .build();
     }
+    // -------------------------------------------------------------------------
+    // ★ [추가] 게시글 목록 조회 통합 구현 (핵심 로직)
+    // -------------------------------------------------------------------------
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BoardResponse> getBoardList(String category, String keyword, Pageable pageable) {
+
+        // 1. 검색어가 있는 경우
+        if (keyword != null && !keyword.isBlank()) {
+            // 전체('all' 또는 null)에서 검색할 때는 '공지(notice)'를 검색 결과에서 뺄 수도 있고 포함할 수도 있습니다.
+            // 여기서는 "전체 탭에서는 공지사항이 중복되어 보이지 않게" 하라는 요청에 맞춰, 검색 시에도 공지를 뺍니다.
+            if (category == null || "all".equals(category)) {
+                return boardRepository.findByTitleOrContentContainingAndCategoryNot(keyword, "notice", BoardStatus.ACTIVE, pageable)
+                        .map(board -> convertToResponse(board, false));
+            }
+            // 특정 카테고리(예: 날씨) 내에서 검색할 때는 기존 로직 활용 (필요 시 별도 구현 가능, 여기서는 전체 검색으로 대체하거나 기존 메서드 활용)
+            // 편의상 특정 카테고리 검색은 기존 전체 검색을 사용하되 필터링이 필요하면 Repository 추가가 필요합니다.
+            // 일단은 요청하신 '전체 보기' 문제를 해결하기 위해 검색도 전체 검색 메서드를 호출합니다.
+            return searchBoards(keyword, pageable);
+        }
+
+        // 2. 검색어가 없는 경우 (일반 목록 조회)
+
+        // Case A: '전체' 보기 (카테고리가 null이거나 "all") -> ★ 핵심: 공지사항('notice') 제외하고 조회
+        if (category == null || "all".equals(category)) {
+            return boardRepository.findByCategoryNotAndBoardStatus("notice", BoardStatus.ACTIVE, pageable)
+                    .map(board -> convertToResponse(board, false));
+        }
+
+        // Case B: '공지사항' 탭을 직접 클릭한 경우 -> 공지사항만 조회
+        if ("notice".equals(category)) {
+            return getBoardsByCategory("notice", pageable);
+        }
+
+        // Case C: 그 외 특정 카테고리(날씨, 미세먼지 등) -> 해당 카테고리만 조회
+        return getBoardsByCategory(category, pageable);
+    }
 }

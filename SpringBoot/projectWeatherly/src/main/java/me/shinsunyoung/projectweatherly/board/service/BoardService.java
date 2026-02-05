@@ -49,4 +49,6 @@ public interface BoardService {
     List<BoardResponse> getWeeklyPopularBoards(int limit);
 
     List<BoardResponse> getNotices();
+    // ★ [추가] 게시글 목록 조회 통합 메서드 (검색 + 카테고리 필터링 + 공지제외 로직 포함)
+    Page<BoardResponse> getBoardList(String category, String keyword, Pageable pageable);
 }
