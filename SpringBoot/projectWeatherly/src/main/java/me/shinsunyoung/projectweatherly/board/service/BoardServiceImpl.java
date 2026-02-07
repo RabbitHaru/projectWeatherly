@@ -53,10 +53,9 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional(readOnly = true)
     public Page<BoardResponse> getPopularBoards(Pageable pageable) {
-        return boardRepository.findPopularBoards(BoardStatus.ACTIVE, pageable)
+        return boardRepository.findPopularBoardsExcludingCategory("NOTICE", BoardStatus.ACTIVE, pageable)
                 .map(board -> convertToResponse(board, false));
     }
-
     @Override
     @Transactional(readOnly = true)
     public Page<BoardResponse> getRecentBoards(Pageable pageable) {
@@ -103,8 +102,14 @@ public class BoardServiceImpl implements BoardService {
         // 2. 조회수 기준 내림차순 정렬
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "viewCount"));
 
-        // 3. 조회 및 변환
-        return boardRepository.findByBoardStatusAndCreatedAtAfter(BoardStatus.ACTIVE, oneWeekAgo, pageable)
+        // 3. [수정됨] 공지사항('NOTICE')을 제외하고 조회하도록 변경
+        // Repository에 새로 만든 findWeeklyPopularBoardsExcludingCategory 메서드 호출
+        return boardRepository.findWeeklyPopularBoardsExcludingCategory(
+                        BoardStatus.ACTIVE,
+                        oneWeekAgo,
+                        "NOTICE", // 제외할 카테고리
+                        pageable
+                )
                 .map(board -> convertToResponse(board, false))
                 .getContent();
     }

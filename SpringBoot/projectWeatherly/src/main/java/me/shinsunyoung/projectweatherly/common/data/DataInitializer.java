@@ -39,7 +39,15 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        log.info("🏁 DataInitializer 시작: 멤버 확인 및 데이터 무한 생성을 시작합니다.");
+        log.info("🏁 DataInitializer 시작: 데이터 초기화 확인 중...");
+
+        // [수정] 게시글이 하나라도 있으면 더미 데이터 생성을 중단합니다. (중복 생성 방지)
+        if (boardRepository.count() > 0) {
+            log.info("✅ 이미 게시글 데이터가 존재합니다. 더미 데이터 생성을 건너뜁니다.");
+            return;
+        }
+
+        // --- 아래부터는 데이터가 없을 때만 실행됩니다 ---
 
         // 1. 멤버 확보 (없으면 생성, 있으면 DB에서 가져오기)
         List<Member> basicMembers = getOrCreateBasicMembers();
@@ -48,12 +56,12 @@ public class DataInitializer implements CommandLineRunner {
         // 2. 게시글 및 신고 데이터 생성
         createDummyBoards(basicMembers);       // 기본 게시글 20개 추가
         createZenomiaContent(zenomia);         // 제노미아 글 50개 + 신고 50개 추가
-        createNoticeData(zenomia);             // 공지사항 50개 추가
+        createNoticeData(zenomia);             // 공지사항 50개 추가 (좋아요 0 고정)
 
         // 3. 더미 댓글 및 좋아요 추가
-        createCommentData();
+        createCommentData();                   // (공지사항은 댓글 제외됨)
 
-        log.info("✅ 금회차 더미 데이터(게시글/신고/댓글) 생성 완료 (누적됨)");
+        log.info("✨ 초기 더미 데이터 생성이 완료되었습니다.");
     }
 
     // ----------------------------------------------------------------
@@ -79,7 +87,6 @@ public class DataInitializer implements CommandLineRunner {
         return getOrCreateMember("zeta1234@naver.com", "1234", "제노미아", MemberRole.ADMIN);
     }
 
-    // 이메일로 조회해보고 없으면 새로 생성해서 반환
     private Member getOrCreateMember(String email, String rawPwd, String nickname, MemberRole role) {
         return memberRepository.findByEmail(email)
                 .orElseGet(() -> {
@@ -122,7 +129,7 @@ public class DataInitializer implements CommandLineRunner {
 
             Board board = Board.builder()
                     .title(categoryNames[catIdx] + " 관련 이야기 " + i + " (자동생성)")
-                    .content("안녕하세요. " + writer.getNickname() + "입니다.\n무한 생성된 데이터입니다.\n번호: " + i)
+                    .content("안녕하세요. " + writer.getNickname() + "입니다.\n초기 생성된 더미 데이터입니다.\n번호: " + i)
                     .category(categories[catIdx])
                     .member(writer)
                     .viewCount(random.nextInt(200))
@@ -147,7 +154,7 @@ public class DataInitializer implements CommandLineRunner {
         for (int i = 1; i <= 50; i++) {
             Board board = Board.builder()
                     .title("제노미아의 게시글 - " + i)
-                    .content("안녕하세요. 제노미아입니다.\n이 글은 무한 생성 더미 데이터입니다.\n번호: " + i)
+                    .content("안녕하세요. 제노미아입니다.\n이 글은 초기 생성 더미 데이터입니다.\n번호: " + i)
                     .category(categories[random.nextInt(categories.length)])
                     .member(zenomia)
                     .viewCount(random.nextInt(100))
@@ -167,7 +174,7 @@ public class DataInitializer implements CommandLineRunner {
         ReportStatus[] statuses = ReportStatus.values();
 
         for (int i = 1; i <= 50; i++) {
-            Long targetId = (long) (random.nextInt(1000) + 1); // 타겟 ID 랜덤
+            Long targetId = (long) (random.nextInt(1000) + 1);
             int idx = random.nextInt(reasonValues.length);
             ReportStatus randomStatus = statuses[random.nextInt(statuses.length)];
 
@@ -203,12 +210,11 @@ public class DataInitializer implements CommandLineRunner {
                     .title("[공지] 웨더리 서비스 업데이트 안내 - " + i)
                     .content("안녕하세요, " + writer.getNickname() + "입니다.\n\n" +
                             "시스템 업데이트 안내입니다.\n" +
-                            "이 공지는 실행 시마다 계속 추가됩니다.\n\n" +
                             "공지 번호: #" + i)
                     .category("notice")
                     .member(writer)
                     .viewCount(random.nextInt(500) + 100)
-                    .likeCount(random.nextInt(100))
+                    .likeCount(0) // 좋아요 0 고정
                     .isVerified(true)
                     .boardStatus(BoardStatus.ACTIVE)
                     .createdAt(LocalDateTime.now().minusHours(i))
@@ -216,7 +222,7 @@ public class DataInitializer implements CommandLineRunner {
             notices.add(notice);
         }
         boardRepository.saveAll(notices);
-        log.info("   + 공지사항 50개 추가됨");
+        log.info("   + 공지사항 50개 추가됨 (좋아요/댓글 0개)");
     }
 
     // ----------------------------------------------------------------
@@ -224,7 +230,6 @@ public class DataInitializer implements CommandLineRunner {
     // ----------------------------------------------------------------
 
     private void createCommentData() {
-        // 모든 회원과 모든 게시글을 가져옴 (이번 실행에서 생성된 것 포함)
         List<Member> allMembers = memberRepository.findAll();
         List<Board> allBoards = boardRepository.findAll();
 
@@ -235,16 +240,18 @@ public class DataInitializer implements CommandLineRunner {
         Random random = new Random();
         List<Comment> comments = new ArrayList<>();
 
-        // 댓글 내용 샘플
         String[] commentTexts = {
                 "좋은 정보 감사합니다!", "오늘 날씨 정말 춥네요 ㅠㅠ", "옷차림 정보 유용해요~",
                 "저도 공감합니다.", "항상 잘 보고 있습니다.", "다음 업데이트도 기대되네요.",
                 "미세먼지 조심하세요!", "이런 기능도 있었군요.", "작성자님 화이팅!", "잘 읽었습니다."
         };
 
-        // 각 게시글마다 랜덤한 수의 댓글 생성
         for (Board board : allBoards) {
-            // 게시글당 0 ~ 5개의 댓글 생성
+            // 공지사항인 경우 댓글 생성 건너뛰기
+            if ("notice".equalsIgnoreCase(board.getCategory())) {
+                continue;
+            }
+
             int commentCount = random.nextInt(6);
 
             for (int i = 0; i < commentCount; i++) {
@@ -252,17 +259,16 @@ public class DataInitializer implements CommandLineRunner {
 
                 Comment comment = Comment.builder()
                         .board(board)
-                        .member(writer) // 작성자 (Member 객체)
-                        // .writer(...) 부분 삭제 (Member 객체로 연결되므로 불필요)
+                        .member(writer)
                         .content(commentTexts[random.nextInt(commentTexts.length)])
-                        .likeCount(random.nextInt(31)) // 좋아요 0 ~ 30개 랜덤
-                        .createdAt(LocalDateTime.now().minusMinutes(random.nextInt(1000))) // 시간 차이
+                        .likeCount(random.nextInt(31))
+                        .createdAt(LocalDateTime.now().minusMinutes(random.nextInt(1000)))
                         .build();
                 comments.add(comment);
             }
         }
 
         commentRepository.saveAll(comments);
-        log.info("   + 전체 게시글에 대한 더미 댓글 생성 완료 (총 {}개)", comments.size());
+        log.info("   + 전체 게시글(공지 제외)에 대한 더미 댓글 생성 완료 (총 {}개)", comments.size());
     }
 }

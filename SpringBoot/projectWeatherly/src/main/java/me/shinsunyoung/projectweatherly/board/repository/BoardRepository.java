@@ -61,9 +61,20 @@ public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecific
             Pageable pageable);
 
     // 인기글 조회 (좋아요 + 조회수 기준)
-    @Query("SELECT b FROM Board b WHERE b.boardStatus = :status ORDER BY b.likeCount DESC, b.viewCount DESC")
-    Page<Board> findPopularBoards(@Param("status") BoardStatus status, Pageable pageable);
+    // 공지사항(category가 'notice'인 것)을 제외하고 좋아요+조회수 순으로 정렬
+    @Query("SELECT b FROM Board b WHERE b.boardStatus = :status AND b.createdAt > :date AND LOWER(b.category) <> LOWER(:excludeCategory) ORDER BY b.viewCount DESC")
+    Page<Board> findWeeklyPopularBoardsExcludingCategory(
+            @Param("status") BoardStatus status,
+            @Param("date") LocalDateTime date,
+            @Param("excludeCategory") String excludeCategory,
+            Pageable pageable);
 
+    // 2. [에러 방지용] 일반 인기글 조회
+    @Query("SELECT b FROM Board b WHERE LOWER(b.category) <> LOWER(:excludeCategory) AND b.boardStatus = :status ORDER BY b.likeCount DESC, b.viewCount DESC")
+    Page<Board> findPopularBoardsExcludingCategory(
+            @Param("excludeCategory") String excludeCategory,
+            @Param("status") BoardStatus status,
+            Pageable pageable);
     // 최신글 조회
     @Query("SELECT b FROM Board b WHERE b.boardStatus = :status ORDER BY b.createdAt DESC")
     Page<Board> findRecentBoards(@Param("status") BoardStatus status, Pageable pageable);
