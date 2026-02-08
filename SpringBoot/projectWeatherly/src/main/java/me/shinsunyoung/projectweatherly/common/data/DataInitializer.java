@@ -73,18 +73,18 @@ public class DataInitializer implements CommandLineRunner {
 
         // 관리자 2명
         for (int i = 1; i <= 2; i++) {
-            members.add(getOrCreateMember("admin" + i + "@weatherly.com", "1234", "관리자" + i, MemberRole.ADMIN));
+            members.add(getOrCreateMember("admin" + i + "@weatherly.com", "12341234", "관리자" + i, MemberRole.ADMIN));
         }
         // 일반 유저 10명
         for (int i = 1; i <= 10; i++) {
-            members.add(getOrCreateMember("user" + i + "@weatherly.com", "1234", "웨더러" + i, MemberRole.USER));
+            members.add(getOrCreateMember("user" + i + "@weatherly.com", "12341234", "웨더러" + i, MemberRole.USER));
         }
         return members;
     }
 
     private Member getOrCreateZenomiaMember() {
         // 제노미아 (ADMIN 권한)
-        return getOrCreateMember("zeta1234@naver.com", "1234", "제노미아", MemberRole.ADMIN);
+        return getOrCreateMember("zeta1234@naver.com", "12341234", "제노미아", MemberRole.ADMIN);
     }
 
     private Member getOrCreateMember(String email, String rawPwd, String nickname, MemberRole role) {

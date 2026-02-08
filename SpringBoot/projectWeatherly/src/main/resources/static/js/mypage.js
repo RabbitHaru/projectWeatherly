@@ -165,15 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 게시물 삭제 확인
-    document.querySelectorAll('form[action*="delete"]').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            if (!confirm('정말 삭제하시겠습니까? 삭제된 데이터는 복구할 수 없습니다.')) {
-                e.preventDefault();
-            }
-        });
-    });
-
     // ==========================================
     // [추가됨] 4. 프로필 이미지 에러 처리
     // ==========================================
