@@ -139,20 +139,26 @@
     font-size: 1rem;
 }
 
+/* 122번째 줄 근처 */
 .post-title {
     padding: 5px 0;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: column;  /* 닉네임을 제목 위에 유지 (수직 배치) */
+    justify-content: center; /* 박스 높이 기준으로 중앙에 오게 함 */
+
+    /* ▼ 이 한 줄이 핵심입니다! ▼ */
+    align-items: center;     /* 수직 배치된 요소들을 가로 가운데로 정렬 */
 }
 
+/* 제목 텍스트도 가운데 정렬을 확실하게 하기 위해 추가 */
 .post-title a {
+    text-align: center;
+    /* 기존 스타일 유지 */
     color: #212529;
     text-decoration: none;
     font-weight: 500;
     display: block;
     margin-bottom: 5px;
-    transition: color 0.2s;
     font-size: 1.05rem;
     line-height: 1.4;
 }
@@ -516,4 +522,220 @@ body.dark-mode .memory-item-content {
 body.dark-mode .pc-badge {
     background: #667eea; /* 어두운 색 대신 포인트 컬러 사용 */
     color: white;
+}
+/* community.css 파일 맨 아래에 추가하세요 */
+
+/* 1. 헤더와 리스트를 강제로 6칸 그리드로 맞춤 */
+.board-header,
+.post-item {
+    display: grid !important;
+    /* 글번호(80) | 닉네임(120) | 제목(나머지) | 날짜(120) | 좋아요(80) | 조회수(80) */
+    grid-template-columns: 80px 120px 1fr 120px 80px 80px !important;
+    gap: 10px;
+    align-items: center;
+    padding: 15px 10px;
+}
+
+/* 2. 제목 칸 스타일 (왼쪽 정렬) */
+.post-title {
+    display: flex !important;
+    flex-direction: row !important; /* 가로 배치 */
+    align-items: center !important;
+    justify-content: flex-start !important; /* 제목은 왼쪽부터 시작 */
+    text-align: left !important;
+    gap: 10px;
+    overflow: hidden;
+}
+
+/* 3. 나머지 칸들은 가운데 정렬 */
+.board-header > div,
+.post-number,
+.post-author,
+.post-date,
+.post-likes,
+.post-views {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important; /* 가운데 정렬 */
+    text-align: center !important;
+}
+
+/* 4. 닉네임 스타일 */
+.post-author {
+    color: #6c757d;
+    gap: 5px;
+    white-space: nowrap; /* 줄바꿈 방지 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 5. 썸네일 이미지 크기 고정 */
+.list-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0; /* 찌그러짐 방지 */
+    border: 1px solid #eee;
+}
+
+.list-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+/* 1. 헤더의 '제목' 칸 (3번째 칸) 가운데 정렬 */
+.board-header > div:nth-child(3) {
+    display: flex !important;
+    justify-content: center !important; /* 가로 가운데 정렬 */
+    align-items: center !important;     /* 세로 가운데 정렬 */
+    text-align: center !important;
+}
+
+/* 2. 리스트의 '제목' 칸 가운데 정렬 */
+.post-title {
+    display: flex !important;
+    justify-content: center !important; /* 가로 가운데 정렬 */
+    align-items: center !important;     /* 세로 가운데 정렬 */
+    text-align: center !important;
+    padding-left: 0 !important;         /* 왼쪽 여백 제거 */
+}
+
+/* 3. 제목 텍스트도 가운데 정렬 */
+.post-title a {
+    text-align: center !important;
+    display: block;
+}
+/* 카테고리 필터 영역 */
+.category-filter-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* 화면 작으면 줄바꿈 */
+}
+
+/* 태그 버튼 기본 스타일 */
+.category-tag {
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #6c757d;
+    background: white;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.category-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    color: #495057;
+}
+
+/* 선택되었거나 활성화된 태그 스타일 (각각 색상 다르게) */
+.category-tag.selected {
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* 1. 전체 (기본) */
+.category-tag.all.selected {
+    background: #495057;
+}
+
+/* 2. 날씨 (파랑) */
+.category-tag.weather:hover { color: #1976d2; border-color: #1976d2; }
+.category-tag.weather.selected {
+    background: #1976d2;
+}
+
+/* 3. 미세먼지 (분홍/빨강) */
+.category-tag.dust:hover { color: #c2185b; border-color: #c2185b; }
+.category-tag.dust.selected {
+    background: #c2185b;
+}
+
+/* 4. 옷차림 (보라) */
+.category-tag.outfit:hover { color: #7b1fa2; border-color: #7b1fa2; }
+.category-tag.outfit.selected {
+    background: #7b1fa2;
+}
+
+/* 5. 자유주제 (회색) */
+.category-tag.general:hover { color: #616161; border-color: #616161; }
+.category-tag.general.selected {
+    background: #616161;
+}
+
+/* 다크모드 대응 */
+body.dark-mode .category-tag {
+    background: #2d2d2d;
+    border-color: #444;
+    color: #ccc;
+}
+
+body.dark-mode .category-tag.selected {
+    color: white;
+}
+/* 1. 공지사항 줄 배경색 (아주 연한 회색/붉은기) */
+.post-item.notice-item {
+    background-color: #fff5f5; /* 살짝 붉은 틴트가 들어간 배경 */
+    border-bottom: 1px solid #ffcdd2; /* 테두리도 약간 붉게 */
+}
+
+/* 2. '공지' 배지 스타일 */
+.notice-badge {
+    background-color: #e74c3c; /* 빨간색 배경 */
+    color: white;              /* 흰색 글씨 */
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* 3. 다크모드 대응 (필요 시) */
+body.dark-mode .post-item.notice-item {
+    background-color: #3e2723; /* 어두운 붉은 계열 */
+    border-bottom: 1px solid #5d4037;
+}
+/* community.css 맨 아래에 추가 */
+
+/* 1. 공지사항 배경색 (연한 붉은빛/회색) */
+.post-item.notice-item {
+    background-color: #fff5f5;
+    border-bottom: 1px solid #ffcdd2;
+}
+
+/* 2. '공지' 빨간 배지 스타일 */
+.notice-badge {
+    background-color: #e74c3c; /* 빨간색 */
+    color: white;              /* 흰색 글씨 */
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* 3. 공지사항 제목 강조 */
+.post-item.notice-item .post-title a {
+    font-weight: bold;
+    color: #c0392b; /* 진한 빨간색 텍스트 */
+}
+
+/* 다크모드 대응 */
+body.dark-mode .post-item.notice-item {
+    background-color: #3e2723;
+    border-bottom: 1px solid #5d4037;
+}
+
+body.dark-mode .post-item.notice-item .post-title a {
+    color: #ff8a80;
 }

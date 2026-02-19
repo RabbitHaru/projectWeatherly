@@ -47,4 +47,6 @@ public interface BoardService {
     Page<BoardResponse> getMyBoards(Long memberId, Pageable pageable);
     // ★ [추가] 주간 인기글 가져오기
     List<BoardResponse> getWeeklyPopularBoards(int limit);
+
+    List<BoardResponse> getNotices();
 }

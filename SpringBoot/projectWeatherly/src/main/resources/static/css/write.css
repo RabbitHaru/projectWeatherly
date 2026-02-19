@@ -45,6 +45,11 @@
 
 /* 카테고리 태그 (선택된 상태 - 원래 색상) */
 .category-tag.selected { color: white; border: none; }
+.category-tag.notice.selected {
+    background: #ff5252;
+    color: white;
+    border: none;
+}
 .category-tag.weather.selected { background: #1976d2; }
 .category-tag.dust.selected { background: #c2185b; }
 .category-tag.outfit.selected { background: #7b1fa2; }
@@ -117,6 +122,10 @@ body.dark-mode .category-tag.weather.selected { background: #1976d2 !important; 
 body.dark-mode .category-tag.dust.selected { background: #c2185b !important; }
 body.dark-mode .category-tag.outfit.selected { background: #7b1fa2 !important; }
 body.dark-mode .category-tag.general.selected { background: #616161 !important; }
+/* [추가] 다크모드일 때 공지사항 버튼 색상 */
+body.dark-mode .category-tag.notice.selected {
+    background: #ff5252 !important;
+}
 
 /* 파일 업로드 영역 */
 body.dark-mode .file-upload {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>글쓰기 - Weatherly</title>
@@ -32,10 +33,23 @@
         <div class="form-group mb-4">
             <label class="form-label"><i class="fas fa-tag"></i> 카테고리</label>
             <div class="category-tags">
-                <button type="button" class="category-tag weather selected" data-category="weather"><i class="fas fa-cloud-sun"></i> 날씨</button>
-                <button type="button" class="category-tag dust" data-category="dust"><i class="fas fa-wind"></i> 미세먼지</button>
-                <button type="button" class="category-tag outfit" data-category="outfit"><i class="fas fa-tshirt"></i> 옷차림</button>
-                <button type="button" class="category-tag general" data-category="general"><i class="fas fa-comments"></i> 자유주제</button>
+                <button type="button" class="category-tag notice" data-category="notice"
+                        th:if="${isAdmin}">
+                    <i class="fas fa-bullhorn"></i> 공지사항
+                </button>
+
+                <button type="button" class="category-tag weather selected" data-category="weather">
+                    <i class="fas fa-cloud-sun"></i> 날씨
+                </button>
+                <button type="button" class="category-tag dust" data-category="dust">
+                    <i class="fas fa-wind"></i> 미세먼지
+                </button>
+                <button type="button" class="category-tag outfit" data-category="outfit">
+                    <i class="fas fa-tshirt"></i> 옷차림
+                </button>
+                <button type="button" class="category-tag general" data-category="general">
+                    <i class="fas fa-comments"></i> 자유주제
+                </button>
             </div>
             <input type="hidden" id="category" name="category" value="weather">
         </div>

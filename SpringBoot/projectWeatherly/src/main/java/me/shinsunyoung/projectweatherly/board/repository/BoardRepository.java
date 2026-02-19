@@ -100,4 +100,6 @@ public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecific
 
     // [관리자용] 특정 날짜(오늘 0시) 이후에 작성된 게시글 개수 조회
     long countByCreatedAtAfter(LocalDateTime date);
+    // [추가] 공지사항 상위 3개 조회 (카테고리가 'notice'이고 상태가 ACTIVE인 것)
+    List<Board> findTop3ByCategoryAndBoardStatusOrderByCreatedAtDesc(String category, BoardStatus status);
 }

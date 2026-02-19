@@ -258,6 +258,15 @@ body.dark-mode .form-group input:focus {
     font-size: 0.9rem;
     min-height: 20px;
 }
+/* 경고(노랑) 메시지 스타일 추가 */
+.validation-message.warning {
+    color: #f39c12; /* 가독성 좋은 진한 노랑(오렌지) */
+    /* 만약 쨍한 노랑을 원하시면 color: #ffd700; 을 사용하세요 */
+}
+/* 다크 모드일 때 조금 더 밝은 노랑으로 보이게 설정 */
+body.dark-mode .validation-message.warning {
+    color: #f1c40f;
+}
 
 .validation-message.success {
     color: var(--success-color);
