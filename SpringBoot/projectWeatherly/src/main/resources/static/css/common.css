@@ -910,3 +910,38 @@ body.dark-mode .footer-bottom {
     from { transform: translateY(100%); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+/* ==========================================================================
+   [NEW] Notice Board Styles (공지사항 태그 추가)
+   ========================================================================== */
+
+/* 공지사항 전용 행 스타일 (배경색 강조) */
+.notice-item {
+    background-color: #fff9f9;
+    border-left: 3px solid #ff6b6b; /* 왼쪽 빨간 줄 포인트 */
+}
+
+/* '공지' 태그(뱃지) 디자인 */
+.notice-badge {
+    background-color: #ff6b6b; /* 산뜻한 빨간색 */
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;       /* 둥근 캡슐 모양 */
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(255, 107, 107, 0.2);
+}
+
+/* 필터 영역의 공지사항 태그 아이콘 및 선택 상태 */
+.category-tag.notice i {
+    color: #ff6b6b;
+}
+.category-tag.notice.selected {
+    background-color: #ff6b6b;
+    color: white;
+    border-color: #ff6b6b;
+}
+.category-tag.notice.selected i {
+    color: white;
+}

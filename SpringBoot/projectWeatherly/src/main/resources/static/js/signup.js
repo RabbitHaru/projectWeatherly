@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
             message = '비밀번호 보안 수준: 보통';
             passwordMessage.className = 'validation-message info';
         } else {
-            message = '안전한 비밀번호입니다.';
+            message = '비밀번호 보안 수준: 강력';
             passwordMessage.className = 'validation-message success';
         }
 

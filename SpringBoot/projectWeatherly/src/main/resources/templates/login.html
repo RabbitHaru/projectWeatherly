@@ -28,7 +28,7 @@
                 <div class="form-group">
                     <label for="user_id">아이디</label>
                     <div class="input-with-validation">
-                        <input type="text" id="user_id" name="username" placeholder="아이디 또는 이메일" required>
+                        <input type="text" id="user_id" name="username" placeholder="이메일" required>
                     </div>
                     <div class="validation-message" id="idMessage"></div>
                 </div>
@@ -41,7 +41,7 @@
 
                 <div id="loginErrorMsg" class="error-box" th:classappend="${param.error} ? 'show' : ''">
                     <i class="fas fa-times-circle"></i>
-                    <span>아이디 또는 비밀번호가 일치하지 않습니다.</span>
+                    <span>이메일 또는 비밀번호가 일치하지 않습니다.</span>
                 </div>
             </div>
 
@@ -57,7 +57,7 @@
                     <span>자동 로그인</span>
                 </label>
                 <div class="find-links">
-                    <a href="/auth/find-account">아이디/비밀번호 찾기</a>
+                    <a href="/auth/find-account">이메일/비밀번호 찾기</a>
                 </div>
             </div>
 

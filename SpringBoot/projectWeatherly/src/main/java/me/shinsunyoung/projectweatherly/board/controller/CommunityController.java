@@ -1,6 +1,5 @@
 package me.shinsunyoung.projectweatherly.board.controller;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -58,18 +57,26 @@ public class CommunityController {
                 if (user.getUser().getId() != null) model.addAttribute("memberId", user.getUser().getId());
             }
 
+            // =========================================================================
+            // [수정] 게시글 목록 조회 로직 변경 (공지사항 중복 방지 적용)
+            // =========================================================================
             Page<BoardResponse> boardPage;
 
-            if (keyword != null && !keyword.trim().isEmpty()) {
-                boardPage = boardService.searchBoards(keyword, pageable);
-            } else {
+            // 1. 검색어가 있거나, 정렬이 기본(latest)인 경우 -> getBoardList 사용 (공지사항 제외 로직 포함됨)
+            if ((keyword != null && !keyword.trim().isEmpty()) || (sort == null || "latest".equals(sort))) {
+                boardPage = boardService.getBoardList(category, keyword, pageable);
+            }
+            // 2. 인기순/최신순 등 특수 정렬인 경우 -> 기존 메서드 사용 (필요시 여기도 서비스 수정 가능)
+            else {
                 switch (sort) {
                     case "popular": boardPage = boardService.getPopularBoards(pageable); break;
                     case "recent": boardPage = boardService.getRecentBoards(pageable); break;
-                    case "latest": default: boardPage = boardService.getAllBoards(pageable); break;
+                    default: boardPage = boardService.getBoardList(category, keyword, pageable); break;
                 }
             }
+            // =========================================================================
 
+            // 인기 게시글 (우측 사이드바용 등)
             List<BoardResponse> popularBoards = new ArrayList<>();
             try {
                 Page<BoardResponse> popularPage = boardService.getPopularBoards(
@@ -79,7 +86,8 @@ public class CommunityController {
             } catch (Exception e) {
                 log.warn("인기 게시글 조회 실패: {}", e.getMessage());
             }
-            // [추가] 공지사항 리스트 가져오기
+
+            // [유지] 상단 고정 공지사항 리스트 가져오기
             List<BoardResponse> notices = boardService.getNotices();
             model.addAttribute("notices", notices);
 
@@ -157,21 +165,16 @@ public class CommunityController {
         }
     }
 
-    /**
-     * 게시글 상세 보기 (수정됨: 작성자 본인 제외 로직 + 중복 방지)
-     */
     @GetMapping("/boards/{id}")
     public String getBoard(@PathVariable Long id, Model model,
                            @AuthenticationPrincipal UserSecurityDTO user,
                            HttpServletRequest request,
-                           HttpServletResponse response) { // response는 안쓰지만 유지
+                           HttpServletResponse response) {
         try {
             if (id == null || id <= 0) return "redirect:/community?error=invalid_id";
 
-            // 1. 게시글 데이터 가져오기 (조회수 증가 X, 순수 데이터)
             BoardResponse board = boardService.getBoard(id);
 
-            // 2. 로그인 유저 정보 및 작성자 여부 확인 (화면 표시용)
             boolean isAuthor = false;
             if (user != null && user.getUser() != null) {
                 model.addAttribute("nickname", user.getUser().getNickname());
@@ -183,23 +186,17 @@ public class CommunityController {
                 try {
                     board.setLiked(boardService.isLiked(id, user.getUser().getId()));
                 } catch (Exception e) {
-                    // 좋아요 확인 실패 시 무시
                 }
             } else {
                 board.setIsAuthor(false);
             }
 
-            // 3. 이미지 URL 처리
             if (board.getImageUrls() != null && board.getImages() == null) {
                 board.setImages(board.getImageUrls());
             }
 
-            // ============================================================
-            // 4. [수정됨] 조회수 무조건 증가 로직 (쿠키 X, 작성자 체크 X)
-            // ============================================================
-            boardService.increaseViewCount(id); // DB 조회수 +1
-            board.setViewCount(board.getViewCount() + 1); // 화면 표시용 조회수 +1
-            // ============================================================
+            boardService.increaseViewCount(id);
+            board.setViewCount(board.getViewCount() + 1);
 
             model.addAttribute("board", board);
 
@@ -313,7 +310,8 @@ public class CommunityController {
             model.addAttribute("nickname", user.getUser().getNickname());
         }
 
-        model.addAttribute("boards", boardService.getBoardsByCategory(category, pageable));
+        // [수정] 카테고리별 조회도 통합 로직 사용 (일관성 유지)
+        model.addAttribute("boards", boardService.getBoardList(category, null, pageable));
         model.addAttribute("category", category);
         model.addAttribute("requestURI", request.getRequestURI());
         return "community";

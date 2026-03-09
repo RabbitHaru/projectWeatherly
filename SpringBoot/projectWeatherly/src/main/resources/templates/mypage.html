@@ -7,56 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마이페이지 - Weatherly</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/mypage.css}">
     <link rel="stylesheet" th:href="@{/css/common.css}">
-    <style>
-        /* 신고 내역 테이블 스타일 */
-        .report-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        .report-table th, .report-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-            font-size: 0.9rem;
-        }
-        .report-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #495057;
-        }
-        /* 상태 뱃지 스타일 */
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        .status-pending { background-color: #fff3cd; color: #856404; }
-        .status-completed { background-color: #d4edda; color: #155724; }
-        .status-rejected { background-color: #f8d7da; color: #721c24; }
-
-        /* 프로필 이미지 스타일 개선 */
-        .profile-img-wrapper img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #f1f3f5;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        #previewImage {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            opacity: 0.8;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/mypage.css}">
 </head>
 <body>
 <header th:replace="~{layout/header :: header}"></header>
@@ -149,12 +101,12 @@
                                     <span th:text="${post.title}">게시글 제목</span>
                                 </a>
                                 <div style="font-size: 0.85rem; color: #868e96; margin-top: 5px;">
-                                    <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}">2026-01-01</span> ·
+                                    <span th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd') : '-'}">2026-01-01</span> ·
                                     조회 <span th:text="${post.viewCount}">0</span> ·
                                     좋아요 <span th:text="${post.likeCount}">0</span>
                                 </div>
                             </div>
-                            <form th:action="@{/mypage/posts/{id}/delete(id=${post.postId})}" method="post" onsubmit="return ;">
+                            <form th:action="@{/mypage/posts/{id}/delete(id=${post.postId})}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
                                 <button type="submit" style="background: none; border: none; color: #fa5252; cursor: pointer; font-size: 0.9rem;">
                                     <i class="fas fa-trash-alt"></i> 삭제
                                 </button>
@@ -171,8 +123,8 @@
                             </li>
 
                             <th:block th:with="currentPage=${myPage.myCommunityPosts.number + 1},
-                          startPage=${T(java.lang.Math).max(1, currentPage - 4)},
-                          endPage=${T(java.lang.Math).min(totalPosts, startPage + 9)}">
+                                             startPage=${(currentPage - 1) - (currentPage - 1) % 5 + 1},
+                                             endPage=${T(java.lang.Math).min(totalPosts, startPage + 4)}">
                                 <li th:each="i : ${#numbers.sequence(startPage, endPage)}"
                                     class="page-item page-number"
                                     th:classappend="${i == currentPage} ? 'active' : ''">
@@ -188,51 +140,54 @@
                         </ul>
                     </div>
 
-                </div> </div>   <div id="tab-password" class="tab-content">
-            <div class="section-card">
-                <div class="section-title"><i class="fas fa-lock"></i> 비밀번호 변경</div>
-                <form th:action="@{/mypage/password/change}" method="post" th:object="${passwordRequest}">
-                    <div class="form-group">
-                        <label class="form-label">현재 비밀번호</label>
-                        <input type="password"
-                               th:field="*{currentPassword}"
-                               name="currentPassword"
-                               id="currentPassword"
-                               class="form-input"
-                               placeholder="현재 비밀번호를 입력하세요"
-                               required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">새 비밀번호</label>
-                        <input type="password"
-                               th:field="*{newPassword}"
-                               name="newPassword"
-                               id="newPassword"
-                               class="form-input"
-                               placeholder="최소 8자리 (영문, 숫자, 특수문자 권장)"
-                               required>
-                        <div class="form-hint" style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
-                            * 현재 비밀번호와 다르게 입력해주세요
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">새 비밀번호 확인</label>
-                        <input type="password"
-                               th:field="*{confirmPassword}"
-                               name="confirmPassword"
-                               id="confirmPassword"
-                               class="form-input"
-                               placeholder="새 비밀번호를 다시 입력하세요"
-                               required>
-                    </div>
-                    <div id="passwordValidationMsg" style="margin: 10px 0; font-size: 0.9rem; display: none;"></div>
-                    <button type="submit" class="btn"
-                            style="background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
-                        비밀번호 변경
-                    </button>
-                </form>
+                </div>
             </div>
-        </div>
+
+            <div id="tab-password" class="tab-content">
+                <div class="section-card">
+                    <div class="section-title"><i class="fas fa-lock"></i> 비밀번호 변경</div>
+                    <form th:action="@{/mypage/password/change}" method="post" th:object="${passwordRequest}">
+                        <div class="form-group">
+                            <label class="form-label">현재 비밀번호</label>
+                            <input type="password"
+                                   th:field="*{currentPassword}"
+                                   name="currentPassword"
+                                   id="currentPassword"
+                                   class="form-input"
+                                   placeholder="현재 비밀번호를 입력하세요"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">새 비밀번호</label>
+                            <input type="password"
+                                   th:field="*{newPassword}"
+                                   name="newPassword"
+                                   id="newPassword"
+                                   class="form-input"
+                                   placeholder="최소 8자리 (영문, 숫자, 특수문자 권장)"
+                                   required>
+                            <div class="form-hint" style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                                * 현재 비밀번호와 다르게 입력해주세요
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">새 비밀번호 확인</label>
+                            <input type="password"
+                                   th:field="*{confirmPassword}"
+                                   name="confirmPassword"
+                                   id="confirmPassword"
+                                   class="form-input"
+                                   placeholder="새 비밀번호를 다시 입력하세요"
+                                   required>
+                        </div>
+                        <div id="passwordValidationMsg" style="margin: 10px 0; font-size: 0.9rem; display: none;"></div>
+                        <button type="submit" class="btn"
+                                style="background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
+                            비밀번호 변경
+                        </button>
+                    </form>
+                </div>
+            </div>
 
             <div id="tab-notification" class="tab-content">
                 <div class="section-card">
@@ -274,7 +229,7 @@
                             </thead>
                             <tbody>
                             <tr th:each="report : ${myPage.myReports}">
-                                <td th:text="${report.createdAt}">2026-01-20</td>
+                                <td th:text="${report.createdAt != null and report.createdAt.length() > 10 ? #strings.substring(report.createdAt, 0, 10) : report.createdAt}">2026-01-20</td>
                                 <td th:text="${report.type}">게시글</td>
                                 <td th:text="${report.targetContent}">신고 내용...</td>
                                 <td th:text="${report.reason}">스팸</td>
@@ -287,27 +242,42 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <div th:if="${totalReports > 1}" class="pagination-container" style="margin-top: 20px;">
+                        <ul class="pagination">
+                            <li class="page-item page-prev" th:classappend="${myPage.myReports.first} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{'/mypage'(page=${myPage.myReports.number}, tab='reports')}">
+                                    <i class="fas fa-chevron-left"></i> 이전
+                                </a>
+                            </li>
+
+                            <th:block th:with="currentReportPage=${myPage.myReports.number + 1},
+                                             startPage=${(currentReportPage - 1) - (currentReportPage - 1) % 5 + 1},
+                                             endPage=${T(java.lang.Math).min(totalReports, startPage + 4)}">
+                                <li th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                                    class="page-item page-number"
+                                    th:classappend="${i == currentReportPage} ? 'active' : ''">
+                                    <a class="page-link" th:href="@{'/mypage'(page=${i}, tab='reports')}" th:text="${i}"></a>
+                                </li>
+                            </th:block>
+
+                            <li class="page-item page-next" th:classappend="${myPage.myReports.last} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{'/mypage'(page=${myPage.myReports.number + 2}, tab='reports')}">
+                                    다음 <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
-        </div> </div>
+        </div>
+    </div>
 
     <div th:replace="layout/footer :: footer(footerInfo='기상청 API를 활용한 실시간 날씨 정보 서비스')"></div>
 
     <script th:src="@{/js/common.js}"></script>
     <script th:src="@{/js/mypage.js}"></script>
-
-    <script>
-        // 프로필 이미지 에러 처리
-        document.addEventListener("DOMContentLoaded", function() {
-            const profileImages = document.querySelectorAll('.profile-img-wrapper img, #previewImage');
-            profileImages.forEach(img => {
-                img.addEventListener('error', function() {
-                    this.src = '/uploads/default.png';
-                    this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                });
-            });
-        });
-    </script>
+</main>
 </body>
 </html>
