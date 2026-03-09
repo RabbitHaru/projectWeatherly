@@ -23,6 +23,8 @@ public class AirQualityResponseDTO {
     private String overallStatus;
     private String healthAdvice;
 
+    private boolean isMock;
+
     @Getter
     @Builder
     public static class AirQualityIndex {

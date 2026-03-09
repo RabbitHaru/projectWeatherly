@@ -181,8 +181,10 @@
 
 .forecast-tabs {
     display: flex;
-    gap: 8px; /* 버튼 사이 간격 살짝 */
-    margin-bottom: 4px; /* ⭐ 컨텐츠와 초밀착 */
+    gap: 8px;
+    /* 버튼 사이 간격 살짝 */
+    margin-bottom: 4px;
+    /* ⭐ 컨텐츠와 초밀착 */
     width: 100%;
 }
 
@@ -195,8 +197,10 @@
 }
 
 .tab-btn {
-    flex: 1; /* 균등 분할 */
-    background: rgba(255, 255, 255, 0.5); /* 비활성: 반투명 흰색 (깔끔함) */
+    flex: 1;
+    /* 균등 분할 */
+    background: rgba(255, 255, 255, 0.5);
+    /* 비활성: 반투명 흰색 (깔끔함) */
     border: none;
     font-size: 1.0rem;
     font-weight: 600;
@@ -214,7 +218,8 @@
 
 /* 다크모드 비활성 버튼 */
 body.dark-mode .tab-btn {
-    background: rgba(255, 255, 255, 0.05); /* 어두운 반투명 */
+    background: rgba(255, 255, 255, 0.05);
+    /* 어두운 반투명 */
     color: #aaa;
 }
 
@@ -227,7 +232,8 @@ body.dark-mode .tab-btn {
     background: linear-gradient(135deg, var(--primary-color, #3498db), #2980b9);
     color: white;
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); /* 빛나는 느낌 */
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    /* 빛나는 느낌 */
     transform: translateY(-2px);
 }
 
@@ -235,7 +241,8 @@ body.dark-mode .tab-btn {
 body.dark-mode .tab-btn.active {
     background: linear-gradient(135deg, #3498db, #2c3e50);
     color: white;
-    box-shadow: 0 0 12px rgba(52, 152, 219, 0.4); /* 네온 효과 */
+    box-shadow: 0 0 12px rgba(52, 152, 219, 0.4);
+    /* 네온 효과 */
 }
 
 .tab-btn:hover:not(.active) {
@@ -263,6 +270,7 @@ body.dark-mode .tab-btn:hover:not(.active) {
         opacity: 0;
         transform: translateY(3px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -327,7 +335,8 @@ body.dark-mode .card-header h4 {
 .aqi-forecast-items .aqi-forecast-card {
     flex: 1;
     min-width: 0;
-    width: 50%; /* 정확히 반반 */
+    width: 50%;
+    /* 정확히 반반 */
 }
 
 /* 일반 예보 아이템 리스트 */
@@ -799,17 +808,124 @@ body.dark-mode .map-region:hover .region-path {
 .customoverlay:after {
     content: '';
     position: absolute;
-    margin-left: -4px;
+    margin-left: -12px;
     left: 50%;
-    bottom: -4px;
-    width: 8px;
-    height: 8px;
-    background: #fff;
-    transform: rotate(45deg);
-    border-bottom: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-    z-index: -1;
+    bottom: -12px;
+    width: 22px;
+    height: 12px;
+    background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white.png');
 }
+
+/* 10. Hourly Date Marker (Moved from JS) */
+.hourly-date-marker {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 60px;
+    margin: 0 8px;
+    padding: 0 10px;
+    background: rgba(128, 128, 128, 0.1);
+    border-radius: 12px;
+    font-weight: bold;
+    color: #333;
+    font-size: 0.9rem;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+}
+
+body.dark-mode .hourly-date-marker {
+    background: rgba(255, 255, 255, 0.1);
+    color: #eee;
+}
+
+.hourly-date-marker .marker-day {
+    font-size: 1.1em;
+    margin-bottom: 2px;
+    color: var(--primary-color, #3498db);
+}
+
+.hourly-date-marker .marker-date {
+    font-size: 0.75em;
+    opacity: 0.7;
+}
+
+/* 11. Community Refactored Classes */
+.community-posts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.community-empty {
+    text-align: center;
+    color: #888;
+    padding: 30px;
+    grid-column: span 2;
+}
+
+.community-post-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    height: 100%;
+}
+
+.community-post-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.community-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.badge-weather {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-dust {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.badge-outfit {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.badge-general {
+    background: #f5f5f5;
+    color: #616161;
+}
+
+.community-view-count {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.community-post-title {
+    margin: 5px 0;
+    font-size: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.community-author {
+    font-size: 0.8rem;
+    color: #666;
+}
+
 
 body.dark-mode .customoverlay {
     background: rgba(44, 62, 80, 0.95);
@@ -964,6 +1080,7 @@ body.dark-mode .hourly-date-marker .marker-day {
     font-size: 0.75em;
     opacity: 0.7;
 }
+
 /* =========================================
    [커뮤니티 인기글 섹션 스타일링]
    HTML의 style 속성을 제거하고 CSS로 통합
@@ -973,17 +1090,18 @@ body.dark-mode .hourly-date-marker .marker-day {
 .post-card {
     display: block;
     text-decoration: none;
-    background-color: white; /* 기본 흰색 */
+    background-color: white;
+    /* 기본 흰색 */
     padding: 15px 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
 }
 
 .post-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .empty-post-card {
@@ -1006,7 +1124,10 @@ body.dark-mode .hourly-date-marker .marker-day {
     font-size: 0.85rem;
     color: #888;
 }
-.post-meta-info span { margin-left: 5px; }
+
+.post-meta-info span {
+    margin-left: 5px;
+}
 
 .post-title {
     margin: 0 0 5px 0;
@@ -1024,11 +1145,32 @@ body.dark-mode .hourly-date-marker .marker-day {
 }
 
 /* 뱃지 스타일 */
-.badge { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
-.badge-weather { background: #e3f2fd; color: #1976d2; }
-.badge-dust { background: #fce4ec; color: #c2185b; }
-.badge-outfit { background: #f3e5f5; color: #7b1fa2; }
-.badge-general { background: #f8f9fa; color: #495057; }
+.badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.badge-weather {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-dust {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.badge-outfit {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.badge-general {
+    background: #f8f9fa;
+    color: #495057;
+}
 
 
 /* =========================================
@@ -1037,9 +1179,10 @@ body.dark-mode .hourly-date-marker .marker-day {
 
 body.dark-mode .post-card,
 body.dark-mode .empty-post-card {
-    background-color: #2d3748 !important; /* 카드 배경 어둡게 */
+    background-color: #2d3748 !important;
+    /* 카드 배경 어둡게 */
     border: 1px solid #4a5568 !important;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important;
 }
 
 body.dark-mode .post-card:hover {
@@ -1047,16 +1190,18 @@ body.dark-mode .post-card:hover {
 }
 
 body.dark-mode .post-title {
-    color: #ffffff !important; /* 제목 흰색 */
+    color: #ffffff !important;
+    /* 제목 흰색 */
 }
 
 body.dark-mode .post-meta-info,
 body.dark-mode .post-author {
-    color: #a0aec0 !important; /* 부가정보 회색 */
+    color: #a0aec0 !important;
+    /* 부가정보 회색 */
 }
 
 /* 뱃지는 다크모드에서도 잘 보이도록 약간 투명도 조절 */
 body.dark-mode .badge {
     opacity: 0.9;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }

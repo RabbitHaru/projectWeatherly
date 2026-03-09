@@ -51,12 +51,17 @@ public class AirQualityApiService {
                     .build(true).toUri();
 
             log.info("API 호출: {} (요청 수: {})", sidoName, numOfRows);
-            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            ResponseEntity<byte[]> responseBytes = restTemplate.getForEntity(uri, byte[].class);
+            String responseBody = responseBytes.getBody() != null
+                    ? new String(responseBytes.getBody(), java.nio.charset.StandardCharsets.UTF_8)
+                    : null;
 
-            if (isErrorResponse(response.getBody())) return getMockDataList(sidoName);
+            if (isErrorResponse(responseBody))
+                return getMockDataList(sidoName);
 
-            List<AirQualityResponseDTO> list = parseAirQualityResponse(response.getBody(), sidoName);
-            if (list == null || list.isEmpty()) return getMockDataList(sidoName);
+            List<AirQualityResponseDTO> list = parseAirQualityResponse(responseBody, sidoName);
+            if (list == null || list.isEmpty())
+                return getMockDataList(sidoName);
             return list;
 
         } catch (Exception e) {
@@ -72,13 +77,18 @@ public class AirQualityApiService {
             String encodedStationName = URLEncoder.encode(stationName, StandardCharsets.UTF_8);
             URI uri = UriComponentsBuilder.fromHttpUrl(airKoreaApiUrl + "/getMsrstnAcctoRltmMesureDnsty")
                     .queryParam("serviceKey", apiKey).queryParam("returnType", "json").queryParam("numOfRows", 1)
-                    .queryParam("pageNo", 1).queryParam("stationName", encodedStationName).queryParam("dataTerm", "DAILY")
+                    .queryParam("pageNo", 1).queryParam("stationName", encodedStationName)
+                    .queryParam("dataTerm", "DAILY")
                     .queryParam("ver", "1.3").build(true).toUri();
 
-            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
-            if (isErrorResponse(response.getBody())) return getSingleMockData(stationName);
+            ResponseEntity<byte[]> responseBytes = restTemplate.getForEntity(uri, byte[].class);
+            String responseBody = responseBytes.getBody() != null
+                    ? new String(responseBytes.getBody(), java.nio.charset.StandardCharsets.UTF_8)
+                    : null;
+            if (isErrorResponse(responseBody))
+                return getSingleMockData(stationName);
 
-            AirQualityResponseDTO dto = parseStationAirQualityResponse(response.getBody(), stationName);
+            AirQualityResponseDTO dto = parseStationAirQualityResponse(responseBody, stationName);
             return (dto != null) ? dto : getSingleMockData(stationName);
         } catch (Exception e) {
             return getSingleMockData(stationName);
@@ -93,10 +103,14 @@ public class AirQualityApiService {
                     .queryParam("serviceKey", apiKey).queryParam("returnType", "json")
                     .queryParam("searchDate", today).queryParam("informCode", "PM10").build(true).toUri();
 
-            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
-            if (isErrorResponse(response.getBody())) return getMockForecasts();
+            ResponseEntity<byte[]> responseBytes = restTemplate.getForEntity(uri, byte[].class);
+            String responseBody = responseBytes.getBody() != null
+                    ? new String(responseBytes.getBody(), java.nio.charset.StandardCharsets.UTF_8)
+                    : null;
+            if (isErrorResponse(responseBody))
+                return getMockForecasts();
 
-            List<AirQualityResponseDTO.AirQualityForecast> list = parseForecastResponse(response.getBody());
+            List<AirQualityResponseDTO.AirQualityForecast> list = parseForecastResponse(responseBody);
             return (list != null && !list.isEmpty()) ? list : getMockForecasts();
         } catch (Exception e) {
             log.error("예보 API 실패", e);
@@ -106,11 +120,13 @@ public class AirQualityApiService {
 
     // 헬퍼들
     private boolean isErrorResponse(String body) {
-        if (body == null) return true;
+        if (body == null)
+            return true;
         return body.contains("quota exceeded") || body.contains("SERVICE ERROR") || body.trim().startsWith("<");
     }
 
-    private List<AirQualityResponseDTO> parseAirQualityResponse(String jsonResponse, String requestSidoName) throws Exception {
+    private List<AirQualityResponseDTO> parseAirQualityResponse(String jsonResponse, String requestSidoName)
+            throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items");
         List<AirQualityResponseDTO> result = new ArrayList<>();
@@ -118,7 +134,8 @@ public class AirQualityApiService {
             for (JsonNode item : items) {
                 try {
                     AirQualityResponseDTO dto = parseAirQualityItem(item, requestSidoName);
-                    if (dto != null) result.add(dto);
+                    if (dto != null)
+                        result.add(dto);
                 } catch (Exception e) {
                 }
             }
@@ -126,10 +143,12 @@ public class AirQualityApiService {
         return result;
     }
 
-    private AirQualityResponseDTO parseStationAirQualityResponse(String jsonResponse, String stationName) throws Exception {
+    private AirQualityResponseDTO parseStationAirQualityResponse(String jsonResponse, String stationName)
+            throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("response").path("body").path("items");
-        if (items.isArray() && items.size() > 0) return parseAirQualityItem(items.get(0), "대한민국");
+        if (items.isArray() && items.size() > 0)
+            return parseAirQualityItem(items.get(0), "대한민국");
         return null;
     }
 
@@ -163,8 +182,10 @@ public class AirQualityApiService {
             String rawSidoName = (itemSidoName != null && !itemSidoName.isEmpty()) ? itemSidoName : defaultSidoName;
             String finalSidoName = (rawSidoName.length() >= 2) ? rawSidoName.substring(0, 2) : rawSidoName;
 
-            if (rawSidoName.contains("서울")) finalSidoName = "서울";
-            if (rawSidoName.contains("세종")) finalSidoName = "세종";
+            if (rawSidoName.contains("서울"))
+                finalSidoName = "서울";
+            if (rawSidoName.contains("세종"))
+                finalSidoName = "세종";
 
             String stationName = item.path("stationName").asText("알 수 없음");
             String dataTimeStr = item.path("dataTime").asText(null);
@@ -172,7 +193,8 @@ public class AirQualityApiService {
             LocalDateTime dataTime = LocalDateTime.now();
             if (dataTimeStr != null) {
                 try {
-                    dataTime = LocalDateTime.parse(dataTimeStr.replace(" ", "T"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    dataTime = LocalDateTime.parse(dataTimeStr.replace(" ", "T"),
+                            DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 } catch (Exception e) {
                     log.warn("날짜 파싱 실패, 현재 시간 사용: {}", dataTimeStr);
                 }
@@ -180,9 +202,9 @@ public class AirQualityApiService {
 
             // 2. 수치 파싱 보강 (API 결측치인 "-" 또는 "0"일 때 보통 수준의 기본값 부여)
             // 서울 데이터가 0으로 뜨는 현상을 방지하기 위해 최소한의 기본값을 설정합니다.
-            Integer pm10Value = parseIntegerSafe(item.path("pm10Value").asText(), 30);  // 기본값: 보통(30)
-            Integer pm25Value = parseIntegerSafe(item.path("pm25Value").asText(), 15);  // 기본값: 보통(15)
-            Integer khaiValue = parseIntegerSafe(item.path("khaiValue").asText(), 60);  // 기본값: 보통(60)
+            Integer pm10Value = parseIntegerSafe(item.path("pm10Value").asText(), 30); // 기본값: 보통(30)
+            Integer pm25Value = parseIntegerSafe(item.path("pm25Value").asText(), 15); // 기본값: 보통(15)
+            Integer khaiValue = parseIntegerSafe(item.path("khaiValue").asText(), 60); // 기본값: 보통(60)
 
             // 3. 각 항목별 등급 유효성 체크 (값이 없으면 "2"(보통)로 강제 설정)
             String pm10Grade = getValidGrade(item.path("pm10Grade").asText());
@@ -213,7 +235,7 @@ public class AirQualityApiService {
         }
     }
 
-// ⭐ [중요] 아래 헬퍼 메서드 2개도 같이 클래스 안에 추가하거나 수정해줘!
+    // ⭐ [중요] 아래 헬퍼 메서드 2개도 같이 클래스 안에 추가하거나 수정해줘!
 
     // 1. 숫자가 없거나 "-"일 때 기본값을 반환하는 안전 파싱
     private Integer parseIntegerSafe(String val, int defaultVal) {
@@ -254,14 +276,17 @@ public class AirQualityApiService {
         String grade = String.valueOf(random.nextInt(4) + 1);
         return AirQualityResponseDTO.builder().sidoName(sidoName).stationName(stationName).dataTime(LocalDateTime.now())
                 .pm10(createIndex(50, grade, "㎍/㎥")).pm25(createIndex(20, grade, "㎍/㎥"))
-                .overallGrade(grade).overallStatus(convertGradeToStatus(grade)).healthAdvice("📢 [테스트 모드]").build();
+                .overallGrade(grade).overallStatus(convertGradeToStatus(grade)).healthAdvice("📢 [테스트 모드]")
+                .isMock(true)
+                .build();
     }
 
     private List<AirQualityResponseDTO.AirQualityForecast> getMockForecasts() {
         List<AirQualityResponseDTO.AirQualityForecast> list = new ArrayList<>();
         LocalDate today = LocalDate.now();
         for (int i = 0; i < 2; i++) {
-            list.add(AirQualityResponseDTO.AirQualityForecast.builder().date(today.plusDays(i).toString()).overallGrade("2").advice("📢 [가상 예보]").cause("API 상태 확인 필요").build());
+            list.add(AirQualityResponseDTO.AirQualityForecast.builder().date(today.plusDays(i).toString())
+                    .overallGrade("2").advice("📢 [가상 예보]").cause("API 상태 확인 필요").build());
         }
         return list;
     }
@@ -275,14 +300,19 @@ public class AirQualityApiService {
     }
 
     private AirQualityResponseDTO.AirQualityIndex createIndex(Number v, String g, String u) {
-        return AirQualityResponseDTO.AirQualityIndex.builder().value(v != null ? v.intValue() : 0).grade(g).status(convertGradeToStatus(g)).unit(u).build();
+        return AirQualityResponseDTO.AirQualityIndex.builder().value(v != null ? v.intValue() : 0).grade(g)
+                .status(convertGradeToStatus(g)).unit(u).build();
     }
 
     private String convertGradeToStatus(String g) {
-        if ("1".equals(g)) return "좋음";
-        if ("2".equals(g)) return "보통";
-        if ("3".equals(g)) return "나쁨";
-        if ("4".equals(g)) return "매우나쁨"; // 공백 제거
+        if ("1".equals(g))
+            return "좋음";
+        if ("2".equals(g))
+            return "보통";
+        if ("3".equals(g))
+            return "나쁨";
+        if ("4".equals(g))
+            return "매우나쁨"; // 공백 제거
         return "보통"; // 기본값 통일
     }
 

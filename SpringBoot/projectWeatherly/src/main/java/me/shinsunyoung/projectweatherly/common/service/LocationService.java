@@ -40,10 +40,11 @@ public class LocationService {
 
             log.info("IP 기반 위치 조회 URL: {}", url);
 
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            ResponseEntity<byte[]> response = restTemplate.getForEntity(url, byte[].class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                JsonNode node = objectMapper.readTree(response.getBody());
+                String responseBody = new String(response.getBody(), java.nio.charset.StandardCharsets.UTF_8);
+                JsonNode node = objectMapper.readTree(responseBody);
 
                 LocationDTO location = new LocationDTO();
                 location.setIpAddress(ipAddress);
@@ -127,13 +128,14 @@ public class LocationService {
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<String> entity = new HttpEntity<>(headers);
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.GET, entity, String.class);
+            ResponseEntity<byte[]> response = restTemplate.exchange(
+                    url, HttpMethod.GET, entity, byte[].class);
 
             log.info("GPS 기반 위치 조회 응답 상태: {}", response.getStatusCode());
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                JsonNode root = objectMapper.readTree(response.getBody());
+                String responseBody = new String(response.getBody(), java.nio.charset.StandardCharsets.UTF_8);
+                JsonNode root = objectMapper.readTree(responseBody);
                 JsonNode documents = root.path("documents");
 
                 if (documents.isArray() && documents.size() > 0) {
@@ -159,7 +161,8 @@ public class LocationService {
                     if (firstDoc.has("road_address")) {
                         JsonNode roadAddress = firstDoc.path("road_address");
                         if (roadAddress.has("building_name") && !roadAddress.path("building_name").isNull()) {
-                            if (addressBuilder.length() > 0) addressBuilder.append(" ");
+                            if (addressBuilder.length() > 0)
+                                addressBuilder.append(" ");
                             addressBuilder.append(roadAddress.path("building_name").asText());
                         }
                     }
@@ -173,9 +176,70 @@ public class LocationService {
             }
         } catch (Exception e) {
             log.warn("GPS 기반 위치 정보 조회 실패: {}", e.getMessage());
+            return getFallbackLocationByGps(latitude, longitude);
         }
 
-        return getDefaultLocation();
+        return getFallbackLocationByGps(latitude, longitude);
+    }
+
+    private static class RegionCoordinate {
+        String name;
+        String code;
+        double lat;
+        double lng;
+
+        RegionCoordinate(String name, String code, double lat, double lng) {
+            this.name = name;
+            this.code = code;
+            this.lat = lat;
+            this.lng = lng;
+        }
+    }
+
+    private static final RegionCoordinate[] REGION_COORDS = {
+            new RegionCoordinate("서울특별시", "1100000000", 37.5665, 126.9780),
+            new RegionCoordinate("부산광역시", "2600000000", 35.1796, 129.0756),
+            new RegionCoordinate("대구광역시", "2700000000", 35.8714, 128.6014),
+            new RegionCoordinate("인천광역시", "2800000000", 37.4563, 126.7052),
+            new RegionCoordinate("광주광역시", "2900000000", 35.1595, 126.8526),
+            new RegionCoordinate("대전광역시", "3000000000", 36.3504, 127.3845),
+            new RegionCoordinate("울산광역시", "3100000000", 35.5384, 129.3114),
+            new RegionCoordinate("세종특별자치시", "3600000000", 36.4800, 127.2890),
+            new RegionCoordinate("경기도", "4100000000", 37.4138, 127.5183),
+            new RegionCoordinate("강원도", "4200000000", 37.8228, 128.1555),
+            new RegionCoordinate("충청북도", "4300000000", 36.6350, 127.4914),
+            new RegionCoordinate("충청남도", "4400000000", 36.6588, 126.6728),
+            new RegionCoordinate("전라북도", "4500000000", 35.7175, 127.1530),
+            new RegionCoordinate("전라남도", "4600000000", 34.8163, 126.4629),
+            new RegionCoordinate("경상북도", "4700000000", 36.5760, 128.5056),
+            new RegionCoordinate("경상남도", "4800000000", 35.2383, 128.6924),
+            new RegionCoordinate("제주특별자치도", "5000000000", 33.4996, 126.5312)
+    };
+
+    private LocationDTO getFallbackLocationByGps(Double latitude, Double longitude) {
+        if (latitude == null || longitude == null)
+            return getDefaultLocation();
+
+        RegionCoordinate closest = REGION_COORDS[0];
+        double minDistance = Double.MAX_VALUE;
+
+        for (RegionCoordinate rc : REGION_COORDS) {
+            double distance = Math.pow(rc.lat - latitude, 2) + Math.pow(rc.lng - longitude, 2);
+            if (distance < minDistance) {
+                minDistance = distance;
+                closest = rc;
+            }
+        }
+
+        LocationDTO location = new LocationDTO();
+        location.setLatitude(latitude);
+        location.setLongitude(longitude);
+        location.setRegionName(closest.name);
+        location.setCity(closest.name);
+        location.setAddress("[더미 데이터] " + closest.name + " 부근");
+        location.setRegionCode(closest.code);
+        location.setCountry("South Korea");
+        return location;
     }
 
     private LocationDTO getDefaultLocation() {
@@ -189,49 +253,86 @@ public class LocationService {
     }
 
     private String mapCityToRegionCode(String regionName) {
-        if (regionName == null) return defaultRegionCode;
+        if (regionName == null)
+            return defaultRegionCode;
 
-        if (regionName.contains("서울")) return "1100000000";
-        if (regionName.contains("부산")) return "2600000000";
-        if (regionName.contains("인천")) return "2800000000";
-        if (regionName.contains("대구")) return "2700000000";
-        if (regionName.contains("대전")) return "3000000000";
-        if (regionName.contains("광주")) return "2900000000";
-        if (regionName.contains("울산")) return "3100000000";
-        if (regionName.contains("경기")) return "4100000000";
-        if (regionName.contains("강원")) return "4200000000";
-        if (regionName.contains("충북")) return "4300000000";
-        if (regionName.contains("충남")) return "4400000000";
-        if (regionName.contains("전북")) return "4500000000";
-        if (regionName.contains("전남")) return "4600000000";
-        if (regionName.contains("경북")) return "4700000000";
-        if (regionName.contains("경남")) return "4800000000";
-        if (regionName.contains("제주")) return "5000000000";
+        if (regionName.contains("서울"))
+            return "1100000000";
+        if (regionName.contains("부산"))
+            return "2600000000";
+        if (regionName.contains("인천"))
+            return "2800000000";
+        if (regionName.contains("대구"))
+            return "2700000000";
+        if (regionName.contains("대전"))
+            return "3000000000";
+        if (regionName.contains("광주"))
+            return "2900000000";
+        if (regionName.contains("울산"))
+            return "3100000000";
+        if (regionName.contains("경기"))
+            return "4100000000";
+        if (regionName.contains("강원"))
+            return "4200000000";
+        if (regionName.contains("충북"))
+            return "4300000000";
+        if (regionName.contains("충남"))
+            return "4400000000";
+        if (regionName.contains("전북"))
+            return "4500000000";
+        if (regionName.contains("전남"))
+            return "4600000000";
+        if (regionName.contains("경북"))
+            return "4700000000";
+        if (regionName.contains("경남"))
+            return "4800000000";
+        if (regionName.contains("제주"))
+            return "5000000000";
 
         return defaultRegionCode;
     }
 
     private String mapRegionToRegionCode(String regionName, String region2depthName) {
-        if (regionName == null) return defaultRegionCode;
+        if (regionName == null)
+            return defaultRegionCode;
+
+        String combined = regionName + " " + (region2depthName != null ? region2depthName : "");
 
         // "서울특별시", "서울" 모두 "서울"을 포함하므로 OK!
-        if (regionName.contains("서울")) return "1100000000";
-        if (regionName.contains("부산")) return "2600000000";
-        if (regionName.contains("대구")) return "2700000000";
-        if (regionName.contains("인천")) return "2800000000";
-        if (regionName.contains("광주")) return "2900000000";
-        if (regionName.contains("대전")) return "3000000000";
-        if (regionName.contains("울산")) return "3100000000";
-        if (regionName.contains("세종")) return "3600000000"; // 세종 추가!
-        if (regionName.contains("경기")) return "4100000000";
-        if (regionName.contains("강원")) return "4200000000";
-        if (regionName.contains("충북") || regionName.contains("충청북도")) return "4300000000";
-        if (regionName.contains("충남") || regionName.contains("충청남도")) return "4400000000";
-        if (regionName.contains("전북") || regionName.contains("전라북도")) return "4500000000";
-        if (regionName.contains("전남") || regionName.contains("전라남도")) return "4600000000";
-        if (regionName.contains("경북") || regionName.contains("경상북도")) return "4700000000";
-        if (regionName.contains("경남") || regionName.contains("경상남도")) return "4800000000";
-        if (regionName.contains("제주")) return "5000000000";
+        if (combined.contains("서울"))
+            return "1100000000";
+        if (combined.contains("부산"))
+            return "2600000000";
+        if (combined.contains("대구"))
+            return "2700000000";
+        if (combined.contains("인천"))
+            return "2800000000";
+        if (combined.contains("광주"))
+            return "2900000000";
+        if (combined.contains("대전"))
+            return "3000000000";
+        if (combined.contains("울산"))
+            return "3100000000";
+        if (combined.contains("세종"))
+            return "3600000000"; // 세종 추가!
+        if (combined.contains("경기"))
+            return "4100000000";
+        if (combined.contains("강원"))
+            return "4200000000";
+        if (combined.contains("충북") || combined.contains("충청북도"))
+            return "4300000000";
+        if (combined.contains("충남") || combined.contains("충청남도"))
+            return "4400000000";
+        if (combined.contains("전북") || combined.contains("전라북도"))
+            return "4500000000";
+        if (combined.contains("전남") || combined.contains("전라남도"))
+            return "4600000000";
+        if (combined.contains("경북") || combined.contains("경상북도"))
+            return "4700000000";
+        if (combined.contains("경남") || combined.contains("경상남도"))
+            return "4800000000";
+        if (combined.contains("제주"))
+            return "5000000000";
 
         return defaultRegionCode;
     }

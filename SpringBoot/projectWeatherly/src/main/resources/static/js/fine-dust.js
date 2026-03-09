@@ -102,7 +102,7 @@ function renderSimpleItem(container, r) {
     div.className = 'region-weather';
     const statusText = r.overallStatus ? r.overallStatus : getAqiStatusText(r.overallGrade);
     const colorClass = getAqiClass(r.overallGrade);
-    const testBadge = r.isMock ? '<span style="color:#e74c3c; font-size:0.7em; margin-left:5px;">[TEST]</span>' : '';
+    const testBadge = r.isMock ? '<span style="color:#e74c3c; font-size:0.7em; margin-left:5px;">[더미 데이터]</span>' : '';
 
     div.innerHTML = `<div class="region-info"><span class="region-name">${r.sidoName}${testBadge}</span></div><span class="aqi-badge ${colorClass}">${statusText}</span>`;
 
@@ -187,7 +187,7 @@ function updateFineDustUI(data) {
         let name = getFullSidoName(data.sidoName);
         document.title = `${name} 대기질 - Weatherly`;
         if (data.isMock) {
-            name += ' <span style="background:#e74c3c; color:white; font-size:0.6em; padding:2px 6px; border-radius:4px; vertical-align:middle; margin-left: 5px;">TEST MODE</span>';
+            name += ' <span style="background:#e74c3c; color:white; font-size:0.6em; padding:2px 6px; border-radius:4px; vertical-align:middle; margin-left: 5px;">더미 데이터</span>';
             locNameEl.innerHTML = name;
         } else locNameEl.textContent = name;
     }
@@ -237,7 +237,7 @@ function updateDetailCard(prefix, item, unitStr) {
 async function loadFineDustByGPS(lat, lng) {
     const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : window.location.origin;
     try {
-        const res = await fetch(`${baseUrl}/api/air-quality/gps?latitude=${lat}&longitude=${lng}`, {method: 'POST'});
+        const res = await fetch(`${baseUrl}/api/air-quality/gps?latitude=${lat}&longitude=${lng}`, { method: 'POST' });
         const data = await res.json();
 
         if (data.success && data.data) {

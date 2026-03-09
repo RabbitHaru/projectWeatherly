@@ -6,7 +6,6 @@ let kakaoMap = null;
 let mapOverlays = {};
 
 document.addEventListener('DOMContentLoaded', function () {
-    addHourlyMarkerStyle();
     updateCurrentTime();
     setInterval(() => updateCurrentTime(), 60000);
 
@@ -21,22 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     checkKakaoMapLoop();
 });
 
-function addHourlyMarkerStyle() {
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .hourly-date-marker {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-width: 60px; margin: 0 8px; padding: 0 10px;
-            background: rgba(128, 128, 128, 0.1); border-radius: 12px;
-            font-weight: bold; color: #333; font-size: 0.9rem; text-align: center;
-            border: 1px solid rgba(0,0,0,0.05); flex-shrink: 0;
-        }
-        body.dark-mode .hourly-date-marker { background: rgba(255, 255, 255, 0.1); color: #eee; }
-        .hourly-date-marker .marker-day { font-size: 1.1em; margin-bottom: 2px; color: var(--primary-color, #3498db); }
-        .hourly-date-marker .marker-date { font-size: 0.75em; opacity: 0.7; }
-    `;
-    document.head.appendChild(style);
-}
+
 
 async function initializeLocation() {
     if (!document.getElementById('current-temp')) return;
@@ -61,7 +45,7 @@ window.changeDashboardLocation = async function (lat, lng, name) {
         kakaoMap.panTo(moveLatLon);
     }
     await loadWeatherDataByGPS(lat, lng, name);
-    window.scrollTo({top: 0, behavior: 'smooth'});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 function checkKakaoMapLoop() {
@@ -189,14 +173,14 @@ async function loadWeatherDataByGPS(lat, lng, forcedRegionName = null) {
     try {
         const res = await fetch(`${API_BASE_URL}/api/weather/gps?latitude=${lat}&longitude=${lng}`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'}
+            headers: { 'Content-Type': 'application/json' }
         });
         const data = await res.json();
 
         if (data.success) {
-            // ⭐ [핵심 수정] 서버에서 받은 '진짜 지역명'을 최우선으로 사용!
-            // forcedRegionName이나 '내 위치'는 데이터가 없을 때만 쓰는 비상용임.
-            const realName = data.data.regionName || forcedRegionName || '내 위치';
+            // ⭐ [핵심 수정] 사용자가 직접 선택했거나 세션에 명확히 저장된 이름(forcedRegionName)이 있다면,
+            // 백엔드의 GPS 결과보다 먼저 이 이름을 적용해야 지역이 엉뚱하게 바뀌거나 오류 시 서울로 초기화되는 것을 막습니다.
+            const realName = forcedRegionName || data.data.regionName || '내 위치';
 
             // 1. 세션 스토리지에 "부산광역시" 같은 실제 이름으로 저장
             RegionManager.save(realName, lat, lng);
@@ -234,7 +218,7 @@ async function loadAirQualitySummary() {
 
 async function loadAirQualitySummaryByGPS(lat, lng) {
     try {
-        const res = await fetch(`${API_BASE_URL}/api/air-quality/gps?latitude=${lat}&longitude=${lng}`, {method: 'POST'});
+        const res = await fetch(`${API_BASE_URL}/api/air-quality/gps?latitude=${lat}&longitude=${lng}`, { method: 'POST' });
         const data = await res.json();
         if (data.success && data.data) updateAqiSummaryUI(data.data);
     } catch (e) {
@@ -273,8 +257,8 @@ function updateMainPageAqiForecast(list) {
     const todayData = list.find(item => item.date === todayStr) || list[0];
     const tomorrowData = list.find(item => item.date === tomorrowStr) || list[1];
     const targetItems = [];
-    if (todayData) targetItems.push({label: '오늘 예보', data: todayData});
-    if (tomorrowData) targetItems.push({label: '내일 예보', data: tomorrowData});
+    if (todayData) targetItems.push({ label: '오늘 예보', data: todayData });
+    if (tomorrowData) targetItems.push({ label: '내일 예보', data: tomorrowData });
     targetItems.forEach(item => {
         const data = item.data;
         const gradeClass = getAqiClass(data.overallGrade);
@@ -288,16 +272,18 @@ function updateAqiSummaryUI(aqi) {
     if (!aqi) return;
     const badge = document.getElementById('aqi-overall');
     if (badge) {
-        badge.textContent = aqi.overallStatus || '--';
+        const statusText = aqi.overallStatus ? aqi.overallStatus : getAqiStatusText(aqi.overallGrade);
+        badge.textContent = statusText || '--';
         badge.className = 'aqi-badge ' + getAqiClass(aqi.overallGrade);
     }
     const updateItem = (key, unit) => {
         if (aqi[key]) {
             const elVal = document.getElementById(`${key}-value`);
             const elStat = document.getElementById(`${key}-status`);
-            if (elVal) elVal.textContent = `${aqi[key].value || '-'} ${unit}`;
+            if (elVal) elVal.textContent = `${aqi[key].value !== undefined && aqi[key].value !== null ? aqi[key].value : '-'} ${unit}`;
             if (elStat) {
-                elStat.textContent = aqi[key].status || '-';
+                const itemStatus = aqi[key].status ? aqi[key].status : getAqiStatusText(aqi[key].grade);
+                elStat.textContent = itemStatus || '-';
                 elStat.className = 'aqi-status ' + getAqiClass(aqi[key].grade);
             }
         }
@@ -324,7 +310,7 @@ function updateWeatherUI(weather) {
         const locationEl = document.getElementById('current-location');
         if (locationEl) {
             let name = getFullSidoName(weather.regionName);
-            if (weather.isMock) name += ' <span style="background:#e74c3c; color:white; font-size:0.6em; padding:2px 6px; border-radius:4px; vertical-align:middle; margin-left: 5px;">TEST MODE</span>';
+            if (weather.isMock) name += ' <span style="background:#e74c3c; color:white; font-size:0.6em; padding:2px 6px; border-radius:4px; vertical-align:middle; margin-left: 5px;">더미 데이터</span>';
             locationEl.innerHTML = name;
         }
     }

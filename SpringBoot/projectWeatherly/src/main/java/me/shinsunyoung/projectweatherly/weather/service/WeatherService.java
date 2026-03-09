@@ -113,6 +113,7 @@ public class WeatherService {
                         .shortSummary("잠시 후 다시 시도해주세요.")
                         .midSummary("API 연결 상태를 확인하세요.")
                         .build())
+                .isMock(true)
                 .build();
 
         return liteMode ? WeatherResponseDTO.createLiteVersion(response) : response;

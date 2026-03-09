@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <th:block th:replace="layout/header :: head">
         <title>Weatherly - 미세먼지 정보</title>
@@ -8,150 +9,184 @@
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/fine-dust.css}">
 </head>
+
 <body>
-<div th:replace="layout/header :: header"></div>
+    <div th:replace="layout/header :: header"></div>
 
-<main class="main-container">
-    <div class="main-content">
-        <section class="weather-summary">
-            <div class="location-header">
-                <div class="location-info">
-                    <h1 class="location-title">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span class="location-name" id="fine-dust-location">서울특별시</span>
-                        <button class="location-control-btn gps-sync-btn" id="fine-dust-gps-sync-btn">
-                            <i class="fas fa-satellite"></i> <span>위치 동기화</span>
-                        </button>
-                    </h1>
-                    <div class="location-meta"><span class="current-time" id="fine-dust-current-time"></span></div>
+    <main class="main-container">
+        <div class="main-content">
+            <section class="weather-summary">
+                <div class="location-header">
+                    <div class="location-info">
+                        <h1 class="location-title">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="location-name" id="fine-dust-location">서울특별시</span>
+                            <button class="location-control-btn gps-sync-btn" id="fine-dust-gps-sync-btn">
+                                <i class="fas fa-satellite"></i> <span>위치 동기화</span>
+                            </button>
+                        </h1>
+                        <div class="location-meta"><span class="current-time" id="fine-dust-current-time"></span></div>
+                    </div>
+                    <div class="weather-status-container">
+                        <div class="aqi-badge large-badge" id="fine-dust-overall-badge">--</div>
+                        <div class="weather-condition" id="fine-dust-health-advice">로딩 중...</div>
+                    </div>
                 </div>
-                <div class="weather-status-container">
-                    <div class="aqi-badge large-badge" id="fine-dust-overall-badge">--</div>
-                    <div class="weather-condition" id="fine-dust-health-advice">로딩 중...</div>
-                </div>
-            </div>
 
-            <div class="air-quality-summary expanded">
-                <div class="aqi-header">
-                    <h3><i class="fas fa-lungs"></i> 실시간 상세 정보</h3>
-                    <div class="update-time" id="fine-dust-update-time">--</div>
+                <div class="air-quality-summary expanded">
+                    <div class="aqi-header">
+                        <h3><i class="fas fa-lungs"></i> 실시간 상세 정보</h3>
+                        <div class="update-time" id="fine-dust-update-time">--</div>
+                    </div>
+                    <div class="aqi-detailed-grid">
+                        <div class="aqi-detail-card khai">
+                            <div class="aqi-detail-header"><i class="fas fa-chart-line"></i>
+                                <h4>통합지수</h4>
+                            </div>
+                            <div class="aqi-detail-body">
+                                <div class="aqi-detail-value" id="khai-value">--</div>
+                                <div class="aqi-detail-status" id="khai-status">--</div>
+                            </div>
+                        </div>
+                        <div class="aqi-detail-card pm10">
+                            <div class="aqi-detail-header"><i class="fas fa-smog"></i>
+                                <h4>미세먼지</h4>
+                            </div>
+                            <div class="aqi-detail-body">
+                                <div class="aqi-detail-value" id="pm10-detail-value">--</div>
+                                <div class="aqi-detail-status" id="pm10-detail-status">--</div>
+                            </div>
+                        </div>
+                        <div class="aqi-detail-card pm25">
+                            <div class="aqi-detail-header"><i class="fas fa-wind"></i>
+                                <h4>초미세먼지</h4>
+                            </div>
+                            <div class="aqi-detail-body">
+                                <div class="aqi-detail-value" id="pm25-detail-value">--</div>
+                                <div class="aqi-detail-status" id="pm25-detail-status">--</div>
+                            </div>
+                        </div>
+                        <div class="aqi-detail-card o3">
+                            <div class="aqi-detail-header"><i class="fas fa-cloud"></i>
+                                <h4>오존</h4>
+                            </div>
+                            <div class="aqi-detail-body">
+                                <div class="aqi-detail-value" id="o3-detail-value">--</div>
+                                <div class="aqi-detail-status" id="o3-detail-status">--</div>
+                            </div>
+                        </div>
+                        <div class="aqi-detail-card no2">
+                            <div class="aqi-detail-header"><i class="fas fa-industry"></i>
+                                <h4>이산화질소</h4>
+                            </div>
+                            <div class="aqi-detail-body">
+                                <div class="aqi-detail-value" id="no2-value">--</div>
+                                <div class="aqi-detail-status" id="no2-status">--</div>
+                            </div>
+                        </div>
+                        <div class="aqi-detail-card co">
+                            <div class="aqi-detail-header"><i class="fas fa-car"></i>
+                                <h4>일산화탄소</h4>
+                            </div>
+                            <div class="aqi-detail-body">
+                                <div class="aqi-detail-value" id="co-value">--</div>
+                                <div class="aqi-detail-status" id="co-status">--</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="aqi-detailed-grid">
-                    <div class="aqi-detail-card khai">
-                        <div class="aqi-detail-header"><i class="fas fa-chart-line"></i><h4>통합지수</h4></div>
-                        <div class="aqi-detail-body">
-                            <div class="aqi-detail-value" id="khai-value">--</div>
-                            <div class="aqi-detail-status" id="khai-status">--</div>
-                        </div>
-                    </div>
-                    <div class="aqi-detail-card pm10">
-                        <div class="aqi-detail-header"><i class="fas fa-smog"></i><h4>미세먼지</h4></div>
-                        <div class="aqi-detail-body">
-                            <div class="aqi-detail-value" id="pm10-detail-value">--</div>
-                            <div class="aqi-detail-status" id="pm10-detail-status">--</div>
-                        </div>
-                    </div>
-                    <div class="aqi-detail-card pm25">
-                        <div class="aqi-detail-header"><i class="fas fa-wind"></i><h4>초미세먼지</h4></div>
-                        <div class="aqi-detail-body">
-                            <div class="aqi-detail-value" id="pm25-detail-value">--</div>
-                            <div class="aqi-detail-status" id="pm25-detail-status">--</div>
-                        </div>
-                    </div>
-                    <div class="aqi-detail-card o3">
-                        <div class="aqi-detail-header"><i class="fas fa-cloud"></i><h4>오존</h4></div>
-                        <div class="aqi-detail-body">
-                            <div class="aqi-detail-value" id="o3-detail-value">--</div>
-                            <div class="aqi-detail-status" id="o3-detail-status">--</div>
-                        </div>
-                    </div>
-                    <div class="aqi-detail-card no2">
-                        <div class="aqi-detail-header"><i class="fas fa-industry"></i><h4>이산화질소</h4></div>
-                        <div class="aqi-detail-body">
-                            <div class="aqi-detail-value" id="no2-value">--</div>
-                            <div class="aqi-detail-status" id="no2-status">--</div>
-                        </div>
-                    </div>
-                    <div class="aqi-detail-card co">
-                        <div class="aqi-detail-header"><i class="fas fa-car"></i><h4>일산화탄소</h4></div>
-                        <div class="aqi-detail-body">
-                            <div class="aqi-detail-value" id="co-value">--</div>
-                            <div class="aqi-detail-status" id="co-status">--</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="forecast-section">
-            <div class="forecast-tabs" style="grid-template-columns: repeat(2, 1fr);">
-                <button class="tab-btn active" data-tab="today-aqi"><i class="fas fa-calendar-day"></i> 오늘 예보</button>
-                <button class="tab-btn" data-tab="tomorrow-aqi"><i class="fas fa-calendar-alt"></i> 내일 예보</button>
-            </div>
-            <div class="tab-content active" id="tab-today-aqi">
-                <div class="aqi-forecast-container" id="today-aqi-forecast"></div>
-            </div>
-            <div class="tab-content" id="tab-tomorrow-aqi">
-                <div class="aqi-forecast-container" id="tomorrow-aqi-forecast"></div>
-            </div>
-        </section>
+            <section class="forecast-section">
+                <div class="forecast-tabs">
+                    <button class="tab-btn active" data-tab="today-aqi"><i class="fas fa-calendar-day"></i> 오늘
+                        예보</button>
+                    <button class="tab-btn" data-tab="tomorrow-aqi"><i class="fas fa-calendar-alt"></i> 내일 예보</button>
+                </div>
+                <div class="tab-content active" id="tab-today-aqi">
+                    <div class="aqi-forecast-container" id="today-aqi-forecast"></div>
+                </div>
+                <div class="tab-content" id="tab-tomorrow-aqi">
+                    <div class="aqi-forecast-container" id="tomorrow-aqi-forecast"></div>
+                </div>
+            </section>
 
-        <section class="health-advice-section">
-            <div class="card-header"><h3><i class="fas fa-heartbeat"></i> 건강 조언</h3></div>
-            <div class="health-advice-content">
-                <div class="advice-card">
-                    <div class="advice-icon"><i class="fas fa-info-circle"></i></div>
-                    <div class="advice-text"><h4 id="advice-title">상태 확인 중...</h4>
-                        <p id="advice-description">데이터를 불러오는 중입니다.</p></div>
+            <section class="health-advice-section">
+                <div class="card-header">
+                    <h3><i class="fas fa-heartbeat"></i> 건강 조언</h3>
                 </div>
-                <div class="tips-grid">
-                    <div class="tip-card"><i class="fas fa-mask"></i><h5>마스크</h5>
-                        <p>나쁨 단계 이상 시 착용 필수</p></div>
-                    <div class="tip-card"><i class="fas fa-home"></i><h5>환기</h5>
-                        <p>실내 환기는 대기질이 좋을 때만</p></div>
-                    <div class="tip-card"><i class="fas fa-tint"></i><h5>수분 섭취</h5>
-                        <p>물 자주 마시기</p></div>
-                    <div class="tip-card"><i class="fas fa-walking"></i><h5>외출</h5>
-                        <p>장시간 실외 활동 자제</p></div>
+                <div class="health-advice-content">
+                    <div class="advice-card">
+                        <div class="advice-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="advice-text">
+                            <h4 id="advice-title">상태 확인 중...</h4>
+                            <p id="advice-description">데이터를 불러오는 중입니다.</p>
+                        </div>
+                    </div>
+                    <div class="tips-grid">
+                        <div class="tip-card"><i class="fas fa-mask"></i>
+                            <h5>마스크</h5>
+                            <p>나쁨 단계 이상 시 착용 필수</p>
+                        </div>
+                        <div class="tip-card"><i class="fas fa-home"></i>
+                            <h5>환기</h5>
+                            <p>실내 환기는 대기질이 좋을 때만</p>
+                        </div>
+                        <div class="tip-card"><i class="fas fa-tint"></i>
+                            <h5>수분 섭취</h5>
+                            <p>물 자주 마시기</p>
+                        </div>
+                        <div class="tip-card"><i class="fas fa-walking"></i>
+                            <h5>외출</h5>
+                            <p>장시간 실외 활동 자제</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </section>
-    </div>
-
-    <aside class="sidebar">
-        <div class="sidebar-card">
-            <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> 측정소 정보</h3></div>
-            <div class="card-content">
-                <div class="station-info">
-                    <p><i class="fas fa-broadcast-tower"></i> <strong>측정소:</strong> <span id="station-name">--</span></p>
-                    <p><i class="fas fa-clock"></i> <strong>측정시간:</strong> <span id="measurement-time">--</span></p>
-                </div>
-            </div>
+            </section>
         </div>
 
-        <div class="sidebar-card">
-            <div class="card-header"><h3><i class="fas fa-chart-bar"></i> 지역별 대기질</h3></div>
-            <div class="card-content">
-                <div class="regional-scroll-wrapper">
-                    <div class="regional-aqi-list" id="regional-aqi-list"></div>
+        <aside class="sidebar">
+            <div class="sidebar-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-map-marker-alt"></i> 측정소 정보</h3>
+                </div>
+                <div class="card-content">
+                    <div class="station-info">
+                        <p><i class="fas fa-broadcast-tower"></i> <strong>측정소:</strong> <span
+                                id="station-name">--</span></p>
+                        <p><i class="fas fa-clock"></i> <strong>측정시간:</strong> <span id="measurement-time">--</span></p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="sidebar-card">
-            <div class="card-header"><h3><i class="fas fa-link"></i> 관련 사이트</h3></div>
-            <div class="card-content">
-                <div class="related-links">
-                    <a href="https://www.airkorea.or.kr" target="_blank" class="related-link">에어코리아</a>
-                    <a href="https://www.weather.go.kr" target="_blank" class="related-link">기상청</a>
+            <div class="sidebar-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-bar"></i> 지역별 대기질</h3>
+                </div>
+                <div class="card-content">
+                    <div class="regional-scroll-wrapper">
+                        <div class="regional-aqi-list" id="regional-aqi-list"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </aside>
-</main>
 
-<div th:replace="layout/footer :: footer"></div>
-<script th:src="@{/js/common.js}"></script>
-<script th:src="@{/js/fine-dust.js}"></script>
+            <div class="sidebar-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-link"></i> 관련 사이트</h3>
+                </div>
+                <div class="card-content">
+                    <div class="related-links">
+                        <a href="https://www.airkorea.or.kr" target="_blank" class="related-link">에어코리아</a>
+                        <a href="https://www.weather.go.kr" target="_blank" class="related-link">기상청</a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <div th:replace="layout/footer :: footer"></div>
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/fine-dust.js}"></script>
 </body>
+
 </html>
