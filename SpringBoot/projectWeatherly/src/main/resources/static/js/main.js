@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     checkKakaoMapLoop();
+    updateRecentRegionsUI(); // [신규] 최근 방문 지역 칩 렌더링
 });
 
 
@@ -38,6 +39,11 @@ async function initializeLocation() {
 window.changeDashboardLocation = async function (lat, lng, name) {
     console.log(`지역 변경: ${name} (${lat}, ${lng})`);
     RegionManager.save(name, lat, lng);
+    
+    // [신규] 최근 방문 지역 목록 업데이트 (중복 제거 및 최신화)
+    addToRecentRegions(name, lat, lng);
+    updateRecentRegionsUI();
+
     const locationTitle = document.getElementById('current-location');
     if (locationTitle) locationTitle.innerText = `${name}로 이동 중...`;
     if (kakaoMap) {
@@ -395,6 +401,132 @@ function updateWeatherUI(weather) {
             location.href = `/fine-dust?region=${encodeURIComponent(weather.regionName)}`;
         };
     }
+
+    // [신규] 오늘의 생활 지수 업데이트 호출
+    updateLifeIndexUI(weather);
+    
+    // [신규] 옷차림 퀵 가이드 업데이트
+    updateOutfitQuickView(weather);
+}
+
+// [신규] 오늘의 추천 옷차림 요약 (1번 기능)
+function updateOutfitQuickView(weather) {
+    const el = document.getElementById('outfit-summary');
+    if (!el || !weather.current) return;
+
+    const temp = Math.round(weather.current.temperature);
+    let outfit = "";
+
+    if (temp >= 28) outfit = "민소매, 반바지, 원피스";
+    else if (temp >= 23) outfit = "반팔, 얇은 셔츠, 반바지";
+    else if (temp >= 20) outfit = "긴팔 티, 가디건, 면바지";
+    else if (temp >= 17) outfit = "니트, 맨투맨, 청바지";
+    else if (temp >= 12) outfit = "자켓, 가디건, 야상";
+    else if (temp >= 9) outfit = "트렌치 코트, 니트, 야상";
+    else if (temp >= 5) outfit = "코트, 가죽 자켓, 히트텍";
+    else outfit = "패딩, 두꺼운 코트, 목도리";
+
+    el.textContent = outfit;
+}
+
+// [신규] 최근 방문 지역 관리 (2번 기능)
+function addToRecentRegions(name, lat, lng) {
+    let recent = JSON.parse(localStorage.getItem('recentRegions') || '[]');
+    const cleanName = (name.length > 5) ? name.substring(0, 5) : name;
+    
+    // 동일 지역 중복 제거
+    recent = recent.filter(r => r.name !== cleanName);
+    
+    // 맨 앞에 추가
+    recent.unshift({ name: cleanName, lat: parseFloat(lat), lng: parseFloat(lng) });
+    
+    // 3개까지만 유지
+    recent = recent.slice(0, 3);
+    localStorage.setItem('recentRegions', JSON.stringify(recent));
+}
+
+function updateRecentRegionsUI() {
+    const container = document.getElementById('recent-regions');
+    if (!container) return;
+    
+    const recent = JSON.parse(localStorage.getItem('recentRegions') || '[]');
+    if (recent.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = '<span style="font-size: 0.8em; color: #888; align-self: center; margin-right: 5px;"><i class="fas fa-history"></i> 최근:</span>';
+    recent.forEach(region => {
+        const chip = document.createElement('button');
+        chip.className = 'recent-chip';
+        chip.style.cssText = 'background: rgba(52, 152, 219, 0.1); border: 1px solid rgba(52, 152, 219, 0.2); border-radius: 15px; padding: 4px 12px; font-size: 0.8rem; cursor: pointer; transition: 0.3s; color: var(--primary-color); font-weight: 600;';
+        chip.textContent = region.name;
+        chip.onclick = () => changeDashboardLocation(region.lat, region.lng, region.name);
+        
+        // 호버 효과
+        chip.onmouseover = () => { chip.style.background = 'var(--primary-color)'; chip.style.color = 'white'; };
+        chip.onmouseout = () => { chip.style.background = 'rgba(52, 152, 219, 0.1)'; chip.style.color = 'var(--primary-color)'; };
+        
+        container.appendChild(chip);
+    });
+}
+
+// [신규] 오늘의 생활 지수 계산 및 UI 업데이트
+function updateLifeIndexUI(weather) {
+    if (!weather || !weather.current) return;
+
+    const temp = weather.current.temperature;
+    const humidity = weather.current.humidity;
+    const precipitation = weather.current.precipitation || 0;
+    const wind = weather.current.windSpeed || 0;
+    const condition = weather.current.weatherCondition || "";
+
+    // 1. 세차 지수 계산 (비가 오면 0점, 습도 높으면 감점, 맑으면 가점)
+    let washScore = 80;
+    if (precipitation > 0 || condition.includes("비") || condition.includes("눈")) washScore = 10;
+    else {
+        if (humidity > 70) washScore -= 20;
+        if (condition.includes("맑음")) washScore += 20;
+        if (wind > 5) washScore -= 10;
+    }
+    washScore = Math.max(0, Math.min(100, washScore));
+    
+    // 2. 빨래 지수 계산 (습도 영향이 가장 큼, 비오면 0점)
+    let laundryScore = 100 - humidity; // 습도 90%면 10점, 20%면 80점
+    if (precipitation > 0 || condition.includes("비")) laundryScore = 5;
+    else if (condition.includes("맑음")) laundryScore += 10;
+    laundryScore = Math.max(0, Math.min(100, laundryScore));
+
+    // 3. 야외활동 지수 (기온 18~25도 최적, 미세먼지 나쁘면 감점 - 추후 연동)
+    let activityScore = 90;
+    if (temp < 0 || temp > 33) activityScore -= 40;
+    else if (temp < 10 || temp > 28) activityScore -= 20;
+    if (precipitation > 0) activityScore -= 50;
+    activityScore = Math.max(0, Math.min(100, activityScore));
+
+    // UI 반영
+    const update = (id, score, descId, descs) => {
+        const el = document.getElementById(id);
+        const descEl = document.getElementById(descId);
+        if (el) el.textContent = `${score}점`;
+        if (descEl) {
+            let msg = descs[0];
+            if (score >= 80) msg = descs[3];
+            else if (score >= 60) msg = descs[2];
+            else if (score >= 40) msg = descs[1];
+            descEl.textContent = msg;
+        }
+    };
+
+    update('car-wash-index', washScore, 'car-wash-desc', [
+        "세차하면 후회해요!", "가급적 미루세요.", "세차하기 괜찮아요.", "세차 적극 추천!"
+    ]);
+    update('laundry-index', laundryScore, 'laundry-desc', [
+        "절대 안 말라요!", "실내 건조 하세요.", "빨래하기 무난해요.", "뽀송하게 잘 말라요!"
+    ]);
+    update('activity-index', activityScore, 'activity-desc', [
+        "위험! 실내에 계세요.", "실외 활동 자제.", "적당한 산책 가능.", "밖으로 나가세요!"
+    ]);
 }
 
 function setNoWarningUI(titleEl, descEl, iconEl) {

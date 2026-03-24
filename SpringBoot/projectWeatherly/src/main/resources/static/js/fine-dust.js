@@ -45,6 +45,14 @@ document.addEventListener('DOMContentLoaded', function () {
             await loadFineDustByGPS(lat, lng);
         });
     }
+
+    // [신규] 지도 모달 닫기 바인딩
+    const closeBtn = document.getElementById('close-map-modal');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            document.getElementById('station-map-modal').style.display = 'none';
+        };
+    }
 });
 
 async function loadRegionalComparisonWithCache(forceRefresh = false) {
@@ -176,8 +184,32 @@ function renderForecastCard(item, label) {
     const statusText = getAqiStatusText(item.overallGrade);
     const dateStr = item.date ? item.date : '';
     let adviceText = item.advice || '상세 예보 정보가 없습니다.';
-    let causeText = item.cause ? `<br><br><strong><i class="fas fa-search-plus"></i> 원인:</strong><br>${item.cause}` : '';
-    return `<div class="aqi-forecast-day"><div class="forecast-header"><span class="forecast-label" style="font-size:1.2rem; font-weight:bold;">${label}</span><span class="forecast-date" style="color:#666; font-size:0.9rem;">(${dateStr})</span></div><div style="font-size:3.5rem; margin:15px 0; color:var(--primary-color);">${getAqiIcon(item.overallGrade)}</div><div class="forecast-overall ${gradeClass}" style="margin-bottom:15px; font-weight:bold;">${statusText}</div><div class="forecast-advice" style="text-align: center; word-break: keep-all; line-height: 1.6;"><i class="fas fa-quote-left" style="color:#ddd; margin-right:5px;"></i>${adviceText}${causeText}<i class="fas fa-quote-right" style="color:#ddd; margin-left:5px;"></i></div></div>`;
+    
+    // 원인 텍스트가 있을 경우 디자인 강화
+    let causeHtml = '';
+    if (item.cause && item.cause.trim() !== "" && !item.cause.includes("준비 중")) {
+        causeHtml = `<div class="forecast-cause" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd; font-size: 0.9rem; color: #555; text-align: left;">
+            <strong style="color: var(--primary-color);"><i class="fas fa-search-plus"></i> 발생 원인:</strong><br>
+            ${item.cause}
+        </div>`;
+    }
+
+    return `
+        <div class="aqi-forecast-day" style="background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <div class="forecast-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <span class="forecast-label" style="font-size: 1.2rem; font-weight: 800; color: var(--secondary-color);">${label}</span>
+                <span class="forecast-date" style="color: #888; font-size: 0.9rem;">${dateStr}</span>
+            </div>
+            <div style="font-size: 3.5rem; margin: 10px 0;">${getAqiIcon(item.overallGrade)}</div>
+            <div class="forecast-overall ${gradeClass}" style="margin-bottom: 20px; font-weight: 800; padding: 8px 25px; border-radius: 30px; display: inline-block;">${statusText}</div>
+            <div class="forecast-advice" style="background: #f8f9fa; padding: 15px; border-radius: 15px; line-height: 1.6; word-break: keep-all;">
+                <i class="fas fa-quote-left" style="color: #ddd; margin-right: 5px;"></i>
+                ${adviceText}
+                <i class="fas fa-quote-right" style="color: #ddd; margin-left: 5px;"></i>
+                ${causeHtml}
+            </div>
+        </div>
+    `;
 }
 
 function updateFineDustUI(data) {
@@ -212,6 +244,14 @@ function updateFineDustUI(data) {
         document.getElementById('advice-description').textContent = data.healthAdvice;
     }
     if (data.overallStatus) document.getElementById('advice-title').textContent = `현재 상태: ${data.overallStatus}`;
+    
+    // [추가] 측정소 지도 보기 이벤트 바인딩
+    const stationHeader = document.getElementById('station-info-header');
+    if (stationHeader && data.stationName) {
+        stationHeader.onclick = () => {
+            showStationMap(data.stationName, data.sidoName);
+        };
+    }
 
     updateDetailCard('khai', data.khai, '');
     updateDetailCard('pm10-detail', data.pm10, 'µg/m³');
@@ -261,5 +301,61 @@ async function loadFineDustByGPS(lat, lng) {
     } catch (e) {
         console.error(e);
         alert("서버 연결 실패");
+    }
+}
+
+// [신규] 측정소 지도를 보여주는 함수 (카카오맵 연동 - 검색 정확도 보강)
+function showStationMap(stationName, sidoName) {
+    const modal = document.getElementById('station-map-modal');
+    const displayEl = document.getElementById('target-station-display');
+    const mapContainer = document.getElementById('station-map');
+    
+    if (displayEl) displayEl.textContent = stationName;
+    modal.style.display = 'flex';
+
+    if (typeof kakao === 'undefined' || !kakao.maps) {
+        mapContainer.innerHTML = '<div style="padding:100px 20px; text-align:center; color:#666;"><i class="fas fa-exclamation-triangle"></i> 지도를 불러오려면 메인 페이지를 먼저 방문하거나 API키가 필요합니다.</div>';
+        return;
+    }
+
+    const geocoder = new kakao.maps.services.Geocoder();
+    const fullSido = getFullSidoName(sidoName);
+    const searchQuery = `${fullSido} ${stationName}`;
+
+    // 1차 시도: "시도명 + 측정소명"으로 검색
+    geocoder.addressSearch(searchQuery, function(result, status) {
+        if (status === kakao.maps.services.Status.OK) {
+            renderMap(result[0].x, result[0].y, stationName);
+        } else {
+            // 2차 시도: "시도명 + 측정소명 + 측정소" 단어 추가
+            geocoder.addressSearch(searchQuery + " 측정소", function(res2, stat2) {
+                if (stat2 === kakao.maps.services.Status.OK) {
+                    renderMap(res2[0].x, res2[0].y, stationName);
+                } else {
+                    // 최종 폴백: 주소가 아닌 키워드 장소 검색(Keyword Search) 시도 또는 시도 지역명으로라도 이동
+                    console.warn(`'${searchQuery}' 주소 검색 실패. 시도명(${fullSido})으로 대체 시도합니다.`);
+                    geocoder.addressSearch(fullSido, function(res3, stat3) {
+                        if (stat3 === kakao.maps.services.Status.OK) {
+                            renderMap(res3[0].x, res3[0].y, `${fullSido} (상세좌표 없음)`);
+                        } else {
+                            mapContainer.innerHTML = '<div style="padding:100px 20px; text-align:center; color:#666;"><i class="fas fa-search"></i> 해당 지역의 좌표를 찾을 수 없습니다.</div>';
+                        }
+                    });
+                }
+            });
+        }
+    });
+
+    // 지도 렌더링 헬퍼 함수
+    function renderMap(x, y, label) {
+        const coords = new kakao.maps.LatLng(y, x);
+        const mapOptions = { center: coords, level: 4 };
+        const map = new kakao.maps.Map(mapContainer, mapOptions);
+        const marker = new kakao.maps.Marker({ map: map, position: coords });
+        const infowindow = new kakao.maps.InfoWindow({
+            content: `<div style="width:150px;text-align:center;padding:6px 0;font-size:12px;font-weight:bold;">${label}</div>`
+        });
+        infowindow.open(map, marker);
+        setTimeout(() => map.relayout(), 150);
     }
 }
