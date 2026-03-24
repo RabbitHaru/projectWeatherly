@@ -95,6 +95,8 @@ function initTemperatureChart() {
     const minData = typeof serverMinTemps !== 'undefined' ? serverMinTemps : [];
     const labels = generateDayLabels();
 
+    const colors = getChartColors();
+
     tempChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -122,11 +124,11 @@ function initTemperatureChart() {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: {beginAtZero: false, grace: '10%', ticks: {color: 'white'}, grid: {color: 'rgba(255,255,255,0.1)'}},
-                x: {ticks: {color: 'white'}, grid: {color: 'rgba(255,255,255,0.1)'}}
+                y: {beginAtZero: false, grace: '10%', ticks: {color: colors.subText}, grid: {color: colors.grid}},
+                x: {ticks: {color: colors.subText}, grid: {color: colors.grid}}
             },
             plugins: {
-                legend: {labels: {color: 'white'}},
+                legend: {labels: {color: colors.text}},
                 tooltip: {mode: 'index', intersect: false}
             }
         }
@@ -269,6 +271,14 @@ function setupDarkModeObserver() {
 
 function updateAllChartsColor() {
     const colors = getChartColors();
+    if (tempChartInstance) {
+        tempChartInstance.options.scales.x.ticks.color = colors.subText;
+        tempChartInstance.options.scales.x.grid.color = colors.grid;
+        tempChartInstance.options.scales.y.ticks.color = colors.subText;
+        tempChartInstance.options.scales.y.grid.color = colors.grid;
+        tempChartInstance.options.plugins.legend.labels.color = colors.text;
+        tempChartInstance.update();
+    }
     if (aqiChartInstance) {
         aqiChartInstance.options.scales.y.ticks.color = colors.subText;
         aqiChartInstance.options.scales.y.grid.color = colors.grid;

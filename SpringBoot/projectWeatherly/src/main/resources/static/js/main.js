@@ -98,7 +98,7 @@ async function loadRegionalWeatherData() {
     const listContainer = document.getElementById('regional-weather');
     const regions = ALL_REGIONS.map(r => ({
         ...r,
-        showOnMap: ['서울', '부산', '대구', '광주', '대전', '강원', '제주', '독도'].includes(r.name)
+        showOnMap: ['서울', '부산', '대구', '광주', '대전', '강원', '제주'].includes(r.name)
     }));
     const regionCodes = regions.filter(r => r.code).map(r => r.code).join(',');
 
@@ -114,17 +114,11 @@ async function loadRegionalWeatherData() {
             let temp = '--';
             let cond = '로딩중';
             let iconClass = 'fas fa-spinner fa-spin';
-            if (region.name === '독도') {
-                temp = '15';
-                cond = '맑음';
-                iconClass = 'fas fa-flag';
-            } else {
-                const data = weatherData.find(d => d.regionCode === region.code);
-                if (data && data.current) {
-                    temp = Math.round(data.current.temperature);
-                    cond = data.current.weatherCondition;
-                    iconClass = getWeatherIconClass(cond);
-                }
+            const data = weatherData.find(d => d.regionCode === region.code);
+            if (data && data.current) {
+                temp = Math.round(data.current.temperature);
+                cond = data.current.weatherCondition;
+                iconClass = getWeatherIconClass(cond);
             }
             const clickAction = `onclick="changeDashboardLocation(${region.lat}, ${region.lng}, '${region.name}')"`;
             if (kakaoMap && region.showOnMap) {

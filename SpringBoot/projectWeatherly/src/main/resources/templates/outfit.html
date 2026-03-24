@@ -59,13 +59,13 @@
 
                 <div class="main-outfit-icon">
                     <div class="outfit-icon-wrapper">
-                        <i th:class="${
-                            outfit?.level == 1 ? 'fas fa-tshirt' :
-                           (outfit?.level == 2 ? 'fas fa-layer-group' :
-                           (outfit?.level == 3 ? 'fas fa-user-tie' :
-                           (outfit?.level == 4 ? 'fas fa-vest' :
-                           'fas fa-user-secret')))
-                        }"></i>
+                        <span th:text="${
+                            outfit?.level == 1 ? '👕' :
+                           (outfit?.level == 2 ? '👔' :
+                           (outfit?.level == 3 ? '🧥' :
+                           (outfit?.level == 4 ? '🧣' :
+                           '🧤')))
+                        }" style="font-size: 3.5rem; font-style: normal; line-height: 1; display: inline-block;"></span>
                     </div>
                     <div class="outfit-label">
                         <span th:text="${outfit?.mainName ?: '정보 없음'}">반팔 티셔츠</span>
@@ -177,7 +177,7 @@
             <div class="level-items">
                 <div class="level-item">
                     <div class="level-indicator level-1"></div>
-                    <div class="outfit-icon-small"><i class="fas fa-sun"></i></div>
+                    <div class="outfit-icon-small" style="font-size: 1.5rem; font-style: normal; line-height: 1;">👕</div>
                     <div class="level-desc">
                         <strong>레벨 1 (28°C↑)</strong>
                         <span>반팔, 민소매</span>
@@ -185,7 +185,7 @@
                 </div>
                 <div class="level-item">
                     <div class="level-indicator level-2"></div>
-                    <div class="outfit-icon-small"><i class="fas fa-cloud-sun"></i></div>
+                    <div class="outfit-icon-small" style="font-size: 1.5rem; font-style: normal; line-height: 1;">👔</div>
                     <div class="level-desc">
                         <strong>레벨 2 (23°C↑)</strong>
                         <span>반팔 + 얇은 겉옷</span>
@@ -193,7 +193,7 @@
                 </div>
                 <div class="level-item">
                     <div class="level-indicator level-3"></div>
-                    <div class="outfit-icon-small"><i class="fas fa-cloud"></i></div>
+                    <div class="outfit-icon-small" style="font-size: 1.5rem; font-style: normal; line-height: 1;">🧥</div>
                     <div class="level-desc">
                         <strong>레벨 3 (18°C↑)</strong>
                         <span>긴팔, 가디건</span>
@@ -201,7 +201,7 @@
                 </div>
                 <div class="level-item">
                     <div class="level-indicator level-4"></div>
-                    <div class="outfit-icon-small"><i class="fas fa-wind"></i></div>
+                    <div class="outfit-icon-small" style="font-size: 1.5rem; font-style: normal; line-height: 1;">🧣</div>
                     <div class="level-desc">
                         <strong>레벨 4 (13°C↑)</strong>
                         <span>자켓, 니트</span>
@@ -209,7 +209,7 @@
                 </div>
                 <div class="level-item">
                     <div class="level-indicator level-5"></div>
-                    <div class="outfit-icon-small"><i class="fas fa-snowflake"></i></div>
+                    <div class="outfit-icon-small" style="font-size: 1.5rem; font-style: normal; line-height: 1;">🧤</div>
                     <div class="level-desc">
                         <strong>레벨 5 (13°C↓)</strong>
                         <span>코트, 패딩</span>
@@ -242,13 +242,13 @@
                     </div>
 
                     <div class="outfit-summary">
-                        <div class="outfit-icon">
-                            <i th:class="${
-                                forecast.level == 1 ? 'fas fa-sun' :
-                               (forecast.level == 2 ? 'fas fa-cloud-sun' :
-                               (forecast.level == 3 ? 'fas fa-cloud' :
-                               (forecast.level == 4 ? 'fas fa-wind' : 'fas fa-snowflake')))
-                            }"></i>
+                        <div class="outfit-icon" style="font-size: 2rem; font-style: normal; line-height: 1;">
+                            <span th:text="${
+                                forecast.level == 1 ? '👕' :
+                               (forecast.level == 2 ? '👔' :
+                               (forecast.level == 3 ? '🧥' :
+                               (forecast.level == 4 ? '🧣' : '🧤')))
+                            }"></span>
                         </div>
                         <div class="outfit-name" th:text="${forecast.mainName}">반팔 티셔츠</div>
                         <div class="outfit-tip" th:text="${forecast.tip}">일교차 주의</div>
